@@ -8,10 +8,13 @@ export default function ConsultaLivro() {
   const [erro, setErro] = useState("");
   const [alunoId, setAlunoId] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [salvandoStatus, setSalvandoStatus] = useState(false);
+  const [mensagemStatus, setMensagemStatus] = useState("");
 
   const buscarLivro = async () => {
     setErro("");
     setLivro(null);
+    setMensagemStatus("");
     if (!isbn.trim()) return;
 
     try {
@@ -25,6 +28,33 @@ export default function ConsultaLivro() {
       setLivro(data);
     } catch (err) {
       setErro("Erro ao conectar com o servidor.");
+    }
+  };
+
+  const alterarStatus = async (novoStatus: string) => {
+    // Atualiza visualmente na hora (otimista)
+    setLivro((prev: any) => ({ ...prev, status: novoStatus }));
+    setSalvandoStatus(true);
+    setMensagemStatus("");
+
+    try {
+      const response = await fetch(`/api/livros/${livro.isbn}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: novoStatus }),
+      });
+
+      if (response.ok) {
+        setMensagemStatus("✅ Status atualizado!");
+      } else {
+        setMensagemStatus("❌ Erro ao salvar status.");
+      }
+    } catch (error) {
+      setMensagemStatus("❌ Erro de conexão.");
+    } finally {
+      setSalvandoStatus(false);
+      // Limpa a mensagem após 3 segundos
+      setTimeout(() => setMensagemStatus(""), 3000);
     }
   };
 
@@ -44,7 +74,7 @@ export default function ConsultaLivro() {
       if (response.ok) {
         alert("✅ Empréstimo registrado!");
         setAlunoId("");
-        buscarLivro(); // Atualiza os números na tela
+        buscarLivro();
       } else {
         alert("❌ Erro ao realizar empréstimo.");
       }
@@ -54,6 +84,9 @@ export default function ConsultaLivro() {
       setCarregando(false);
     }
   };
+
+  // Verifica se o livro está disponível para empréstimo
+  const podeEmprestar = livro?.quantidadeDisponivel > 0 && livro?.status === 'disponivel';
 
   return (
     <div style={{ 
@@ -73,6 +106,7 @@ export default function ConsultaLivro() {
             placeholder="Digite o ISBN do livro..."
             value={isbn}
             onChange={(e) => setIsbn(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && buscarLivro()}
             style={{ 
               flex: 1, padding: "12px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "16px" 
             }}
@@ -88,10 +122,15 @@ export default function ConsultaLivro() {
           </button>
         </div>
 
-        {erro && <div style={{ color: "#d32f2f", backgroundColor: "#fdecea", padding: "10px", borderRadius: "8px", marginBottom: "20px", textAlign: "center" }}>{erro}</div>}
+        {erro && (
+          <div style={{ color: "#d32f2f", backgroundColor: "#fdecea", padding: "10px", borderRadius: "8px", marginBottom: "20px", textAlign: "center" }}>
+            {erro}
+          </div>
+        )}
 
         {livro && (
           <div style={{ border: "1px solid #eee", borderRadius: "12px", overflow: "hidden" }}>
+            {/* Cabeçalho com info do livro */}
             <div style={{ display: "flex", backgroundColor: "#fafafa", padding: "20px", gap: "20px", borderBottom: "1px solid #eee" }}>
               {livro.capa && (
                 <img src={livro.capa} alt="Capa" style={{ width: "120px", borderRadius: "6px", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
@@ -102,8 +141,8 @@ export default function ConsultaLivro() {
                 <p style={{ margin: "5px 0", color: "#666" }}><strong>ISBN:</strong> {livro.isbn}</p>
                 <div style={{ 
                   marginTop: "15px", display: "inline-block", padding: "5px 12px", borderRadius: "20px", 
-                  backgroundColor: livro.quantidadeDisponivel > 0 ? "#e6fffa" : "#fff5f5",
-                  color: livro.quantidadeDisponivel > 0 ? "#2c7a7b" : "#c53030",
+                  backgroundColor: podeEmprestar ? "#e6fffa" : "#fff5f5",
+                  color: podeEmprestar ? "#2c7a7b" : "#c53030",
                   fontWeight: "bold", fontSize: "14px", border: "1px solid"
                 }}>
                   {livro.statusTexto}
@@ -111,17 +150,41 @@ export default function ConsultaLivro() {
               </div>
             </div>
 
+            {/* Área de ações */}
             <div style={{ padding: "20px" }}>
               <h3 style={{ fontSize: "18px", marginBottom: "15px" }}>⚙️ Ações de Balcão</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <label style={{ fontSize: "14px", fontWeight: "bold", color: "#555" }}>Alterar Status Manualmente</label>
-                <select style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ddd", backgroundColor: "#fff", marginBottom: "20px" }}>
-                  <option>Disponível para Empréstimo</option>
-                  <option>Em Manutenção / Restauro</option>
-                  <option>Reservado</option>
-                </select>
+                
+                {/* Select de status manual - AGORA FUNCIONAL */}
+                <label style={{ fontSize: "14px", fontWeight: "bold", color: "#555" }}>
+                  Alterar Status Manualmente
+                </label>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }}>
+                  <select
+                    value={livro.status || 'disponivel'}
+                    onChange={(e) => alterarStatus(e.target.value)}
+                    disabled={salvandoStatus}
+                    style={{ 
+                      padding: "10px", borderRadius: "8px", border: "1px solid #ddd", 
+                      backgroundColor: "#fff", flex: 1,
+                      cursor: salvandoStatus ? "wait" : "pointer"
+                    }}
+                  >
+                    <option value="disponivel">Disponível para Empréstimo</option>
+                    <option value="reservado">Reservado</option>
+                  </select>
+                  {salvandoStatus && (
+                    <span style={{ color: "#888", fontSize: "14px" }}>Salvando...</span>
+                  )}
+                </div>
+                {mensagemStatus && (
+                  <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold" }}>
+                    {mensagemStatus}
+                  </p>
+                )}
 
-                {livro.quantidadeDisponivel > 0 ? (
+                {/* Seção de empréstimo */}
+                {podeEmprestar ? (
                   <div style={{ backgroundColor: "#f0f7ff", padding: "20px", borderRadius: "10px", border: "1px solid #cce3ff" }}>
                     <p style={{ margin: "0 0 10px 0", fontWeight: "bold", color: "#004085" }}>Registrar Saída para Aluno:</p>
                     <div style={{ display: "flex", gap: "10px" }}>
@@ -146,7 +209,10 @@ export default function ConsultaLivro() {
                   </div>
                 ) : (
                   <div style={{ textAlign: "center", padding: "15px", backgroundColor: "#fff5f5", color: "#c53030", borderRadius: "8px", fontWeight: "bold" }}>
-                    🚫 Não há exemplares disponíveis para novos empréstimos.
+                    {livro.status === 'reservado' 
+                      ? "🔒 Livro reservado — altere o status para liberar empréstimos."
+                      : "🚫 Não há exemplares disponíveis para novos empréstimos."
+                    }
                   </div>
                 )}
               </div>

@@ -15,7 +15,8 @@ model Livro {
   sinopse         String?
   capa            String?
   assuntos        String?
-  quantidadeTotal Int          @default(1) // <-- Adicione esta linha
+  quantidadeTotal Int          @default(1)
+  status          String       @default("disponivel") // "disponivel" | "reservado"
 
   emprestimos     Emprestimo[]
 }
