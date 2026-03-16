@@ -40,3 +40,9 @@ model Emprestimo {
   aluno  Aluno  @relation(fields: [alunoId], references: [id])
   livro  Livro  @relation(fields: [livroId], references: [id])
 }
+
+model Admin {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  senha    String
+}

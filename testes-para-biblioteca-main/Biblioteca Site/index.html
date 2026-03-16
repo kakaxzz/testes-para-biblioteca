@@ -14,6 +14,47 @@
 
 <body>
 
+<!-- Ícone administrador -->
+<div id="adminIcon">👤</div>
+
+<!-- Menu administrador -->
+<div id="menuAdmin" class="hidden">
+
+<div onclick="abrirPagina('/app')">
+📚 Adicionar Livro
+</div>
+
+<div onclick="abrirPagina('/emprestimos')">
+📖 Empréstimos
+</div>
+
+<div onclick="abrirPagina('/devolucoes')">
+📦 Devoluções
+</div>
+
+<div onclick="logoutAdmin()">
+🚪 Sair
+</div>
+
+</div>
+
+<!-- Tela login admin -->
+<div id="loginAdmin" class="hidden">
+
+<h2>Login Administrador</h2>
+
+<input id="usuario" placeholder="Usuário">
+
+<br><br>
+
+<input id="senha" type="password" placeholder="Senha">
+
+<br><br>
+
+<button onclick="loginAdmin()">Entrar</button>
+
+</div>
+
 <header class="header">
 
 <div class="logo">
