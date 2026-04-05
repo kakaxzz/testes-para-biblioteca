@@ -56,13 +56,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="sidebar-footer">
-          <a href="/" className="nav-item ghost" target="_blank" rel="noopener noreferrer">
-            <span className="nav-icon">🌐</span>
-            <span>Ver site publico</span>
-          </a>
+        
           <button className="logout-btn" onClick={handleLogout}>
             <span>🚪</span>
-            <span>Sair para o site</span>
+            <span>Voltar para o site</span>
           </button>
         </div>
       </aside>
