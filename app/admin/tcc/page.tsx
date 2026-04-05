@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import GenerateToken from "@/components/GenerateToken"
 
 export default function AdminTcc() {
   const [titulo, setTitulo] = useState("")
@@ -64,6 +65,10 @@ export default function AdminTcc() {
       <div className="page-header">
         <h1>TCCs & Artigos</h1>
         <p>Cadastre producoes academicas da escola</p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 28 }}>
+        <GenerateToken />
       </div>
 
       <div className="admin-grid-2">

@@ -68,3 +68,10 @@ model Tcc {
   arquivo   String
   criadoEm  DateTime @default(now())
 }
+model AccessToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
