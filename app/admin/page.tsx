@@ -18,7 +18,6 @@ export default function AdminDashboard() {
   const atalhos = [
     { icon: "📚", label: "Adicionar livro", href: "/admin/livros" },
     { icon: "📖", label: "Novo emprestimo", href: "/admin/emprestimos" },
-    { icon: "📦", label: "Registrar devolucao", href: "/admin/devolucoes" },
     { icon: "🎓", label: "Cadastrar aluno", href: "/admin/alunos" },
   ]
 
@@ -53,7 +52,6 @@ export default function AdminDashboard() {
                   background: `linear-gradient(90deg, ${c.cor}, rgba(255,255,255,0.25))`,
                 }}
               />
-
               <div style={{ padding: "24px 22px" }}>
                 <div style={{ fontSize: 31, marginBottom: 14 }}>{c.icon}</div>
                 <div
