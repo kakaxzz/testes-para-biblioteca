@@ -110,8 +110,8 @@ export default function AdminLivros() {
   return (
     <div>
       <style>{`
-        @media print { .no-print { display: none !important; } .etiqueta-print { display: flex !important; flex-wrap: wrap; position: fixed; inset: 0; align-items: flex-start; justify-content: flex-start; background: white; padding: 8px; } }
-        @media screen { .etiqueta-print { display: none; } }
+      @media print { .admin-shell { display: block !important; } .sidebar, .admin-main-hero, .no-print { display: none !important; } .admin-main, .admin-content { all: unset !important; display: block !important; } .etiqueta-print { display: flex !important; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; background: white; padding: 8px; } }
+@media screen { .etiqueta-print { display: none; } }
       `}</style>
 
       {/* ETIQUETAS PARA IMPRESSÃO */}

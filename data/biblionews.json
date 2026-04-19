@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "titulo": "O Livro do Mês ",
+    "mensagem": "O livro do mês do nosso Clube do Livro é Noites Brancas, de Fiódor Dostoiévski!",
+    "tag": "Clube do Livro"
+  },
+  {
+    "id": 2,
+    "titulo": "Data do Próximo Encontro",
+    "mensagem": "A Data definida para o próximo encontro do Clube do Livro é dia 30/04, Quinta-Feira às 15:30",
+    "tag": "Clube do Livro"
+  },
+  {
+    "id": 3,
+    "titulo": "Horário de atendimento",
+    "mensagem": "A biblioteca funciona de segunda a sexta, das 8h às 17h, com hora do estudo às 14h.",
+    "tag": "Aviso"
+  }
+]

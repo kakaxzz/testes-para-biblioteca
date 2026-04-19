@@ -10,6 +10,8 @@ const navItems = [
   { href: "/admin/emprestimos", label: "Emprestimos", icon: "📖" },
   { href: "/admin/alunos", label: "Alunos", icon: "🎓" },
   { href: "/admin/tcc", label: "TCCs & Artigos", icon: "📄" },
+  { href: "/admin/stats", label: "Estatísticas", icon: "📈" },
+  { href: "/admin/biblionews", label: "BiblioNews", icon: "📰" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

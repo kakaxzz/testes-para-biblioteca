@@ -15,10 +15,19 @@ type Livro = {
   quantidadeTotal?: number
 }
 
+type Notice = {
+  id: number
+  titulo: string
+  mensagem: string
+  tag: string
+}
+
 export default function Home() {
   const [livros, setLivros] = useState<Livro[]>([])
+  const [notices, setNotices] = useState<Notice[]>([])
   const [busca, setBusca] = useState("")
-  const [genero, setGenero] = useState("todos")
+  const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -29,6 +38,11 @@ export default function Home() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+
+    fetch("/api/biblionews")
+      .then((r) => r.json())
+      .then((data) => setNotices(data))
+      .catch(() => setNotices([]))
   }, [])
 
   const generos = useMemo(() => {
@@ -46,6 +60,17 @@ export default function Home() {
     return Array.from(set).sort()
   }, [livros])
 
+  const toggleGenero = (g: string) => {
+    setSelectedGeneros((prev) =>
+      prev.includes(g) ? prev.filter((item) => item !== g) : [...prev, g]
+    )
+  }
+
+  const clearFiltros = () => {
+    setSelectedGeneros([])
+    setBusca("")
+  }
+
   const filtrados = livros.filter((l) => {
     const termo = busca.toLowerCase()
     const matchBusca =
@@ -54,7 +79,10 @@ export default function Home() {
       l.assuntos?.toLowerCase().includes(termo)
 
     const matchGenero =
-      genero === "todos" || l.assuntos?.toLowerCase().includes(genero.toLowerCase())
+      selectedGeneros.length === 0 ||
+      selectedGeneros.some((g) =>
+        l.assuntos?.toLowerCase().includes(g.toLowerCase())
+      )
 
     return matchBusca && matchGenero
   })
@@ -386,11 +414,156 @@ export default function Home() {
           font-weight: 700;
         }
 
+        .filters-panel {
+          background: rgba(255, 255, 255, 0.92);
+          border: 1px solid rgba(140, 92, 92, 0.16);
+          border-radius: 18px;
+          padding: 14px 18px 14px;
+          margin-bottom: 24px;
+          box-shadow: 0 10px 22px rgba(102, 47, 47, 0.05);
+        }
+
+        .filters-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 14px;
+          flex-wrap: wrap;
+        }
+
+        .filters-title {
+          font-family: 'Source Sans 3', sans-serif;
+          font-size: 1rem;
+          font-weight: 800;
+          color: #3b1616;
+          margin-bottom: 6px;
+        }
+
+        .filters-note {
+          font-family: 'Source Sans 3', sans-serif;
+          font-size: 0.9rem;
+          color: #6f5e5e;
+          line-height: 1.4;
+        }
+
+        .selected-filters {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .filter-chip {
+          border: none;
+          cursor: pointer;
+          background: #f4e6df;
+          color: #6a2a2a;
+          border-radius: 999px;
+          padding: 8px 12px;
+          font-family: 'Source Sans 3', sans-serif;
+          font-weight: 700;
+          font-size: 0.88rem;
+          transition: transform 0.18s ease, background 0.18s ease;
+        }
+
+        .filter-chip:hover {
+          transform: translateY(-1px);
+          background: #e9d2c8;
+        }
+
+        .filter-clear {
+          border: none;
+          cursor: pointer;
+          color: #8b1e1e;
+          background: rgba(255, 230, 226, 0.95);
+          padding: 10px 16px;
+          border-radius: 999px;
+          font-family: 'Source Sans 3', sans-serif;
+          font-weight: 700;
+          transition: transform 0.18s ease, background 0.18s ease;
+        }
+
+        .filter-clear:hover {
+          transform: translateY(-1px);
+          background: rgba(255, 215, 208, 0.96);
+        }
+
+        .filters-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .filters-toggle {
+          border: 1px solid rgba(139, 30, 30, 0.18);
+          background: white;
+          color: #6a2a2a;
+          border-radius: 999px;
+          padding: 10px 18px;
+          font-family: 'Source Sans 3', sans-serif;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .filters-toggle:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 22px rgba(101, 33, 33, 0.09);
+        }
+
+        .filters-body {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.28s ease;
+        }
+
+        .filters-body.open {
+          max-height: 220px;
+        }
+
+        .filter-box {
+          background: #fffdfa;
+          border: 1px solid rgba(139, 30, 30, 0.12);
+          border-radius: 18px;
+          padding: 14px 14px 12px;
+          box-shadow: 0 10px 18px rgba(111, 40, 40, 0.05);
+        }
+
+        .filter-box-title {
+          font-family: 'Source Sans 3', sans-serif;
+          font-size: 0.98rem;
+          font-weight: 700;
+          color: #3c1818;
+          margin-bottom: 12px;
+        }
+
+        .filters-empty {
+          font-family: 'Source Sans 3', sans-serif;
+          color: #8c7474;
+          font-size: 0.94rem;
+          padding: 14px 0;
+        }
+
         .genre-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 12px;
-          margin-bottom: 28px;
+          gap: 10px;
+          margin-bottom: 0;
+          max-height: 140px;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+
+        .genre-row::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .genre-row::-webkit-scrollbar-thumb {
+          background: rgba(139, 30, 30, 0.22);
+          border-radius: 999px;
         }
 
         .genre-button {
@@ -534,6 +707,74 @@ export default function Home() {
           border-radius: 999px;
           background: rgba(139, 30, 30, 0.08);
           color: #8b1e1e;
+        }
+
+        .notice-section {
+          width: 100%;
+          max-width: none;
+          margin: 0;
+          padding: 46px 56px 76px 42px;
+          background: linear-gradient(180deg, #fffdf9 0%, #f9f3eb 100%);
+        }
+
+        .notice-inner {
+          max-width: 1180px;
+          margin: 0 auto;
+        }
+
+        .notice-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 18px;
+          margin-bottom: 28px;
+          flex-wrap: wrap;
+        }
+
+        .notice-subtitle {
+          font-family: 'Source Sans 3', sans-serif;
+          font-size: 0.98rem;
+          color: #7a5e5e;
+          max-width: 540px;
+        }
+
+        .notice-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 20px;
+        }
+
+        .notice-card {
+          border-radius: 22px;
+          padding: 24px;
+          background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,243,236,0.95) 100%);
+          box-shadow: 0 16px 34px rgba(88, 30, 30, 0.08);
+          border: 1px solid rgba(139,30,30,0.08);
+        }
+
+        .notice-card h3 {
+          font-family: 'Playfair Display', serif;
+          font-size: 1.15rem;
+          margin-bottom: 10px;
+          color: #2f1111;
+        }
+
+        .notice-card p {
+          font-family: 'Source Sans 3', sans-serif;
+          font-size: 0.95rem;
+          line-height: 1.7;
+          color: #5f4745;
+          margin-bottom: 16px;
+        }
+
+        .notice-tag {
+          display: inline-block;
+          font-family: 'Source Sans 3', sans-serif;
+          font-size: 0.8rem;
+          font-weight: 800;
+          color: #8b1e1e;
+          background: rgba(139,30,30,0.1);
+          padding: 6px 12px;
+          border-radius: 999px;
         }
 
         .about-section {
@@ -704,7 +945,7 @@ export default function Home() {
             <nav className="nav-links">
               <a href="#catalogo" className="nav-link">Catalogo</a>
               <Link href="/tcc" className="nav-link">TCC</Link>
-              <a href="#sobre" className="nav-link">Sobre</a>
+              <a href="#biblionews" className="nav-link">BiblioNews</a>
               <Link href="/admin/login" className="nav-link">Admin</Link>
             </nav>
           </div>
@@ -761,39 +1002,82 @@ export default function Home() {
             </div>
           </div>
 
-          {generos.length > 0 && (
-            <div className="genre-row">
-              <button
-                onClick={() => setGenero("todos")}
-                className={`genre-button ${genero === "todos" ? "active" : "inactive"}`}
-              >
-                Todos
-              </button>
-
-              {generos.map((g) => (
+          <div className="filters-panel">
+            <div className="filters-header">
+              <div>
+                <div className="filters-title">Filtros</div>
+                <div className="filters-note">
+                  Selecione assuntos para refinar a busca ou apague todos os filtros.
+                </div>
+              </div>
+              <div className="filters-actions">
                 <button
-                  key={g}
-                  onClick={() => setGenero(g === genero ? "todos" : g)}
-                  className={`genre-button ${genero === g ? "active" : "inactive"}`}
+                  type="button"
+                  className="filters-toggle"
+                  onClick={() => setFiltrosAbertos((prev) => !prev)}
                 >
-                  {g}
+                  {filtrosAbertos ? "Ocultar filtros" : "Mostrar filtros"}
                 </button>
-              ))}
+                {(selectedGeneros.length > 0 || busca) && (
+                  <button type="button" onClick={clearFiltros} className="filter-clear">
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+
+            {selectedGeneros.length > 0 && (
+              <div className="selected-filters">
+                {selectedGeneros.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() =>
+                      setSelectedGeneros((prev) => prev.filter((item) => item !== g))
+                    }
+                    className="filter-chip"
+                  >
+                    {g} ×
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className={`filters-body ${filtrosAbertos ? "open" : ""}`}>
+              <div className="filter-box">
+                <div className="filter-box-title">Assuntos disponíveis</div>
+                {generos.length > 0 ? (
+                  <div className="genre-row">
+                    {generos.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => toggleGenero(g)}
+                        className={`genre-button ${selectedGeneros.includes(g) ? "active" : "inactive"}`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="filters-empty">Nenhum assunto encontrado.</div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {loading && <div className="feedback-box">Carregando acervo...</div>}
 
           {!loading && filtrados.length === 0 && (
             <div className="feedback-box">
-              {busca || genero !== "todos"
+              {busca || selectedGeneros.length > 0
                 ? "Nenhum livro encontrado para esse filtro."
                 : "Nenhum livro cadastrado ainda."}
             </div>
           )}
 
           <div className="books-grid">
-            {filtrados.map((livro) => (
+            {filtrados.slice(0, 12).map((livro) => (
               <Link key={livro.id} href={`/livro/${livro.isbn}`} className="book-card" data-reveal>
                 <div className="book-cover">
                   {livro.capa ? (
@@ -825,6 +1109,46 @@ export default function Home() {
                 </div>
               </Link>
             ))}
+          </div>
+          {filtrados.length > 12 && (
+  <div style={{ textAlign: "center", marginTop: 32 }}>
+    <Link href="/catalogo" style={{
+      background: "#8b1e1e", color: "white", textDecoration: "none",
+      borderRadius: 8, padding: "12px 32px", fontSize: 15,
+      fontWeight: 600, display: "inline-block"
+    }}>
+      Ver catálogo completo ({livros.length} livros)
+    </Link>
+  </div>
+)}
+        </section>
+
+        <section id="biblionews" className="notice-section" data-reveal>
+          <div className="notice-inner">
+            <div className="notice-header">
+              <div className="catalog-accent" />
+              <div>
+                <h2 className="catalog-title">BiblioNews</h2>
+                <p className="notice-subtitle">Fique por dentro das novidades, avisos e comunicados da biblioteca.</p>
+              </div>
+            </div>
+
+            <div className="notice-grid">
+              {notices.length > 0 ? (
+                notices.map((notice) => (
+                  <article key={notice.id} className="notice-card">
+                    <h3>{notice.titulo}</h3>
+                    <p>{notice.mensagem}</p>
+                    <span className="notice-tag">{notice.tag}</span>
+                  </article>
+                ))
+              ) : (
+                <article className="notice-card">
+                  <h3>Sem avisos disponíveis</h3>
+                  <p>O administrador ainda não publicou nenhum comunicad.</p>
+                </article>
+              )}
+            </div>
           </div>
         </section>
 
