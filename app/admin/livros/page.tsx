@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { CategoriasSelect, CATEGORIAS } from "@/components/CategoriaSelect"
 
 export default function AdminLivros() {
   const [aba, setAba] = useState<"cadastrar" | "acervo">("cadastrar")
@@ -16,10 +17,13 @@ export default function AdminLivros() {
   const [filtroATE, setFiltroATE] = useState("")
   const [selecionados, setSelecionados] = useState<number[]>([])
 
+  // categorias como string[] tanto no cadastro quanto na edição
   const [campos, setCampos] = useState({
-    capa: "", autor: "", sinopse: "", categorias: "",
+    capa: "", autor: "", sinopse: "", categorias: [] as string[],
     editora: "", edicao: "", cdd: "", cutter: "", volume: "",
   })
+  const [editandoCategorias, setEditandoCategorias] = useState<string[]>([])
+
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { carregarLivros() }, [])
@@ -40,8 +44,28 @@ export default function AdminLivros() {
     const data = await res.json()
     if (res.ok) {
       setLivro({ ...data, isbn: cod })
-      setCampos({ capa: data.capa || "", autor: data.autor || "", sinopse: data.sinopse || "", categorias: data.assuntos ? data.assuntos.join(", ") : "", editora: data.editora || "", edicao: data.edicao || "", cdd: "", cutter: "", volume: "" })
-    } else { setMensagem(data.error); setTipoMensagem("erro") }
+
+      // Tenta mapear categorias da API para as da lista pré-definida
+      const assuntosApi: string[] = data.assuntos ?? []
+      const categoriasMatched = assuntosApi.filter((a: string) =>
+        CATEGORIAS.some(c => c.toLowerCase() === a.toLowerCase())
+      )
+
+      setCampos({
+        capa: data.capa || "",
+        autor: data.autor || "",
+        sinopse: data.sinopse || "",
+        categorias: categoriasMatched,
+        editora: data.editora || "",
+        edicao: data.edicao || "",
+        cdd: "",
+        cutter: "",
+        volume: "",
+      })
+    } else {
+      setMensagem(data.error)
+      setTipoMensagem("erro")
+    }
     setLoading(false); setIsbn(""); inputRef.current?.focus()
   }
 
@@ -49,15 +73,28 @@ export default function AdminLivros() {
     const res = await fetch("/api/livros", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...livro, autor: campos.autor, sinopse: campos.sinopse, capa: campos.capa, assuntos: campos.categorias.split(",").map((c: string) => c.trim()).filter(Boolean), editora: campos.editora, edicao: campos.edicao, cdd: campos.cdd, cutter: campos.cutter, volume: campos.volume }),
+      body: JSON.stringify({
+        ...livro,
+        autor: campos.autor,
+        sinopse: campos.sinopse,
+        capa: campos.capa,
+        assuntos: campos.categorias, // já é string[], a API faz join internamente
+        editora: campos.editora,
+        edicao: campos.edicao,
+        cdd: campos.cdd,
+        cutter: campos.cutter,
+        volume: campos.volume,
+      }),
     })
     const data = await res.json()
     if (res.ok) {
       setMensagem("✅ Livro salvo! Tombo #" + String(data.tombo).padStart(7, "0"))
       setTipoMensagem("ok"); setLivro(null)
-      setCampos({ capa: "", autor: "", sinopse: "", categorias: "", editora: "", edicao: "", cdd: "", cutter: "", volume: "" })
+      setCampos({ capa: "", autor: "", sinopse: "", categorias: [], editora: "", edicao: "", cdd: "", cutter: "", volume: "" })
       carregarLivros()
-    } else { setMensagem(data.error); setTipoMensagem("erro") }
+    } else {
+      setMensagem(data.error); setTipoMensagem("erro")
+    }
     inputRef.current?.focus()
   }
 
@@ -65,7 +102,10 @@ export default function AdminLivros() {
     const res = await fetch(`/api/livros/${editando.isbn}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editando),
+      body: JSON.stringify({
+        ...editando,
+        assuntos: editandoCategorias.join(", "),
+      }),
     })
     if (res.ok) {
       setMensagem("✅ Livro atualizado com sucesso!")
@@ -110,8 +150,8 @@ export default function AdminLivros() {
   return (
     <div>
       <style>{`
-      @media print { .admin-shell { display: block !important; } .sidebar, .admin-main-hero, .no-print { display: none !important; } .admin-main, .admin-content { all: unset !important; display: block !important; } .etiqueta-print { display: flex !important; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; background: white; padding: 8px; } }
-@media screen { .etiqueta-print { display: none; } }
+        @media print { .admin-shell { display: block !important; } .sidebar, .admin-main-hero, .no-print { display: none !important; } .admin-main, .admin-content { all: unset !important; display: block !important; } .etiqueta-print { display: flex !important; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; background: white; padding: 8px; } }
+        @media screen { .etiqueta-print { display: none; } }
       `}</style>
 
       {/* ETIQUETAS PARA IMPRESSÃO */}
@@ -124,7 +164,6 @@ export default function AdminLivros() {
               fontSize: 10, margin: 4, width: 180, height: 60,
               background: "white"
             }}>
-              {/* LADO ESQUERDO: código de barras + título */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", borderRight: "1px solid #000", padding: "3px 4px", flex: 1 }}>
                 <svg width="100" height="36" viewBox="0 0 104 36">
                   {String(l.tombo || 1).padStart(7, "0").split("").map((d, i) => {
@@ -136,7 +175,6 @@ export default function AdminLivros() {
                 </svg>
                 <div style={{ fontSize: 7, textAlign: "center", marginTop: 1 }}>{l.titulo || "—"}</div>
               </div>
-              {/* LADO DIREITO: dados bibliográficos */}
               <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 6px", gap: 1, minWidth: 52 }}>
                 <div style={{ fontWeight: "bold", fontSize: 11 }}>{l.cdd || "---"}</div>
                 <div>{l.cutter || "---"}</div>
@@ -193,7 +231,16 @@ export default function AdminLivros() {
                     </div>
                   </div>
                 </div>
-                <div className="input-group"><label>Assuntos / Categorias</label><input className="input-field" value={campos.categorias} onChange={e => setCampos(c => ({ ...c, categorias: e.target.value }))} placeholder="Separe por vírgula" /></div>
+
+                {/* ── COMBOBOX DE CATEGORIAS ── */}
+                <div className="input-group">
+                  <label>Assuntos / Categorias</label>
+                  <CategoriasSelect
+                    value={campos.categorias}
+                    onChange={novas => setCampos(c => ({ ...c, categorias: novas }))}
+                  />
+                </div>
+
                 <div className="input-group"><label>Sinopse</label><textarea className="input-field" value={campos.sinopse} onChange={e => setCampos(c => ({ ...c, sinopse: e.target.value }))} /></div>
                 <div className="input-group"><label>URL da Capa</label><input className="input-field" value={campos.capa} onChange={e => setCampos(c => ({ ...c, capa: e.target.value }))} /></div>
                 <div style={{ display: "flex", gap: 10 }}>
@@ -250,7 +297,16 @@ export default function AdminLivros() {
                     <div className="input-group"><label>Edição</label><input className="input-field" value={editando.edicao || ""} onChange={e => setEditando((v: any) => ({ ...v, edicao: e.target.value }))} /></div>
                     <div className="input-group"><label>Volume</label><input className="input-field" value={editando.volume || ""} onChange={e => setEditando((v: any) => ({ ...v, volume: e.target.value }))} /></div>
                   </div>
-                  <div className="input-group"><label>Assuntos</label><input className="input-field" value={editando.assuntos || ""} onChange={e => setEditando((v: any) => ({ ...v, assuntos: e.target.value }))} /></div>
+
+                  {/* ── COMBOBOX DE CATEGORIAS NO MODAL ── */}
+                  <div className="input-group">
+                    <label>Assuntos / Categorias</label>
+                    <CategoriasSelect
+                      value={editandoCategorias}
+                      onChange={setEditandoCategorias}
+                    />
+                  </div>
+
                   <div className="input-group"><label>Sinopse</label><textarea className="input-field" value={editando.sinopse || ""} onChange={e => setEditando((v: any) => ({ ...v, sinopse: e.target.value }))} /></div>
                   <div className="input-group"><label>URL da Capa</label><input className="input-field" value={editando.capa || ""} onChange={e => setEditando((v: any) => ({ ...v, capa: e.target.value }))} /></div>
                   <div style={{ display: "flex", gap: 10 }}>
@@ -288,7 +344,16 @@ export default function AdminLivros() {
                       <td>
                         <div style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => { setSelecionados([l.id]); setTimeout(() => window.print(), 300) }} style={{ padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🏷️</button>
-                          <button onClick={() => setEditando({ ...l })} style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}>✏️</button>
+                          <button
+                            onClick={() => {
+                              setEditando({ ...l })
+                              const cats = l.assuntos
+                                ? l.assuntos.split(",").map((c: string) => c.trim()).filter(Boolean)
+                                : []
+                              setEditandoCategorias(cats)
+                            }}
+                            style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
+                          >✏️</button>
                           <button onClick={() => removerLivro(l.isbn, l.titulo)} style={{ padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}>🗑️</button>
                         </div>
                       </td>
