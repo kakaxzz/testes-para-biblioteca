@@ -4,14 +4,15 @@ import { NextResponse } from "next/server"
 export async function GET() {
   try {
     const [livros, alunos, emprestimos, emaberto] = await Promise.all([
-      prisma.livro.count(),
+      prisma.exemplar.count(),
       prisma.aluno.count(),
       prisma.emprestimo.count(),
       prisma.emprestimo.count({ where: { dataDevolucao: null } }),
     ])
 
-    const topLivroGroups = await prisma.emprestimo.groupBy({
-      by: ["livroId"],
+    // Agrupa por exemplarId e depois busca o livro via exemplar
+    const topExemplarGroups = await prisma.emprestimo.groupBy({
+      by: ["exemplarId"],
       _count: { id: true },
       orderBy: { _count: { id: "desc" } },
       take: 5,
@@ -25,13 +26,16 @@ export async function GET() {
     })
 
     const topLivros = await Promise.all(
-      topLivroGroups.map(async (group) => {
-        const livro = await prisma.livro.findUnique({ where: { id: group.livroId } })
+      topExemplarGroups.map(async (group) => {
+        const exemplar = await prisma.exemplar.findUnique({
+          where: { id: group.exemplarId },
+          include: { livro: true },
+        })
         return {
-          id: group.livroId,
-          titulo: livro?.titulo ?? "Desconhecido",
-          autor: livro?.autor ?? "-",
-          isbn: livro?.isbn ?? "-",
+          id: exemplar?.livro?.id ?? group.exemplarId,
+          titulo: exemplar?.livro?.titulo ?? "Desconhecido",
+          autor: exemplar?.livro?.autor ?? "-",
+          isbn: exemplar?.livro?.isbn ?? "-",
           count: group._count?.id ?? 0,
         }
       })

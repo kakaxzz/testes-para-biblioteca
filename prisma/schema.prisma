@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,53 +8,54 @@ datasource db {
 }
 
 model Livro {
-  id              Int          @id @default(autoincrement())
-  titulo          String
-  autor           String
-  isbn            String       @unique
-  sinopse         String?
-  capa            String?
-  assuntos        String?
-  quantidadeTotal Int          @default(1)
-  status          String       @default("disponivel")
+  id        Int        @id @default(autoincrement())
+  titulo    String
+  autor     String
+  isbn      String     @unique
+  sinopse   String?
+  capa      String?
+  assuntos  String?
+  editora   String?
+  edicao    String?
+  volume    String?
+  cdd       String?
+  cutter    String?
+  criadoEm  DateTime   @default(now())
+  exemplares Exemplar[]
+}
 
-  // Campos bibliotecários
-  tombo           Int?         @unique
-  cutter          String?
-  cdd             String?
-  editora         String?
-  edicao          String?
-  volume          String?
-
-  criadoEm        DateTime     @default(now())
-
-  emprestimos     Emprestimo[]
+model Exemplar {
+  id         Int          @id @default(autoincrement())
+  livroId    Int
+  tombo      Int          @unique
+  status     String       @default("disponivel")
+  criadoEm   DateTime     @default(now())
+  livro      Livro        @relation(fields: [livroId], references: [id])
+  emprestimos Emprestimo[]
 }
 
 model Aluno {
-  id         Int     @id @default(autoincrement())
-  nome       String
-  matricula  String  @unique
-  whatsapp   String
-
+  id          Int          @id @default(autoincrement())
+  nome        String
+  matricula   String       @unique
+  whatsapp    String
   emprestimos Emprestimo[]
 }
 
 model Emprestimo {
-  id              Int      @id @default(autoincrement())
-  alunoId         Int
-  livroId         Int
-  dataEmprestimo  DateTime @default(now())
-  dataDevolucao   DateTime?
-
-  aluno  Aluno  @relation(fields: [alunoId], references: [id])
-  livro  Livro  @relation(fields: [livroId], references: [id])
+  id             Int       @id @default(autoincrement())
+  alunoId        Int
+  exemplarId     Int
+  dataEmprestimo DateTime  @default(now())
+  dataDevolucao  DateTime?
+  aluno          Aluno     @relation(fields: [alunoId], references: [id])
+  exemplar       Exemplar  @relation(fields: [exemplarId], references: [id])
 }
 
 model Admin {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  senha    String
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  senha String
 }
 
 model Tcc {
@@ -68,6 +68,7 @@ model Tcc {
   arquivo   String
   criadoEm  DateTime @default(now())
 }
+
 model AccessToken {
   id        String   @id @default(cuid())
   token     String   @unique

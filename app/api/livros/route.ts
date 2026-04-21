@@ -18,8 +18,26 @@ export async function GET(request: Request) {
       }
     }
 
-    const livros = await prisma.livro.findMany({ where, orderBy: { tombo: "asc" } })
-    return NextResponse.json(livros)
+    const livros = await prisma.livro.findMany({
+      where,
+      orderBy: { criadoEm: "asc" },
+      include: {
+        exemplares: {
+          orderBy: { tombo: "asc" },
+        },
+      },
+    })
+
+    // Adiciona quantidadeTotal e quantidadeDisponivel em cada livro
+   const livrosComContagem = livros.map((l: any) => ({
+  ...l,
+     quantidadeTotal: l.exemplares.length,
+  quantidadeDisponivel: l.exemplares.filter((e: any) => e.status === "disponivel").length,
+      // Tombo do primeiro exemplar (para exibir na tabela)
+      tombo: l.exemplares[0]?.tombo ?? null,
+    }))
+
+    return NextResponse.json(livrosComContagem)
   } catch {
     return NextResponse.json([])
   }
@@ -29,18 +47,30 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const livroExistente = await prisma.livro.findUnique({ where: { isbn: body.isbn } })
+    // Gera próximo tombo (global, independente do livro)
+    const ultimoExemplar = await prisma.exemplar.findFirst({
+      orderBy: { tombo: "desc" },
+    })
+    const proximoTombo = (ultimoExemplar?.tombo ?? 0) + 1
+
+    // Verifica se o livro já existe pelo ISBN
+    const livroExistente = await prisma.livro.findUnique({
+      where: { isbn: body.isbn },
+    })
+
     if (livroExistente) {
-      return NextResponse.json({ error: "Este ISBN já está cadastrado no sistema." }, { status: 400 })
+      // Livro já existe — só adiciona um novo exemplar
+      const novoExemplar = await prisma.exemplar.create({
+        data: {
+          livroId: livroExistente.id,
+          tombo: proximoTombo,
+          status: "disponivel",
+        },
+      })
+      return NextResponse.json({ tombo: novoExemplar.tombo, novoExemplar: true })
     }
 
-    // Gera tombo sequencial automático
-    const ultimo = await prisma.livro.findFirst({
-      orderBy: { tombo: "desc" },
-      where: { tombo: { not: null } },
-    })
-    const proximoTombo = (ultimo?.tombo ?? 0) + 1
-
+    // Livro novo — cria o livro e o primeiro exemplar
     const livro = await prisma.livro.create({
       data: {
         titulo: body.titulo,
@@ -48,19 +78,30 @@ export async function POST(request: Request) {
         isbn: body.isbn,
         sinopse: body.sinopse || "",
         capa: body.capa || null,
-        assuntos: Array.isArray(body.assuntos) ? body.assuntos.join(", ") : (body.assuntos || ""),
-        quantidadeTotal: parseInt(body.quantidadeTotal) || 1,
-        tombo: proximoTombo,
-        cutter: body.cutter || null,
-        cdd: body.cdd || null,
+        assuntos: Array.isArray(body.assuntos)
+          ? body.assuntos.join(", ")
+          : (body.assuntos || ""),
         editora: body.editora || null,
         edicao: body.edicao || null,
+        cdd: body.cdd || null,
+        cutter: body.cutter || null,
         volume: body.volume || null,
       },
     })
 
-    return NextResponse.json(livro)
+    const exemplar = await prisma.exemplar.create({
+      data: {
+        livroId: livro.id,
+        tombo: proximoTombo,
+        status: "disponivel",
+      },
+    })
+
+    return NextResponse.json({ tombo: exemplar.tombo, novoExemplar: false })
   } catch (error: any) {
-    return NextResponse.json({ error: "Erro ao salvar livro.", detalhe: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erro ao salvar livro.", detalhe: error.message },
+      { status: 500 }
+    )
   }
 }

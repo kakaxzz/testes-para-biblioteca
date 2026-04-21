@@ -1,14 +1,26 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import type { Exemplar, Emprestimo } from "@prisma/client"
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ isbn: string }> }
 ) {
   const { isbn } = await context.params
-  const livro = await prisma.livro.findUnique({ where: { isbn } })
+  const livro = await prisma.livro.findUnique({
+    where: { isbn },
+    include: {
+      exemplares: { orderBy: { tombo: "asc" } },
+    },
+  })
   if (!livro) return NextResponse.json({ error: "Livro não encontrado" }, { status: 404 })
-  return NextResponse.json(livro)
+
+  return NextResponse.json({
+    ...livro,
+    quantidadeTotal: livro.exemplares.length,
+    quantidadeDisponivel: livro.exemplares.filter((e: Exemplar) => e.status === "disponivel").length,
+    tombo: livro.exemplares[0]?.tombo ?? null,
+  })
 }
 
 export async function PUT(
@@ -34,7 +46,7 @@ export async function PUT(
       },
     })
     return NextResponse.json(livro)
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ error: "Erro ao atualizar livro." }, { status: 500 })
   }
 }
@@ -45,21 +57,31 @@ export async function DELETE(
 ) {
   const { isbn } = await context.params
   try {
-    // Verifica se tem empréstimos ativos
     const livro = await prisma.livro.findUnique({
       where: { isbn },
-      include: { emprestimos: { where: { dataDevolucao: null } } }
+      include: {
+        exemplares: {
+          include: {
+            emprestimos: { where: { dataDevolucao: null } },
+          },
+        },
+      },
     })
 
     if (!livro) return NextResponse.json({ error: "Livro não encontrado." }, { status: 404 })
 
-    if (livro.emprestimos.length > 0) {
-      return NextResponse.json({ error: "Não é possível remover um livro com empréstimo ativo." }, { status: 400 })
+    // Verifica se algum exemplar tem empréstimo ativo
+    const temEmprestimoAtivo = livro.exemplares.some((e: Exemplar & { emprestimos: Emprestimo[] }) => e.emprestimos.length > 0)
+    if (temEmprestimoAtivo) {
+      return NextResponse.json(
+        { error: "Não é possível remover um livro com empréstimo ativo." },
+        { status: 400 }
+      )
     }
 
     await prisma.livro.delete({ where: { isbn } })
     return NextResponse.json({ ok: true })
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ error: "Erro ao remover livro." }, { status: 500 })
   }
 }

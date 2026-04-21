@@ -17,7 +17,6 @@ export default function AdminLivros() {
   const [filtroATE, setFiltroATE] = useState("")
   const [selecionados, setSelecionados] = useState<number[]>([])
 
-  // categorias como string[] tanto no cadastro quanto na edição
   const [campos, setCampos] = useState({
     capa: "", autor: "", sinopse: "", categorias: [] as string[],
     editora: "", edicao: "", cdd: "", cutter: "", volume: "",
@@ -44,13 +43,10 @@ export default function AdminLivros() {
     const data = await res.json()
     if (res.ok) {
       setLivro({ ...data, isbn: cod })
-
-      // Tenta mapear categorias da API para as da lista pré-definida
       const assuntosApi: string[] = data.assuntos ?? []
       const categoriasMatched = assuntosApi.filter((a: string) =>
         CATEGORIAS.some(c => c.toLowerCase() === a.toLowerCase())
       )
-
       setCampos({
         capa: data.capa || "",
         autor: data.autor || "",
@@ -78,7 +74,7 @@ export default function AdminLivros() {
         autor: campos.autor,
         sinopse: campos.sinopse,
         capa: campos.capa,
-        assuntos: campos.categorias, // já é string[], a API faz join internamente
+        assuntos: campos.categorias,
         editora: campos.editora,
         edicao: campos.edicao,
         cdd: campos.cdd,
@@ -88,7 +84,10 @@ export default function AdminLivros() {
     })
     const data = await res.json()
     if (res.ok) {
-      setMensagem("✅ Livro salvo! Tombo #" + String(data.tombo).padStart(7, "0"))
+      const msg = data.novoExemplar
+        ? `✅ Novo exemplar adicionado! Tombo #${String(data.tombo).padStart(7, "0")}`
+        : `✅ Livro cadastrado! Tombo #${String(data.tombo).padStart(7, "0")}`
+      setMensagem(msg)
       setTipoMensagem("ok"); setLivro(null)
       setCampos({ capa: "", autor: "", sinopse: "", categorias: [], editora: "", edicao: "", cdd: "", cutter: "", volume: "" })
       carregarLivros()
@@ -130,11 +129,8 @@ export default function AdminLivros() {
   }
 
   function toggleTodos() {
-    if (selecionados.length === filtrados.length) {
-      setSelecionados([])
-    } else {
-      setSelecionados(filtrados.map((l: any) => l.id))
-    }
+    if (selecionados.length === filtrados.length) setSelecionados([])
+    else setSelecionados(filtrados.map((l: any) => l.id))
   }
 
   function imprimirSelecionados() {
@@ -157,33 +153,34 @@ export default function AdminLivros() {
       {/* ETIQUETAS PARA IMPRESSÃO */}
       {selecionados.length > 0 && (
         <div className="etiqueta-print">
-          {livros.filter((l: any) => selecionados.includes(l.id)).map((l: any) => (
-            <div key={l.id} style={{
-              display: "flex", flexDirection: "row",
-              border: "1px solid #000", fontFamily: "monospace",
-              fontSize: 10, margin: 4, width: 180, height: 60,
-              background: "white"
-            }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", borderRight: "1px solid #000", padding: "3px 4px", flex: 1 }}>
-                <svg width="100" height="36" viewBox="0 0 104 36">
-                  {String(l.tombo || 1).padStart(7, "0").split("").map((d, i) => {
-                    const n = parseInt(d)
-                    return Array.from({ length: 4 }).map((_, j) => (
-                      <rect key={`${i}-${j}`} x={i * 15 + j * 3.5} y={0} width={j % 2 === 0 ? 2.5 : 1} height={((n + j + 1) % 3 === 0) ? 36 : 26} fill="#000" />
-                    ))
-                  })}
-                </svg>
-                <div style={{ fontSize: 7, textAlign: "center", marginTop: 1 }}>{l.titulo || "—"}</div>
+          {livros.filter((l: any) => selecionados.includes(l.id)).flatMap((l: any) =>
+            (l.exemplares ?? [{ tombo: l.tombo }]).map((ex: any) => (
+              <div key={ex.tombo} style={{
+                display: "flex", flexDirection: "row",
+                border: "1px solid #000", fontFamily: "monospace",
+                fontSize: 10, margin: 4, width: 180, height: 60, background: "white"
+              }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", borderRight: "1px solid #000", padding: "3px 4px", flex: 1 }}>
+                  <svg width="100" height="36" viewBox="0 0 104 36">
+                    {String(ex.tombo || 1).padStart(7, "0").split("").map((d: string, i: number) => {
+                      const n = parseInt(d)
+                      return Array.from({ length: 4 }).map((_, j) => (
+                        <rect key={`${i}-${j}`} x={i * 15 + j * 3.5} y={0} width={j % 2 === 0 ? 2.5 : 1} height={((n + j + 1) % 3 === 0) ? 36 : 26} fill="#000" />
+                      ))
+                    })}
+                  </svg>
+                  <div style={{ fontSize: 7, textAlign: "center", marginTop: 1 }}>{l.titulo || "—"}</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 6px", gap: 1, minWidth: 52 }}>
+                  <div style={{ fontWeight: "bold", fontSize: 11 }}>{l.cdd || "---"}</div>
+                  <div>{l.cutter || "---"}</div>
+                  <div>{l.edicao ? `${l.edicao}ª` : "---"}</div>
+                  <div>{l.criadoEm ? new Date(l.criadoEm).getFullYear() : "---"}</div>
+                  <div style={{ borderTop: "1px solid #000", marginTop: 2, paddingTop: 2, fontWeight: "bold" }}>{String(ex.tombo || 0).padStart(7, "0")}</div>
+                </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 6px", gap: 1, minWidth: 52 }}>
-                <div style={{ fontWeight: "bold", fontSize: 11 }}>{l.cdd || "---"}</div>
-                <div>{l.cutter || "---"}</div>
-                <div>{l.edicao ? `${l.edicao}ª` : "---"}</div>
-                <div>{l.criadoEm ? new Date(l.criadoEm).getFullYear() : "---"}</div>
-                <div style={{ borderTop: "1px solid #000", marginTop: 2, paddingTop: 2, fontWeight: "bold" }}>{String(l.tombo || 0).padStart(7, "0")}</div>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
@@ -193,11 +190,10 @@ export default function AdminLivros() {
           <p>Cadastre e gerencie o acervo da biblioteca</p>
         </div>
 
-        {/* Abas */}
         <div className="surface-strip">
           {(["cadastrar", "acervo"] as const).map(a => (
             <button key={a} onClick={() => setAba(a)} className={aba === a ? "active" : ""}>
-              {a === "cadastrar" ? "📚 Cadastrar livro" : `📋 Acervo (${livros.length})`}
+              {a === "cadastrar" ? "📚 Cadastrar livro" : `📋 Acervo (${livros.reduce((acc: number, l: any) => acc + (l.exemplares?.length ?? 1), 0)})`}
             </button>
           ))}
         </div>
@@ -232,7 +228,6 @@ export default function AdminLivros() {
                   </div>
                 </div>
 
-                {/* ── COMBOBOX DE CATEGORIAS ── */}
                 <div className="input-group">
                   <label>Assuntos / Categorias</label>
                   <CategoriasSelect
@@ -297,8 +292,6 @@ export default function AdminLivros() {
                     <div className="input-group"><label>Edição</label><input className="input-field" value={editando.edicao || ""} onChange={e => setEditando((v: any) => ({ ...v, edicao: e.target.value }))} /></div>
                     <div className="input-group"><label>Volume</label><input className="input-field" value={editando.volume || ""} onChange={e => setEditando((v: any) => ({ ...v, volume: e.target.value }))} /></div>
                   </div>
-
-                  {/* ── COMBOBOX DE CATEGORIAS NO MODAL ── */}
                   <div className="input-group">
                     <label>Assuntos / Categorias</label>
                     <CategoriasSelect
@@ -306,7 +299,6 @@ export default function AdminLivros() {
                       onChange={setEditandoCategorias}
                     />
                   </div>
-
                   <div className="input-group"><label>Sinopse</label><textarea className="input-field" value={editando.sinopse || ""} onChange={e => setEditando((v: any) => ({ ...v, sinopse: e.target.value }))} /></div>
                   <div className="input-group"><label>URL da Capa</label><input className="input-field" value={editando.capa || ""} onChange={e => setEditando((v: any) => ({ ...v, capa: e.target.value }))} /></div>
                   <div style={{ display: "flex", gap: 10 }}>
@@ -322,43 +314,50 @@ export default function AdminLivros() {
                 <thead>
                   <tr>
                     <th><input type="checkbox" checked={filtrados.length > 0 && selecionados.length === filtrados.length} onChange={toggleTodos} /></th>
-                    <th>Tombo</th><th>Capa</th><th>Título</th><th>Autor</th><th>CDD</th><th>Cutter</th><th>Ed.</th><th>Vol.</th><th>Status</th><th>Ações</th>
+                    <th>Tombo</th><th>Capa</th><th>Título</th><th>Autor</th><th>CDD</th><th>Cutter</th><th>Ed.</th><th>Vol.</th><th>Exemplares</th><th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtrados.length === 0 && (
                     <tr><td colSpan={11} style={{ textAlign: "center", color: "#ccc", padding: 32 }}>Nenhum livro encontrado</td></tr>
                   )}
-                  {filtrados.map((l: any) => (
-                    <tr key={l.id} style={{ background: selecionados.includes(l.id) ? "#fdf6f6" : undefined }}>
-                      <td><input type="checkbox" checked={selecionados.includes(l.id)} onChange={() => toggleSelecionado(l.id)} /></td>
-                      <td style={{ fontWeight: 700, color: "#8b1e1e", fontSize: 13 }}>#{String(l.tombo || 0).padStart(7, "0")}</td>
-                      <td>{l.capa ? <img src={l.capa} alt={l.titulo} style={{ width: 32, height: 46, objectFit: "cover", borderRadius: 4 }} /> : <div style={{ width: 32, height: 46, background: "#f0eded", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📖</div>}</td>
-                      <td><div style={{ fontWeight: 500 }}>{l.titulo}</div><div style={{ fontSize: 11, color: "#aaa" }}>{l.isbn}</div></td>
-                      <td style={{ fontSize: 13, color: "#555" }}>{l.autor}</td>
-                      <td style={{ fontSize: 13, color: "#555" }}>{l.cdd || "—"}</td>
-                      <td style={{ fontSize: 13, color: "#555" }}>{l.cutter || "—"}</td>
-                      <td style={{ fontSize: 13, color: "#555" }}>{l.edicao ? `${l.edicao}ª` : "—"}</td>
-                      <td style={{ fontSize: 13, color: "#555" }}>{l.volume ? `v.${l.volume}` : "—"}</td>
-                      <td><span className={`badge ${l.status === "disponivel" ? "badge-green" : "badge-red"}`}>{l.status === "disponivel" ? "Disponível" : "Emprestado"}</span></td>
-                      <td>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button onClick={() => { setSelecionados([l.id]); setTimeout(() => window.print(), 300) }} style={{ padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🏷️</button>
-                          <button
-                            onClick={() => {
-                              setEditando({ ...l })
-                              const cats = l.assuntos
-                                ? l.assuntos.split(",").map((c: string) => c.trim()).filter(Boolean)
-                                : []
-                              setEditandoCategorias(cats)
-                            }}
-                            style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
-                          >✏️</button>
-                          <button onClick={() => removerLivro(l.isbn, l.titulo)} style={{ padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}>🗑️</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filtrados.flatMap((l: any) =>
+                    (l.exemplares ?? [{ tombo: l.tombo, status: "disponivel", id: l.id }]).map((ex: any) => (
+                      <tr key={`${l.id}-${ex.id}`} style={{ background: selecionados.includes(l.id) ? "#fdf6f6" : undefined }}>
+                        <td><input type="checkbox" checked={selecionados.includes(l.id)} onChange={() => toggleSelecionado(l.id)} /></td>
+                        <td style={{ fontWeight: 700, color: "#8b1e1e", fontSize: 13 }}>#{String(ex.tombo || 0).padStart(7, "0")}</td>
+                        <td>{l.capa ? <img src={l.capa} alt={l.titulo} style={{ width: 32, height: 46, objectFit: "cover", borderRadius: 4 }} /> : <div style={{ width: 32, height: 46, background: "#f0eded", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📖</div>}</td>
+                        <td><div style={{ fontWeight: 500 }}>{l.titulo}</div><div style={{ fontSize: 11, color: "#aaa" }}>{l.isbn}</div></td>
+                        <td style={{ fontSize: 13, color: "#555" }}>{l.autor}</td>
+                        <td style={{ fontSize: 13, color: "#555" }}>{l.cdd || "—"}</td>
+                        <td style={{ fontSize: 13, color: "#555" }}>{l.cutter || "—"}</td>
+                        <td style={{ fontSize: 13, color: "#555" }}>{l.edicao ? `${l.edicao}ª` : "—"}</td>
+                        <td style={{ fontSize: 13, color: "#555" }}>{l.volume ? `v.${l.volume}` : "—"}</td>
+                        <td>
+                          <span style={{ fontWeight: 700, fontSize: 13, color: l.quantidadeDisponivel === 0 ? "#8b1e1e" : "#166534" }}>
+                            {l.quantidadeDisponivel}/{l.quantidadeTotal}
+                          </span>
+                          <div style={{ fontSize: 11, color: "#aaa" }}>disponíveis</div>
+                        </td>
+                        <td>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button onClick={() => { setSelecionados([l.id]); setTimeout(() => window.print(), 300) }} style={{ padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🏷️</button>
+                            <button
+                              onClick={() => {
+                                setEditando({ ...l })
+                                const cats = l.assuntos
+                                  ? l.assuntos.split(",").map((c: string) => c.trim()).filter(Boolean)
+                                  : []
+                                setEditandoCategorias(cats)
+                              }}
+                              style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
+                            >✏️</button>
+                            <button onClick={() => removerLivro(l.isbn, l.titulo)} style={{ padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}>🗑️</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
