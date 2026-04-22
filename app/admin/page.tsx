@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { Papiro } from "@/components/Papiro"
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ livros: 0, alunos: 0, emprestimos: 0, emaberto: 0 })

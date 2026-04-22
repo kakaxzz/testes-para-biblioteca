@@ -7,7 +7,7 @@ export async function POST(request: Request) {
 
     const emprestimo = await prisma.emprestimo.findUnique({
       where: { id: Number(emprestimoId) },
-      include: { livro: true },
+      include: { exemplar: true },
     })
 
     if (!emprestimo) {
@@ -15,24 +15,25 @@ export async function POST(request: Request) {
     }
 
     if (emprestimo.dataDevolucao) {
-      return NextResponse.json({ error: "Este livro já foi devolvido." }, { status: 400 })
+      return NextResponse.json({ error: "Este empréstimo já foi devolvido." }, { status: 409 })
     }
 
-    // Registra a devolução
+    // Registra devolução e libera o exemplar
     await prisma.emprestimo.update({
       where: { id: Number(emprestimoId) },
       data: { dataDevolucao: new Date() },
     })
 
-    // Atualiza status do livro para disponível
-    await prisma.livro.update({
-      where: { id: emprestimo.livroId },
+    await prisma.exemplar.update({
+      where: { id: emprestimo.exemplar.id },
       data: { status: "disponivel" },
     })
 
     return NextResponse.json({ ok: true })
   } catch (error: any) {
-    console.error("Erro ao registrar devolução:", error)
-    return NextResponse.json({ error: "Erro ao registrar devolução." }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erro ao registrar devolução.", detalhe: error.message },
+      { status: 500 }
+    )
   }
 }

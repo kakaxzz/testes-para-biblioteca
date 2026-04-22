@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { emprestimoId } = await request.json()
 
     const emprestimo = await prisma.emprestimo.findUnique({
-      where: { id: Number(emprestimoId) }
+      where: { id: Number(emprestimoId) },
     })
 
     if (!emprestimo) {
@@ -14,17 +14,22 @@ export async function POST(request: Request) {
     }
 
     if (emprestimo.dataDevolucao) {
-      return NextResponse.json({ error: "Este empréstimo já foi devolvido." }, { status: 400 })
+      return NextResponse.json({ error: "Este empréstimo já foi devolvido." }, { status: 409 })
     }
 
-    // Reseta a data de empréstimo para hoje (novo prazo de 10 dias)
+    const novaData = new Date(emprestimo.dataEmprestimo)
+    novaData.setDate(novaData.getDate() + 10)
+
     await prisma.emprestimo.update({
       where: { id: Number(emprestimoId) },
-      data: { dataEmprestimo: new Date() },
+      data: { dataEmprestimo: novaData },
     })
 
     return NextResponse.json({ ok: true })
   } catch (error: any) {
-    return NextResponse.json({ error: "Erro ao renovar empréstimo." }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erro ao renovar empréstimo.", detalhe: error.message },
+      { status: 500 }
+    )
   }
 }
