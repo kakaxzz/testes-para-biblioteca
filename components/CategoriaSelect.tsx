@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 
 export const CATEGORIAS = [
-  "Literatura brasileira", "Literatura estrangeira", "Poesia", "Romance", "Ficcção científica", "fantasia", "Mistério / Suspense", "Terror", "Aventura", "Infantojuvenil", "Clássicos", "Política", "Economia", "Administração", "Culinária", "HQs / Mangás",
+  "Literatura brasileira", "Literatura estrangeira", "Poesia", "Romance", "Ficcção científica", "Fantasia", "Mistério / Suspense", "Terror", "Aventura", "Infantojuvenil", "Clássicos", "Política", "Economia", "Administração", "Culinária", "HQs / Mangás",
   "História do Brasil", "História geral", "Geografia", "Filosofia",
   "Sociologia", "Psicologia", "Educação", "Ciências naturais",
   "Biologia", "Química", "Física", "Matemática", "Astronomia",

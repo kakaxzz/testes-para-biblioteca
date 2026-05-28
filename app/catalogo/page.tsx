@@ -600,7 +600,7 @@ export default function Catalogo() {
                     <div className="book-fallback">📚</div>
                   )}
                   <div className={`book-status ${livro.status === "disponivel" ? "available" : "borrowed"}`}>
-                    {livro.status === "disponivel" ? "Disponivel" : "Emprestado"}
+                    {livro.status === "disponivel" ? "Disponível" : "Emprestado"}
                   </div>
                 </div>
                 <div className="book-content">

@@ -273,10 +273,10 @@ export default function TccPage() {
         <section className="hero">
           <div className="hero-inner">
             <div className="hero-copy">
-              <p className="hero-kicker">Escola Joao Paulo I</p>
+              <p className="hero-kicker">Escola João Paulo I</p>
               <h1 className="hero-title">TCCs <span>&</span> Artigos</h1>
               <p className="hero-text">
-                Consulte as producoes academicas da comunidade escolar em um ambiente visual alinhado ao restante da biblioteca.
+                Consulte as produções acadêmicas da comunidade escolar em um ambiente visual alinhado ao restante da biblioteca.
               </p>
             </div>
             <div className="hero-mark">
@@ -292,7 +292,7 @@ export default function TccPage() {
               <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar por titulo ou autor..."
+                placeholder="Buscar por título ou autor..."
                 className="search-input"
               />
             </div>
@@ -313,13 +313,13 @@ export default function TccPage() {
         <main className="content">
           <div className="section-head">
             <div className="section-accent" />
-            <h2 className="section-title">Coleção Academica</h2>
+            <h2 className="section-title">Coleção Acadêmica</h2>
             <span className="section-count">
               {loadingTccs ? "carregando..." : `${filtrados.length} trabalhos`}
             </span>
           </div>
 
-          {loadingTccs && <div className="feedback-box">Carregando producoes...</div>}
+          {loadingTccs && <div className="feedback-box">Carregando produções...</div>}
 
           {!loadingTccs && filtrados.length === 0 && (
             <div className="feedback-box">
@@ -353,7 +353,7 @@ export default function TccPage() {
         </main>
 
         <footer className="footer">
-          Biblioteca Emerson Teixeira • Escola Joao Paulo I
+          Biblioteca Emerson Teixeira • Escola João Paulo I
         </footer>
       </div>
     </div>

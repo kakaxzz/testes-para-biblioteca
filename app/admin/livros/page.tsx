@@ -16,6 +16,7 @@ export default function AdminLivros() {
   const [filtroDE, setFiltroDE] = useState("")
   const [filtroATE, setFiltroATE] = useState("")
   const [selecionados, setSelecionados] = useState<number[]>([])
+  const [printTrigger, setPrintTrigger] = useState(0)
 
   const [campos, setCampos] = useState({
     capa: "", autor: "", sinopse: "", categorias: [] as string[],
@@ -25,14 +26,78 @@ export default function AdminLivros() {
 
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const CODE39_PATTERNS: Record<string, string> = {
+    "0": "nnnwwnwnn",
+    "1": "wnnwnnnnw",
+    "2": "nwnwnnnnw",
+    "3": "wwnwnnnnn",
+    "4": "nnnwwnnnw",
+    "5": "wnnwwnnnn",
+    "6": "nwnwwnnnn",
+    "7": "nnnwnnwnw",
+    "8": "wnnwnnwnn",
+    "9": "nwnwnnwnn",
+    "*": "nwnnwnwnn",
+  }
+
+  function renderCode39Barcode(value: string, width = 130, height = 34) {
+    const encoded = `*${String(value || "").toUpperCase()}*`
+    const patterns = encoded.split("").map(char => CODE39_PATTERNS[char] || CODE39_PATTERNS["0"])
+
+    const units = patterns.reduce((total, pattern) => {
+      const charUnits = pattern.split("").reduce((sum, part) => sum + (part === "n" ? 1 : 2), 0)
+      return total + charUnits + 1
+    }, -1)
+
+    const scale = width / units
+    let x = 0
+    const bars: JSX.Element[] = []
+
+    patterns.forEach((pattern, patternIndex) => {
+      pattern.split("").forEach((part, idx) => {
+        const w = (part === "n" ? 1 : 2) * scale
+        if (idx % 2 === 0) {
+          bars.push(<rect key={`${patternIndex}-${idx}`} x={x} y={0} width={w} height={height} fill="#000" />)
+        }
+        x += w
+      })
+      x += scale
+    })
+
+    return (
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Código de barras ${value}`}>
+        {bars}
+      </svg>
+    )
+  }
+
+  useEffect(() => {
+    if (!printTrigger) return
+    let timer = 0
+    const frame = requestAnimationFrame(() => {
+      timer = window.setTimeout(() => window.print(), 80)
+    })
+    return () => { cancelAnimationFrame(frame); window.clearTimeout(timer) }
+  }, [printTrigger])
+
   useEffect(() => { carregarLivros() }, [])
 
   async function carregarLivros(de?: string, ate?: string) {
-    const params = new URLSearchParams()
-    if (de) params.set("de", de)
-    if (ate) params.set("ate", ate)
-    const res = await fetch("/api/livros?" + params.toString())
-    if (res.ok) setLivros(await res.json())
+    try {
+      const params = new URLSearchParams()
+      if (de) params.set("de", de)
+      if (ate) params.set("ate", ate)
+      const res = await fetch("/api/livros?" + params.toString())
+      if (res.ok) {
+        const data = await res.json()
+        setLivros(data)
+      } else {
+        setLivros([])
+      }
+    } catch (error) {
+      console.error("Erro ao carregar livros:", error)
+      setLivros([])
+    }
   }
 
   async function buscarLivro(codigo?: string) {
@@ -134,7 +199,8 @@ export default function AdminLivros() {
   }
 
   function imprimirSelecionados() {
-    setTimeout(() => window.print(), 300)
+    if (selecionados.length === 0) return
+    setPrintTrigger(prev => prev + 1)
   }
 
   const filtrados = livros.filter(l =>
@@ -146,7 +212,19 @@ export default function AdminLivros() {
   return (
     <div>
       <style>{`
-        @media print { .admin-shell { display: block !important; } .sidebar, .admin-main-hero, .no-print { display: none !important; } .admin-main, .admin-content { all: unset !important; display: block !important; } .etiqueta-print { display: flex !important; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; background: white; padding: 8px; } }
+        @media print {
+          @page { size: A4 portrait; margin: 10mm; }
+          .admin-shell { display: block !important; }
+          .sidebar, .admin-main-hero, .no-print { display: none !important; }
+          .admin-main, .admin-content { all: unset !important; display: block !important; }
+          .etiqueta-print { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; align-items: flex-start !important; justify-content: flex-start !important; background: white !important; padding: 0 !important; }
+          .etiqueta-print > .etiqueta-card { box-sizing: border-box !important; width: 160px !important; min-height: 78px !important; border: 1px solid #000 !important; padding: 4px !important; background: white !important; page-break-inside: avoid !important; break-inside: avoid-column !important; }
+          .etiqueta-barcode { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 2px !important; margin-bottom: 4px !important; }
+          .etiqueta-barcode-text { font-size: 9px !important; letter-spacing: 0.08em !important; text-align: center !important; }
+          .etiqueta-info { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 2px !important; font-size: 9px !important; line-height: 1.1 !important; }
+          .etiqueta-meta { font-weight: 700 !important; color: #111 !important; }
+          .etiqueta-tombo { font-size: 10px !important; font-weight: 900 !important; text-align: right !important; grid-column: span 2 !important; margin-top: 2px !important; }
+        }
         @media screen { .etiqueta-print { display: none; } }
       `}</style>
 
@@ -155,28 +233,17 @@ export default function AdminLivros() {
         <div className="etiqueta-print">
           {livros.filter((l: any) => selecionados.includes(l.id)).flatMap((l: any) =>
             (l.exemplares ?? [{ tombo: l.tombo }]).map((ex: any) => (
-              <div key={ex.tombo} style={{
-                display: "flex", flexDirection: "row",
-                border: "1px solid #000", fontFamily: "monospace",
-                fontSize: 10, margin: 4, width: 180, height: 60, background: "white"
-              }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", borderRight: "1px solid #000", padding: "3px 4px", flex: 1 }}>
-                  <svg width="100" height="36" viewBox="0 0 104 36">
-                    {String(ex.tombo || 1).padStart(7, "0").split("").map((d: string, i: number) => {
-                      const n = parseInt(d)
-                      return Array.from({ length: 4 }).map((_, j) => (
-                        <rect key={`${i}-${j}`} x={i * 15 + j * 3.5} y={0} width={j % 2 === 0 ? 2.5 : 1} height={((n + j + 1) % 3 === 0) ? 36 : 26} fill="#000" />
-                      ))
-                    })}
-                  </svg>
-                  <div style={{ fontSize: 7, textAlign: "center", marginTop: 1 }}>{l.titulo || "—"}</div>
+              <div key={`${l.id}-${ex.tombo}`} className="etiqueta-card">
+                <div className="etiqueta-barcode">
+                  {renderCode39Barcode(String(l.isbn || ex.tombo || "0"), 130, 34)}
+                  <div className="etiqueta-barcode-text">{l.isbn || String(ex.tombo || 0).padStart(7, "0")}</div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 6px", gap: 1, minWidth: 52 }}>
-                  <div style={{ fontWeight: "bold", fontSize: 11 }}>{l.cdd || "---"}</div>
-                  <div>{l.cutter || "---"}</div>
-                  <div>{l.edicao ? `${l.edicao}ª` : "---"}</div>
-                  <div>{l.criadoEm ? new Date(l.criadoEm).getFullYear() : "---"}</div>
-                  <div style={{ borderTop: "1px solid #000", marginTop: 2, paddingTop: 2, fontWeight: "bold" }}>{String(ex.tombo || 0).padStart(7, "0")}</div>
+                <div className="etiqueta-info">
+                  <div className="etiqueta-meta">{l.cdd || "---"}</div>
+                  <div className="etiqueta-meta">{l.cutter || "---"}</div>
+                  <div className="etiqueta-meta">{l.edicao ? `${l.edicao}ª` : "---"}</div>
+                  <div className="etiqueta-meta">{l.criadoEm ? new Date(l.criadoEm).getFullYear() : "---"}</div>
+                  <div className="etiqueta-tombo">#{String(ex.tombo || 0).padStart(7, "0")}</div>
                 </div>
               </div>
             ))
@@ -193,7 +260,7 @@ export default function AdminLivros() {
         <div className="surface-strip">
           {(["cadastrar", "acervo"] as const).map(a => (
             <button key={a} onClick={() => setAba(a)} className={aba === a ? "active" : ""}>
-              {a === "cadastrar" ? "📚 Cadastrar livro" : `📋 Acervo (${livros.reduce((acc: number, l: any) => acc + (l.exemplares?.length ?? 1), 0)})`}
+              {a === "cadastrar" ? "📚 Cadastrar livro" : `📋 Acervo (${livros.length})`}
             </button>
           ))}
         </div>
@@ -341,7 +408,7 @@ export default function AdminLivros() {
                         </td>
                         <td>
                           <div style={{ display: "flex", gap: 6 }}>
-                            <button onClick={() => { setSelecionados([l.id]); setTimeout(() => window.print(), 300) }} style={{ padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🏷️</button>
+                            <button onClick={() => { setSelecionados([l.id]); setPrintTrigger(prev => prev + 1) }} style={{ padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🏷️</button>
                             <button
                               onClick={() => {
                                 setEditando({ ...l })

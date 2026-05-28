@@ -13,12 +13,12 @@ export default function AdminDashboard() {
 
   const cards = [
     { icon: "📚", label: "Livros cadastrados", value: stats.livros, href: "/admin/livros", cor: "#8b1e1e" },
-    { icon: "📖", label: "Emprestimos ativos", value: stats.emaberto, href: "/admin/emprestimos", cor: "#6d1414" },
+    { icon: "📖", label: "Empréstimos ativos", value: stats.emaberto, href: "/admin/emprestimos", cor: "#6d1414" },
   ]
 
   const atalhos = [
     { icon: "📚", label: "Adicionar livro", href: "/admin/livros" },
-    { icon: "📖", label: "Novo emprestimo", href: "/admin/emprestimos" },
+    { icon: "📖", label: "Novo empréstimo", href: "/admin/emprestimos" },
     { icon: "🎓", label: "Cadastrar aluno", href: "/admin/alunos" },
   ]
 
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
               lineHeight: 1,
             }}
           >
-            Acoes rapidas
+            Ações rápidas
           </h2>
         </div>
 

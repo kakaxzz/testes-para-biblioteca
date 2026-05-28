@@ -114,11 +114,11 @@ export default function AdminEmprestimos() {
     const prazoRestante = 10 - dias
     const msg =
       prazoRestante < 0
-        ? `Ola ${nome}! O livro "${titulo}" esta com ${Math.abs(prazoRestante)} dias de atraso na devolucao.`
-        : `Ola ${nome}! Lembrando que o livro "${titulo}" deve ser devolvido em ${prazoRestante} dia(s).`
+        ? `Olá ${nome}! O livro "${titulo}" está com ${Math.abs(prazoRestante)} dias de atraso na devolução.`
+        : `Olá ${nome}! Lembrando que o livro "${titulo}" deve ser devolvido em ${prazoRestante} dia(s).`
     const tel = e.aluno?.whatsapp?.replace(/\D/g, "")
     if (!tel) {
-      alert("Este aluno nao tem WhatsApp cadastrado.")
+      alert("Este aluno não tem WhatsApp cadastrado.")
       return
     }
     window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank")

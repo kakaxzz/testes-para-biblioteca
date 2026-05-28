@@ -64,7 +64,7 @@ export default function AdminTcc() {
     <div>
       <div className="page-header">
         <h1>TCCs & Artigos</h1>
-        <p>Cadastre producoes academicas da escola</p>
+        <p>Cadastre produções acadêmicas da escola</p>
       </div>
 
       <div className="card" style={{ marginBottom: 28 }}>
@@ -83,8 +83,8 @@ export default function AdminTcc() {
               </select>
             </div>
             <div className="input-group">
-              <label>Titulo</label>
-              <input className="input-field" value={titulo} onChange={(e) => setTitulo(e.target.value)} required placeholder="Titulo do trabalho" />
+              <label>Título</label>
+              <input className="input-field" value={titulo} onChange={(e) => setTitulo(e.target.value)} required placeholder="Título do trabalho" />
             </div>
             <div className="input-group">
               <label>Autor</label>
@@ -96,7 +96,7 @@ export default function AdminTcc() {
             </div>
             <div className="input-group">
               <label>Resumo (opcional)</label>
-              <textarea className="input-field" value={resumo} onChange={(e) => setResumo(e.target.value)} placeholder="Breve descricao do trabalho..." />
+              <textarea className="input-field" value={resumo} onChange={(e) => setResumo(e.target.value)} placeholder="Breve descrição do trabalho..." />
             </div>
             <div className="input-group">
               <label>Arquivo PDF</label>

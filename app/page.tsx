@@ -285,7 +285,7 @@ export default function Home() {
                 Biblioteca <span>Emerson Teixeira</span>
               </div>
               <nav className="nav-links">
-                <a href="#catalogo" className="nav-link">Catalogo</a>
+                <a href="#catalogo" className="nav-link">Catálogo</a>
                 <Link href="/tcc" className="nav-link">TCC</Link>
                 <a href="#biblionews" className="nav-link">BiblioNews</a>
                 <Link href="/admin/login" className="nav-link">Admin</Link>
@@ -296,11 +296,11 @@ export default function Home() {
           <section className="hero">
             <div className="hero-inner">
               <div className="hero-copy">
-                <p className="hero-kicker">Escola Joao Paulo I</p>
+                <p className="hero-kicker">Escola João Paulo I</p>
                 <h1 className="hero-title">
                   <span className="hero-title-line">Descubra seu</span>
                   <span className="hero-title-line">
-                    proximo <span className="hero-title-highlight">LIVRO</span>
+                    próximo <span className="hero-title-highlight">LIVRO</span>
                   </span>
                 </h1>
                 <p className="hero-text">
@@ -332,7 +332,7 @@ export default function Home() {
             <div className="catalog-header">
               <div className="catalog-title-row">
                 <div className="catalog-accent" />
-                <h2 className="catalog-title">Catalogo Completo</h2>
+                <h2 className="catalog-title">Catálogo Completo</h2>
                 <span className="catalog-count">
                   {loading ? "carregando..." : `${filtrados.length} livros`}
                 </span>
@@ -402,7 +402,7 @@ export default function Home() {
                         <div className="book-fallback">📚</div>
                       )}
                       <div className={`book-status ${disponivel ? "available" : "borrowed"}`}>
-                        {disponivel ? "Disponivel" : "Emprestado"}
+                        {disponivel ? "Disponível" : "Emprestado"}
                       </div>
                     </div>
                     <div className="book-content">
@@ -460,30 +460,30 @@ export default function Home() {
           <section id="sobre" className="about-section" data-reveal>
             <div className="about-inner">
               <div>
-                <h2 className="about-title">Um espaco para leitura, estudo e pesquisa</h2>
+                <h2 className="about-title">Um espaço para leitura, estudo e pesquisa</h2>
                 <p className="about-text">
                   A Biblioteca Emerson Teixeira foi pensada como um ambiente acolhedor
-                  para os alunos da Escola Joao Paulo I. O site segue a mesma ideia:
+                  para os alunos da Escola João Paulo I. O site segue a mesma ideia:
                   consulta simples, visual organizado e destaque para o acervo.
                 </p>
                 <ul className="about-list">
-                  <li>Horario de atendimento de segunda a sexta</li>
-                  <li>Consulta rapida ao acervo por busca e genero</li>
-                  <li>Espaco dedicado para TCCs, artigos e producoes escolares</li>
+                  <li>Horário de atendimento de segunda a sexta</li>
+                  <li>Consulta rápida ao acervo por busca e gênero</li>
+                  <li>Espaço dedicado para TCCs, artigos e produções escolares</li>
                 </ul>
               </div>
               <div className="about-card">
                 <div className="about-card-title">Biblioteca Escolar</div>
                 <p className="about-card-text">
-                  Organizacao visual inspirada em acervo fisico, com tons quentes,
-                  leitura confortavel e foco nos livros cadastrados.
+                  Organização visual inspirada em acervo físico, com tons quentes,
+                  leitura confortável e foco nos livros cadastrados.
                 </p>
               </div>
             </div>
           </section>
 
           <footer className="footer">
-            Biblioteca Emerson Teixeira • Escola Joao Paulo I
+            Biblioteca Emerson Teixeira • Escola João Paulo I
           </footer>
         </div>
       </div>
