@@ -26,7 +26,7 @@ export default function AdminDashboard() {
     <div>
       <div className="page-header">
         <h1>Dashboard</h1>
-        <p>Bem-vinda ao painel da Biblioteca Emerson Teixeira</p>
+        <p>Bem-vinda ao painel da Biblioteca Escolar Emerson Teixeira</p>
       </div>
 
       <div

@@ -13,6 +13,7 @@ type Livro = {
   status?: string
   volume?: string
   quantidadeTotal?: number
+  quantidadeDisponivel?: number
 }
 
 export default function Catalogo() {
@@ -44,12 +45,6 @@ export default function Catalogo() {
     })
     return Array.from(set).sort()
   }, [livros])
-
-  const toggleGenero = (g: string) => {
-    setSelectedGeneros((prev) =>
-      prev.includes(g) ? prev.filter((item) => item !== g) : [...prev, g]
-    )
-  }
 
   const clearFiltros = () => {
     setSelectedGeneros([])
@@ -340,49 +335,29 @@ export default function Catalogo() {
           padding: 14px 0;
         }
 
-        .genre-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 0;
-          max-height: 140px;
-          overflow-y: auto;
-          padding-right: 4px;
-        }
-
-        .genre-row::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        .genre-row::-webkit-scrollbar-thumb {
-          background: rgba(139, 30, 30, 0.22);
-          border-radius: 999px;
-        }
-
-        .genre-button {
-          border: none;
-          cursor: pointer;
-          padding: 10px 18px;
-          border-radius: 999px;
+        .category-select {
+          width: 100%;
+          border: 1px solid rgba(139, 30, 30, 0.22);
+          border-radius: 12px;
+          padding: 12px 16px;
+          font-size: 0.96rem;
           font-family: 'Source Sans 3', sans-serif;
-          font-size: 0.92rem;
-          font-weight: 800;
-          transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, color 0.22s ease;
+          font-weight: 600;
+          color: #3c1818;
+          background: #fffaf7;
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236a1717' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 14px center;
+          outline: none;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .genre-button.active {
-          background: linear-gradient(180deg, #8d2525 0%, #6a1717 100%);
-          color: white;
-          box-shadow: 0 10px 22px rgba(122, 24, 24, 0.16);
+        .category-select:focus {
+          border-color: rgba(139, 30, 30, 0.5);
+          box-shadow: 0 0 0 3px rgba(139, 30, 30, 0.08);
         }
-
-        .genre-button.inactive {
-          background: rgba(255,255,255,0.72);
-          color: #6a2a2a;
-          box-shadow: 0 6px 18px rgba(88, 33, 33, 0.05);
-        }
-
-        .genre-button:hover { transform: translateY(-2px); }
 
         .feedback-box {
           text-align: center;
@@ -490,7 +465,7 @@ export default function Catalogo() {
       <div className="page-wrap">
         <header className="topbar">
           <Link href="/" className="brand">
-            Biblio<span>teca</span>
+            Biblioteca Escolar <span>Emerson Teixeira</span>
           </Link>
           <Link href="/" className="back-link">
             ← Voltar ao início
@@ -559,20 +534,21 @@ export default function Catalogo() {
 
             <div className={`filters-body ${filtrosAbertos ? "open" : ""}`}>
               <div className="filter-box">
-                <div className="filter-box-title">Assuntos disponíveis</div>
+                <div className="filter-box-title">Filtrar por assunto</div>
                 {generos.length > 0 ? (
-                  <div className="genre-row">
+                  <select
+                    className="category-select"
+                    value={selectedGeneros[0] ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setSelectedGeneros(val ? [val] : [])
+                    }}
+                  >
+                    <option value="">— Todos os assuntos —</option>
                     {generos.map((g) => (
-                      <button
-                        key={g}
-                        type="button"
-                        onClick={() => toggleGenero(g)}
-                        className={`genre-button ${selectedGeneros.includes(g) ? "active" : "inactive"}`}
-                      >
-                        {g}
-                      </button>
+                      <option key={g} value={g}>{g}</option>
                     ))}
-                  </div>
+                  </select>
                 ) : (
                   <div className="filters-empty">Nenhum assunto encontrado.</div>
                 )}
@@ -591,30 +567,33 @@ export default function Catalogo() {
           )}
 
           <div className="books-grid">
-            {filtrados.map((livro) => (
-              <Link key={livro.id} href={`/livro/${livro.isbn}`} className="book-card">
-                <div className="book-cover">
-                  {livro.capa ? (
-                    <img src={livro.capa} alt={livro.titulo || "Capa do livro"} />
-                  ) : (
-                    <div className="book-fallback">📚</div>
-                  )}
-                  <div className={`book-status ${livro.status === "disponivel" ? "available" : "borrowed"}`}>
-                    {livro.status === "disponivel" ? "Disponível" : "Emprestado"}
-                  </div>
-                </div>
-                <div className="book-content">
-                  <h3 className="book-title">{livro.titulo}</h3>
-                  <p className="book-author">{livro.autor}</p>
-                  <div className="book-meta">
-                    {livro.volume && <span className="book-meta-tag">Vol. {livro.volume}</span>}
-                    {livro.quantidadeTotal && livro.quantidadeTotal > 1 && (
-                      <span className="book-meta-tag">{livro.quantidadeTotal} cópias</span>
+            {filtrados.map((livro) => {
+              const disponivel = (livro.quantidadeDisponivel ?? 0) > 0
+              return (
+                <Link key={livro.id} href={`/livro/${livro.isbn}`} className="book-card">
+                  <div className="book-cover">
+                    {livro.capa ? (
+                      <img src={livro.capa} alt={livro.titulo || "Capa do livro"} />
+                    ) : (
+                      <div className="book-fallback">📚</div>
                     )}
+                    <div className={`book-status ${disponivel ? "available" : "borrowed"}`}>
+                      {disponivel ? "Disponível" : "Emprestado"}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="book-content">
+                    <h3 className="book-title">{livro.titulo}</h3>
+                    <p className="book-author">{livro.autor}</p>
+                    <div className="book-meta">
+                      {livro.volume && <span className="book-meta-tag">Vol. {livro.volume}</span>}
+                      {livro.quantidadeTotal && livro.quantidadeTotal > 1 && (
+                        <span className="book-meta-tag">{livro.quantidadeDisponivel}/{livro.quantidadeTotal} disponíveis</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </section>
       </div>

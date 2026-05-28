@@ -56,12 +56,6 @@ export default function Home() {
     return Array.from(set).sort()
   }, [livros])
 
-  const toggleGenero = (g: string) => {
-    setSelectedGeneros((prev) =>
-      prev.includes(g) ? prev.filter((item) => item !== g) : [...prev, g]
-    )
-  }
-
   const clearFiltros = () => {
     setSelectedGeneros([])
     setBusca("")
@@ -209,13 +203,8 @@ export default function Home() {
           .filter-box { background: #fffdfa; border: 1px solid rgba(139, 30, 30, 0.12); border-radius: 18px; padding: 14px 14px 12px; box-shadow: 0 10px 18px rgba(111, 40, 40, 0.05); }
           .filter-box-title { font-family: 'Source Sans 3', sans-serif; font-size: 0.98rem; font-weight: 700; color: #3c1818; margin-bottom: 12px; }
           .filters-empty { font-family: 'Source Sans 3', sans-serif; color: #8c7474; font-size: 0.94rem; padding: 14px 0; }
-          .genre-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 0; max-height: 140px; overflow-y: auto; padding-right: 4px; }
-          .genre-row::-webkit-scrollbar { width: 8px; }
-          .genre-row::-webkit-scrollbar-thumb { background: rgba(139, 30, 30, 0.22); border-radius: 999px; }
-          .genre-button { border: none; cursor: pointer; padding: 10px 18px; border-radius: 999px; font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; font-weight: 800; transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, color 0.22s ease; }
-          .genre-button.active { background: linear-gradient(180deg, #8d2525 0%, #6a1717 100%); color: white; box-shadow: 0 10px 22px rgba(122, 24, 24, 0.16); }
-          .genre-button.inactive { background: rgba(255,255,255,0.72); color: #6a2a2a; box-shadow: 0 6px 18px rgba(88, 33, 33, 0.05); }
-          .genre-button:hover { transform: translateY(-2px); }
+          .category-select { width: 100%; border: 1px solid rgba(139, 30, 30, 0.22); border-radius: 12px; padding: 12px 16px; font-size: 0.96rem; font-family: 'Source Sans 3', sans-serif; font-weight: 600; color: #3c1818; background: #fffaf7; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236a1717' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+          .category-select:focus { border-color: rgba(139, 30, 30, 0.5); box-shadow: 0 0 0 3px rgba(139, 30, 30, 0.08); }
 
           .feedback-box { text-align: center; padding: 64px 20px; color: #8f7e7e; font-family: 'Source Sans 3', sans-serif; font-weight: 700; }
 
@@ -282,7 +271,7 @@ export default function Home() {
           <header className="topbar">
             <div className="topbar-inner">
               <div className="brand">
-                Biblioteca <span>Emerson Teixeira</span>
+                Biblioteca Escolar <span>Emerson Teixeira</span>
               </div>
               <nav className="nav-links">
                 <a href="#catalogo" className="nav-link">Catálogo</a>
@@ -332,7 +321,7 @@ export default function Home() {
             <div className="catalog-header">
               <div className="catalog-title-row">
                 <div className="catalog-accent" />
-                <h2 className="catalog-title">Catálogo Completo</h2>
+                <h2 className="catalog-title">Catálogo</h2>
                 <span className="catalog-count">
                   {loading ? "carregando..." : `${filtrados.length} livros`}
                 </span>
@@ -367,15 +356,21 @@ export default function Home() {
 
               <div className={`filters-body ${filtrosAbertos ? "open" : ""}`}>
                 <div className="filter-box">
-                  <div className="filter-box-title">Assuntos disponíveis</div>
+                  <div className="filter-box-title">Filtrar por assunto</div>
                   {generos.length > 0 ? (
-                    <div className="genre-row">
+                    <select
+                      className="category-select"
+                      value={selectedGeneros[0] ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setSelectedGeneros(val ? [val] : [])
+                      }}
+                    >
+                      <option value="">— Todos os assuntos —</option>
                       {generos.map((g) => (
-                        <button key={g} type="button" onClick={() => toggleGenero(g)} className={`genre-button ${selectedGeneros.includes(g) ? "active" : "inactive"}`}>
-                          {g}
-                        </button>
+                        <option key={g} value={g}>{g}</option>
                       ))}
-                    </div>
+                    </select>
                   ) : (
                     <div className="filters-empty">Nenhum assunto encontrado.</div>
                   )}
@@ -420,13 +415,11 @@ export default function Home() {
               })}
             </div>
 
-            {filtrados.length > 12 && (
-              <div style={{ textAlign: "center", marginTop: 32 }}>
-                <Link href="/catalogo" style={{ background: "#8b1e1e", color: "white", textDecoration: "none", borderRadius: 8, padding: "12px 32px", fontSize: 15, fontWeight: 600, display: "inline-block" }}>
-                  Ver catálogo completo ({livros.length} livros)
-                </Link>
-              </div>
-            )}
+            <div style={{ textAlign: "center", marginTop: 32 }}>
+              <Link href="/catalogo" style={{ background: "#8b1e1e", color: "white", textDecoration: "none", borderRadius: 8, padding: "12px 32px", fontSize: 15, fontWeight: 600, display: "inline-block" }}>
+                Ver catálogo completo ({livros.length} {livros.length === 1 ? "livro" : "livros"})
+              </Link>
+            </div>
           </section>
 
           <section id="biblionews" className="notice-section" data-reveal>
@@ -457,12 +450,12 @@ export default function Home() {
             </div>
           </section>
 
-          <section id="sobre" className="about-section" data-reveal>
+          <section id="sobre" className="about-section" data-reveal>ioteca Em
             <div className="about-inner">
               <div>
                 <h2 className="about-title">Um espaço para leitura, estudo e pesquisa</h2>
                 <p className="about-text">
-                  A Biblioteca Emerson Teixeira foi pensada como um ambiente acolhedor
+                  A Biblioteca Escolar Emerson Teixeira foi pensada como um ambiente acolhedor
                   para os alunos da Escola João Paulo I. O site segue a mesma ideia:
                   consulta simples, visual organizado e destaque para o acervo.
                 </p>
@@ -483,7 +476,7 @@ export default function Home() {
           </section>
 
           <footer className="footer">
-            Biblioteca Emerson Teixeira • Escola João Paulo I
+            Biblioteca Escolar Emerson Teixeira • Escola João Paulo I
           </footer>
         </div>
       </div>
