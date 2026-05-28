@@ -14,6 +14,7 @@ type Livro = {
   volume?: string
   quantidadeTotal?: number
   quantidadeDisponivel?: number
+  criadoEm?: string
 }
 
 type Notice = {
@@ -30,6 +31,8 @@ export default function Home() {
   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
   const [filtrosAbertos, setFiltrosAbertos] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [toastVisivel, setToastVisivel] = useState(false)
+  const [toastSaindo, setToastSaindo] = useState(false)
 
   useEffect(() => {
     fetch("/api/livros")
@@ -56,9 +59,33 @@ export default function Home() {
     return Array.from(set).sort()
   }, [livros])
 
+  const novidades = useMemo(() => {
+    const limite = new Date()
+    limite.setDate(limite.getDate() - 30)
+    return livros.filter((l) => l.criadoEm && new Date(l.criadoEm) >= limite)
+  }, [livros])
+
+  // Mostra toast se o livro mais recente foi cadastrado há menos de 2 dias
+  useEffect(() => {
+    if (loading || livros.length === 0) return
+    const maisRecente = livros[0] // já vem ordenado desc
+    if (!maisRecente?.criadoEm) return
+    const diff = Date.now() - new Date(maisRecente.criadoEm).getTime()
+    const doisDiasMs = 2 * 24 * 60 * 60 * 1000
+    if (diff < doisDiasMs) {
+      const timer = setTimeout(() => setToastVisivel(true), 800)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, livros])
+
   const clearFiltros = () => {
     setSelectedGeneros([])
     setBusca("")
+  }
+
+  const fecharToast = () => {
+    setToastSaindo(true)
+    setTimeout(() => { setToastVisivel(false); setToastSaindo(false) }, 350)
   }
 
   const filtrados = livros.filter((l) => {
@@ -225,6 +252,26 @@ export default function Home() {
 
           .notice-section { width: 100%; max-width: none; margin: 0; padding: 46px 56px 76px 42px; background: linear-gradient(180deg, #fffdf9 0%, #f9f3eb 100%); }
           .notice-inner { max-width: 1180px; margin: 0 auto; }
+
+          .toast-novidade {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(0);
+            z-index: 999; display: flex; align-items: center; gap: 14px;
+            background: linear-gradient(135deg, #4a0e0e 0%, #7a1a1a 60%, #8f2222 100%);
+            color: #fff7f0; border-radius: 16px; padding: 16px 20px 16px 18px;
+            box-shadow: 0 20px 50px rgba(50, 10, 10, 0.32); max-width: 420px; width: calc(100vw - 48px);
+            animation: toastEntrar 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          }
+          .toast-novidade.saindo { animation: toastSair 0.35s ease forwards; }
+          @keyframes toastEntrar { from { opacity: 0; transform: translateX(-50%) translateY(24px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+          @keyframes toastSair { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+          .toast-pulse { width: 10px; height: 10px; border-radius: 50%; background: #f4c58c; flex-shrink: 0; animation: pulsar 1.8s infinite; }
+          @keyframes pulsar { 0% { box-shadow: 0 0 0 0 rgba(244,197,140,0.7); } 70% { box-shadow: 0 0 0 9px rgba(244,197,140,0); } 100% { box-shadow: 0 0 0 0 rgba(244,197,140,0); } }
+          .toast-body { flex: 1; min-width: 0; }
+          .toast-label { font-family: 'Source Sans 3', sans-serif; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #f4c58c; margin-bottom: 2px; }
+          .toast-msg { font-family: 'Source Sans 3', sans-serif; font-size: 0.96rem; font-weight: 700; color: #fff7f0; line-height: 1.3; }
+          .toast-sub { font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 2px; }
+          .toast-close { background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; flex-shrink: 0; transition: color 0.2s; }
+          .toast-close:hover { color: #fff; }
           .notice-header { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 28px; flex-wrap: wrap; }
           .notice-subtitle { font-family: 'Source Sans 3', sans-serif; font-size: 0.98rem; color: #7a5e5e; max-width: 540px; }
           .notice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
@@ -321,7 +368,7 @@ export default function Home() {
             <div className="catalog-header">
               <div className="catalog-title-row">
                 <div className="catalog-accent" />
-                <h2 className="catalog-title">Catálogo</h2>
+                <h2 className="catalog-title">Catálogo Completo</h2>
                 <span className="catalog-count">
                   {loading ? "carregando..." : `${filtrados.length} livros`}
                 </span>
@@ -480,6 +527,19 @@ export default function Home() {
           </footer>
         </div>
       </div>
+
+      {/* Toast de novidades */}
+      {toastVisivel && (
+        <div className={`toast-novidade${toastSaindo ? " saindo" : ""}`}>
+          <div className="toast-pulse" />
+          <div className="toast-body">
+            <div className="toast-label">Novidades</div>
+            <div className="toast-msg">Novos livros chegaram ao acervo!</div>
+            <div className="toast-sub">Confira os títulos mais recentes</div>
+          </div>
+          <button className="toast-close" onClick={fecharToast} aria-label="Fechar">✕</button>
+        </div>
+      )}
 
       {/* Papiro fora de tudo — position:fixed funciona corretamente aqui */}
       <Papiro acervo={livros} />

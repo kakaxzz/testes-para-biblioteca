@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
     const livros = await prisma.livro.findMany({
       where,
-      orderBy: { criadoEm: "asc" },
+      orderBy: { criadoEm: "desc" },
       include: {
         exemplares: {
           orderBy: { tombo: "asc" },

@@ -465,7 +465,7 @@ export default function Catalogo() {
       <div className="page-wrap">
         <header className="topbar">
           <Link href="/" className="brand">
-            Biblioteca Escolar <span>Emerson Teixeira</span>
+            Biblio<span>teca</span>
           </Link>
           <Link href="/" className="back-link">
             ← Voltar ao início
