@@ -79,7 +79,13 @@ export async function DELETE(
       )
     }
 
+    const exemplarIds = livro.exemplares.map((e: Exemplar) => e.id)
+
+    // Deleta empréstimos históricos dos exemplares, depois os exemplares, depois o livro
+    await prisma.emprestimo.deleteMany({ where: { exemplarId: { in: exemplarIds } } })
+    await prisma.exemplar.deleteMany({ where: { livroId: livro.id } })
     await prisma.livro.delete({ where: { isbn } })
+
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: "Erro ao remover livro." }, { status: 500 })
