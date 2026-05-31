@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { CategoriasSelect, CATEGORIAS } from "@/components/CategoriaSelect"
+import React from 'react'
 
 export default function AdminLivros() {
   const [aba, setAba] = useState<"cadastrar" | "acervo">("cadastrar")
@@ -51,8 +52,7 @@ export default function AdminLivros() {
 
     const scale = width / units
     let x = 0
-    const bars: JSX.Element[] = []
-
+const bars: React.ReactElement[] = []
     patterns.forEach((pattern, patternIndex) => {
       pattern.split("").forEach((part, idx) => {
         const w = (part === "n" ? 1 : 2) * scale
