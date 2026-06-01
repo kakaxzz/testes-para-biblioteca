@@ -1,3 +1,20 @@
-node_modules  
-.next  
-dev.db 
+node_modules
+.next
+dev.db
+
+# Claude / agentes de IA
+.claude/
+.claude.json
+.claude.json.backup
+CLAUDE.md
+CLAUDE.local.md
+.anthropic/
+.aider*
+.cursor/
+
+# Anotações e análises do orientador
+.orientacoes/
+
+# Config do ctxrun (ferramenta de snapshot de contexto)
+.ctxrunrc
+.env
