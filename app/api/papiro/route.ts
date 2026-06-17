@@ -34,7 +34,7 @@ Lembre-se: você é um jabuti simpático chamado Papiro. Pode usar emojis com mo
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-model: "gpt-4.1-mini",        max_tokens: 400,
+model: "gpt-4o-mini",        max_tokens: 400,
         messages: [
           { role: "system", content: systemPrompt },
           ...mensagens.map((m: any) => ({
