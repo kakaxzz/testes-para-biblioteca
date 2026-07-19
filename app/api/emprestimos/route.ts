@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const emprestimos = await prisma.emprestimo.findMany({
     where: apenasAbertos ? { dataDevolucao: null } : {},
     include: {
-      aluno: true,
+      usuario: true,
       exemplar: {
         include: { livro: true },
       },
@@ -17,7 +17,8 @@ export async function GET(request: Request) {
   })
 
   // Normaliza para manter compatibilidade com a página (e.livro.titulo etc.)
-const normalizados = emprestimos.map((e: any) => ({    ...e,
+  const normalizados = emprestimos.map((e: any) => ({
+    ...e,
     livro: e.exemplar.livro,
     tomboExemplar: e.exemplar.tombo,
   }))
@@ -27,12 +28,12 @@ const normalizados = emprestimos.map((e: any) => ({    ...e,
 
 export async function POST(request: Request) {
   try {
-    const { alunoId, livroId } = await request.json()
+    const { usuarioId, livroId } = await request.json()
 
-    // Validação: aluno existe
-    const aluno = await prisma.aluno.findUnique({ where: { id: Number(alunoId) } })
-    if (!aluno) {
-      return NextResponse.json({ error: "Aluno não encontrado." }, { status: 404 })
+    // Validação: usuário existe
+    const usuario = await prisma.usuario.findUnique({ where: { id: Number(usuarioId) } })
+    if (!usuario) {
+      return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 })
     }
 
     // Validação: livro existe
@@ -54,16 +55,16 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validação: aluno já possui empréstimo em aberto
+    // Validação: usuário já possui empréstimo em aberto
     const emprestimoEmAberto = await prisma.emprestimo.findFirst({
-      where: { alunoId: Number(alunoId), dataDevolucao: null },
+      where: { usuarioId: Number(usuarioId), dataDevolucao: null },
       include: { exemplar: { include: { livro: true } } },
     })
 
     if (emprestimoEmAberto) {
       return NextResponse.json(
         {
-          error: `${aluno.nome} já possui o livro "${emprestimoEmAberto.exemplar.livro.titulo}" em aberto. É preciso devolvê-lo antes de fazer um novo empréstimo.`,
+          error: `${usuario.nome} já possui o livro "${emprestimoEmAberto.exemplar.livro.titulo}" em aberto. É preciso devolvê-lo antes de fazer um novo empréstimo.`,
         },
         { status: 409 }
       )
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     // Cria o empréstimo e marca o exemplar como reservado
     const novoEmprestimo = await prisma.emprestimo.create({
       data: {
-        alunoId: Number(alunoId),
+        usuarioId: Number(usuarioId),
         exemplarId: exemplarDisponivel.id,
         dataEmprestimo: new Date(),
       },

@@ -3,9 +3,9 @@ import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    const [livros, alunos, emprestimos, emaberto] = await Promise.all([
+    const [livros, usuarios, emprestimos, emaberto] = await Promise.all([
       prisma.exemplar.count(),
-      prisma.aluno.count(),
+      prisma.usuario.count(),
       prisma.emprestimo.count(),
       prisma.emprestimo.count({ where: { dataDevolucao: null } }),
     ])
@@ -18,15 +18,15 @@ export async function GET() {
       take: 5,
     })
 
-    const topAlunosGroups = await prisma.emprestimo.groupBy({
-      by: ["alunoId"],
+    const topUsuariosGroups = await prisma.emprestimo.groupBy({
+      by: ["usuarioId"],
       _count: { id: true },
       orderBy: { _count: { id: "desc" } },
       take: 5,
     })
 
     const topLivros = await Promise.all(
-      topExemplarGroups.map(async (group) => {
+      topExemplarGroups.map(async (group: { exemplarId: number; _count: { id: number } }) => {
         const exemplar = await prisma.exemplar.findUnique({
           where: { id: group.exemplarId },
           include: { livro: true },
@@ -41,13 +41,15 @@ export async function GET() {
       })
     )
 
-    const topAlunos = await Promise.all(
-      topAlunosGroups.map(async (group) => {
-        const aluno = await prisma.aluno.findUnique({ where: { id: group.alunoId } })
+    const topUsuarios = await Promise.all(
+      topUsuariosGroups.map(async (group: { usuarioId: number; _count: { id: number } }) => {
+        const usuario = await prisma.usuario.findUnique({ where: { id: group.usuarioId } })
         return {
-          id: group.alunoId,
-          nome: aluno?.nome ?? "Desconhecido",
-          matricula: aluno?.matricula ?? "-",
+          id: group.usuarioId,
+          nome: usuario?.nome ?? "Desconhecido",
+          tipo: usuario?.tipo ?? "ALUNO",
+          matricula: usuario?.matricula ?? null,
+          cpf: usuario?.cpf ?? null,
           count: group._count?.id ?? 0,
         }
       })
@@ -55,20 +57,20 @@ export async function GET() {
 
     return NextResponse.json({
       livros,
-      alunos,
+      usuarios,
       emprestimos,
       emaberto,
       topLivros,
-      topAlunos,
+      topUsuarios,
     })
   } catch {
     return NextResponse.json({
       livros: 0,
-      alunos: 0,
+      usuarios: 0,
       emprestimos: 0,
       emaberto: 0,
       topLivros: [],
-      topAlunos: [],
+      topUsuarios: [],
     })
   }
 }

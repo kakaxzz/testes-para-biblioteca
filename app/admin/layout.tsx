@@ -8,7 +8,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: "🏠", exact: true },
   { href: "/admin/livros", label: "Livros", icon: "📚" },
   { href: "/admin/emprestimos", label: "Empréstimos", icon: "📖" },
-  { href: "/admin/alunos", label: "Alunos", icon: "🎓" },
+  { href: "/admin/usuarios", label: "Usuários", icon: "🎓" },
   { href: "/admin/tcc", label: "TCCs & Artigos", icon: "📄" },
   { href: "/admin/stats", label: "Estatísticas", icon: "📈" },
   { href: "/admin/biblionews", label: "BiblioNews", icon: "📰" },

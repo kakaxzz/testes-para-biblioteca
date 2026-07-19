@@ -6,7 +6,7 @@ export default function ConsultaLivro() {
   const [isbn, setIsbn] = useState("");
   const [livro, setLivro] = useState<any>(null);
   const [erro, setErro] = useState("");
-  const [alunoId, setAlunoId] = useState("");
+  const [usuarioId, setUsuarioId] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [salvandoStatus, setSalvandoStatus] = useState(false);
   const [mensagemStatus, setMensagemStatus] = useState("");
@@ -59,8 +59,8 @@ export default function ConsultaLivro() {
   };
 
   const realizarEmprestimo = async () => {
-    if (!alunoId) {
-      alert("Por favor, digite o ID do Aluno.");
+    if (!usuarioId) {
+      alert("Por favor, digite o ID do Usuário.");
       return;
     }
     setCarregando(true);
@@ -68,12 +68,12 @@ export default function ConsultaLivro() {
       const response = await fetch("/api/emprestimos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alunoId, livroId: livro.id })
+        body: JSON.stringify({ usuarioId, livroId: livro.id })
       });
 
       if (response.ok) {
         alert("✅ Empréstimo registrado!");
-        setAlunoId("");
+        setUsuarioId("");
         buscarLivro();
       } else {
         alert("❌ Erro ao realizar empréstimo.");
@@ -190,9 +190,9 @@ export default function ConsultaLivro() {
                     <div style={{ display: "flex", gap: "10px" }}>
                       <input
                         type="number"
-                        placeholder="ID do Aluno (Ex: 1)"
-                        value={alunoId}
-                        onChange={(e) => setAlunoId(e.target.value)}
+                        placeholder="ID do Usuário (Ex: 1)"
+                        value={usuarioId}
+                        onChange={(e) => setUsuarioId(e.target.value)}
                         style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #b8daff" }}
                       />
                       <button 

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Papiro } from "@/components/Papiro"
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ livros: 0, alunos: 0, emprestimos: 0, emaberto: 0 })
+  const [stats, setStats] = useState({ livros: 0, usuarios: 0, emprestimos: 0, emaberto: 0 })
 
   useEffect(() => {
     fetch("/api/stats").then((r) => r.json()).then(setStats).catch(() => {})
@@ -19,7 +19,7 @@ export default function AdminDashboard() {
   const atalhos = [
     { icon: "📚", label: "Adicionar livro", href: "/admin/livros" },
     { icon: "📖", label: "Novo empréstimo", href: "/admin/emprestimos" },
-    { icon: "🎓", label: "Cadastrar aluno", href: "/admin/alunos" },
+    { icon: "🎓", label: "Cadastrar usuário", href: "/admin/usuarios" },
   ]
 
   return (

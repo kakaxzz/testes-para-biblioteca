@@ -4,9 +4,9 @@ import { useEffect, useState } from "react"
 
 export default function AdminEmprestimos() {
   // ── estados: novo empréstimo ──
-  const [matricula, setMatricula] = useState("")
+  const [identificador, setIdentificador] = useState("")
   const [isbn, setIsbn] = useState("")
-  const [aluno, setAluno] = useState<any>(null)
+  const [usuario, setUsuario] = useState<any>(null)
   const [livro, setLivro] = useState<any>(null)
 
   // ── estados: lista ──
@@ -35,14 +35,24 @@ export default function AdminEmprestimos() {
     setTimeout(() => setMensagem(""), 4000)
   }
 
-  async function buscarAluno() {
-    if (!matricula) return
-    const res = await fetch(`/api/alunos?matricula=${matricula}`)
-    if (res.ok) setAluno(await res.json())
-    else {
-      setAluno(null)
-      exibirMensagem("Aluno não encontrado.", "erro")
+  async function buscarUsuario() {
+    if (!identificador) return
+
+    // Tenta primeiro como matrícula (alunos), depois como CPF (funcionários/responsáveis)
+    const porMatricula = await fetch(`/api/usuarios?matricula=${identificador}`)
+    if (porMatricula.ok) {
+      setUsuario(await porMatricula.json())
+      return
     }
+
+    const porCpf = await fetch(`/api/usuarios?cpf=${identificador}`)
+    if (porCpf.ok) {
+      setUsuario(await porCpf.json())
+      return
+    }
+
+    setUsuario(null)
+    exibirMensagem("Usuário não encontrado.", "erro")
   }
 
   async function buscarLivro() {
@@ -56,18 +66,18 @@ export default function AdminEmprestimos() {
   }
 
   async function registrarEmprestimo() {
-    if (!aluno || !livro) return
+    if (!usuario || !livro) return
     setLoading(true)
     const res = await fetch("/api/emprestimos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ alunoId: aluno.id, livroId: livro.id }),
+      body: JSON.stringify({ usuarioId: usuario.id, livroId: livro.id }),
     })
     if (res.ok) {
-      exibirMensagem(`Empréstimo registrado: "${livro.titulo}" para ${aluno.nome}`, "ok")
-      setAluno(null)
+      exibirMensagem(`Empréstimo registrado: "${livro.titulo}" para ${usuario.nome}`, "ok")
+      setUsuario(null)
       setLivro(null)
-      setMatricula("")
+      setIdentificador("")
       setIsbn("")
       carregarEmprestimos()
     } else {
@@ -108,7 +118,7 @@ export default function AdminEmprestimos() {
   }
 
   function abrirWhatsApp(e: any) {
-    const nome = e.aluno?.nome?.split(" ")[0] || "aluno"
+    const nome = e.usuario?.nome?.split(" ")[0] || "usuário"
     const titulo = e.livro?.titulo || "o livro"
     const dias = diasDesde(e.dataEmprestimo)
     const prazoRestante = 10 - dias
@@ -116,9 +126,9 @@ export default function AdminEmprestimos() {
       prazoRestante < 0
         ? `Olá ${nome}! O livro "${titulo}" está com ${Math.abs(prazoRestante)} dias de atraso na devolução.`
         : `Olá ${nome}! Lembrando que o livro "${titulo}" deve ser devolvido em ${prazoRestante} dia(s).`
-    const tel = e.aluno?.whatsapp?.replace(/\D/g, "")
+    const tel = e.usuario?.whatsapp?.replace(/\D/g, "")
     if (!tel) {
-      alert("Este aluno não tem WhatsApp cadastrado.")
+      alert("Este usuário não tem WhatsApp cadastrado.")
       return
     }
     window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank")
@@ -146,9 +156,10 @@ export default function AdminEmprestimos() {
   const filtrados = emprestimos.filter((e) => {
     const termo = busca.toLowerCase()
     return (
-      e.aluno?.nome?.toLowerCase().includes(termo) ||
+      e.usuario?.nome?.toLowerCase().includes(termo) ||
       e.livro?.titulo?.toLowerCase().includes(termo) ||
-      e.aluno?.matricula?.includes(termo)
+      e.usuario?.matricula?.includes(termo) ||
+      e.usuario?.cpf?.includes(termo)
     )
   })
 
@@ -189,18 +200,20 @@ export default function AdminEmprestimos() {
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 className="input-field"
-                placeholder="Matrícula do aluno"
-                value={matricula}
-                onChange={(e) => setMatricula(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && buscarAluno()}
+                placeholder="Matrícula (aluno) ou CPF (funcionário/responsável)"
+                value={identificador}
+                onChange={(e) => setIdentificador(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && buscarUsuario()}
                 style={{ flex: 1 }}
               />
-              <button className="btn-primary" onClick={buscarAluno}>Buscar</button>
+              <button className="btn-primary" onClick={buscarUsuario}>Buscar</button>
             </div>
-            {aluno && (
+            {usuario && (
               <div className="surface-note ok" style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 700, color: "#166534" }}>{aluno.nome}</div>
-                <div style={{ fontSize: 12, color: "#8aa097" }}>Matrícula: {aluno.matricula}</div>
+                <div style={{ fontWeight: 700, color: "#166534" }}>{usuario.nome}</div>
+                <div style={{ fontSize: 12, color: "#8aa097" }}>
+                  {usuario.matricula ? `Matrícula: ${usuario.matricula}` : `CPF: ${usuario.cpf}`}
+                </div>
               </div>
             )}
           </div>
@@ -229,10 +242,10 @@ export default function AdminEmprestimos() {
           </div>
         </div>
 
-        {aluno && livro && (
+        {usuario && livro && (
           <div style={{ marginTop: 20, display: "flex", gap: 18, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
             <p style={{ fontSize: 15, color: "#5e4a4a", fontWeight: 600 }}>
-              Confirmar empréstimo de <strong>"{livro.titulo}"</strong> para <strong>{aluno.nome}</strong>?
+              Confirmar empréstimo de <strong>"{livro.titulo}"</strong> para <strong>{usuario.nome}</strong>?
             </p>
             <button className="btn-primary" onClick={registrarEmprestimo} disabled={loading}>
               {loading ? "Salvando..." : "Confirmar empréstimo"}
@@ -281,7 +294,7 @@ export default function AdminEmprestimos() {
           <table>
             <thead>
               <tr>
-                <th>Aluno</th>
+                <th>Usuário</th>
                 <th>Livro</th>
                 <th>Empréstimo</th>
                 <th>Prazo</th>
@@ -302,8 +315,10 @@ export default function AdminEmprestimos() {
                 return (
                   <tr key={e.id} style={{ background: prazo?.urgente ? prazo.bg : undefined }}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{e.aluno?.nome}</div>
-                      <div style={{ fontSize: 12, color: "#a09191" }}>{e.aluno?.matricula}</div>
+                      <div style={{ fontWeight: 600 }}>{e.usuario?.nome}</div>
+                      <div style={{ fontSize: 12, color: "#a09191" }}>
+                        {e.usuario?.matricula || e.usuario?.cpf}
+                      </div>
                     </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{e.livro?.titulo}</div>
@@ -332,7 +347,7 @@ export default function AdminEmprestimos() {
                           <button className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }} onClick={() => renovar(e.id, e.livro?.titulo)}>
                             Renovar
                           </button>
-                          {e.aluno?.whatsapp && (
+                          {e.usuario?.whatsapp && (
                             <button
                               onClick={() => abrirWhatsApp(e)}
                               style={{ padding: "7px 12px", fontSize: 12, background: "#25D366", color: "white", border: "none", borderRadius: 12, cursor: "pointer", fontWeight: 700, fontFamily: "'Source Sans 3', sans-serif" }}

@@ -11,20 +11,22 @@ type TopLivro = {
   count: number
 }
 
-type TopAluno = {
+type TopUsuario = {
   id: number
   nome: string
-  matricula: string
+  tipo: "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
+  matricula: string | null
+  cpf: string | null
   count: number
 }
 
 type Stats = {
   livros: number
-  alunos: number
+  usuarios: number
   emprestimos: number
   emaberto: number
   topLivros: TopLivro[]
-  topAlunos: TopAluno[]
+  topUsuarios: TopUsuario[]
 }
 
 export default function AdminStats() {
@@ -45,7 +47,7 @@ export default function AdminStats() {
     <div>
       <div className="page-header">
         <h1>Estatísticas</h1>
-        <p>Visão geral dos livros mais emprestados e dos alunos que mais leem.</p>
+        <p>Visão geral dos livros mais emprestados e dos usuários que mais leem.</p>
       </div>
 
       <div
@@ -58,7 +60,7 @@ export default function AdminStats() {
       >
         {[
           { label: "Livros cadastrados", value: stats?.livros ?? 0, color: "#8b1e1e" },
-          { label: "Alunos cadastrados", value: stats?.alunos ?? 0, color: "#6d1414" },
+          { label: "Usuários cadastrados", value: stats?.usuarios ?? 0, color: "#6d1414" },
           { label: "Empréstimos totais", value: stats?.emprestimos ?? 0, color: "#7a1c1c" },
           { label: "Empréstimos abertos", value: stats?.emaberto ?? 0, color: "#5d1111" },
         ].map((card) => (
@@ -139,22 +141,22 @@ export default function AdminStats() {
               }}
             />
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, color: "#2d1414", lineHeight: 1 }}>
-              Alunos que mais leem
+              Usuários que mais leem
             </h2>
           </div>
 
           {loading ? (
             <div className="feedback-box">Carregando...</div>
-          ) : stats?.topAlunos.length ? (
+          ) : stats?.topUsuarios.length ? (
             <div style={{ display: "grid", gap: 14 }}>
-              {stats.topAlunos.map((aluno, index) => (
-                <div key={aluno.id} className="report-row">
+              {stats.topUsuarios.map((usuario, index) => (
+                <div key={usuario.id} className="report-row">
                   <div>
                     <span className="report-rank">#{index + 1}</span>
-                    <strong>{aluno.nome}</strong>
-                    <p>{aluno.matricula}</p>
+                    <strong>{usuario.nome}</strong>
+                    <p>{usuario.matricula || usuario.cpf}</p>
                   </div>
-                  <span className="report-badge">{aluno.count}x</span>
+                  <span className="report-badge">{usuario.count}x</span>
                 </div>
               ))}
             </div>
