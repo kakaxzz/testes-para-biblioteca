@@ -74,12 +74,15 @@ export default function AdminEmprestimos() {
       body: JSON.stringify({ usuarioId: usuario.id, livroId: livro.id }),
     })
     if (res.ok) {
+      const novoEmprestimo = await res.json()
       exibirMensagem(`Empréstimo registrado: "${livro.titulo}" para ${usuario.nome}`, "ok")
       setUsuario(null)
       setLivro(null)
       setIdentificador("")
       setIsbn("")
       carregarEmprestimos()
+      // Abre o recibo em nova aba e já dispara a impressão automaticamente
+      window.open(`/admin/emprestimos/recibo/${novoEmprestimo.id}?auto=1`, "_blank")
     } else {
       const d = await res.json()
       exibirMensagem(d.error, "erro")
@@ -337,26 +340,33 @@ export default function AdminEmprestimos() {
                       )}
                     </td>
                     <td>
-                      {devolvido ? (
-                        <span style={{ fontSize: 12, color: "#b3a6a6" }}>—</span>
-                      ) : (
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                          <button className="btn-primary" style={{ padding: "7px 12px", fontSize: 12 }} onClick={() => registrarDevolucao(e.id, e.livro?.titulo)}>
-                            Devolver
-                          </button>
-                          <button className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }} onClick={() => renovar(e.id, e.livro?.titulo)}>
-                            Renovar
-                          </button>
-                          {e.usuario?.whatsapp && (
-                            <button
-                              onClick={() => abrirWhatsApp(e)}
-                              style={{ padding: "7px 12px", fontSize: 12, background: "#25D366", color: "white", border: "none", borderRadius: 12, cursor: "pointer", fontWeight: 700, fontFamily: "'Source Sans 3', sans-serif" }}
-                            >
-                              WhatsApp
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {!devolvido && (
+                          <>
+                            <button className="btn-primary" style={{ padding: "7px 12px", fontSize: 12 }} onClick={() => registrarDevolucao(e.id, e.livro?.titulo)}>
+                              Devolver
                             </button>
-                          )}
-                        </div>
-                      )}
+                            <button className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }} onClick={() => renovar(e.id, e.livro?.titulo)}>
+                              Renovar
+                            </button>
+                            {e.usuario?.whatsapp && (
+                              <button
+                                onClick={() => abrirWhatsApp(e)}
+                                style={{ padding: "7px 12px", fontSize: 12, background: "#25D366", color: "white", border: "none", borderRadius: 12, cursor: "pointer", fontWeight: 700, fontFamily: "'Source Sans 3', sans-serif" }}
+                              >
+                                WhatsApp
+                              </button>
+                            )}
+                          </>
+                        )}
+                        <button
+                          className="btn-secondary"
+                          style={{ padding: "7px 12px", fontSize: 12 }}
+                          onClick={() => window.open(`/admin/emprestimos/recibo/${e.id}`, "_blank")}
+                        >
+                          🖨️ Recibo
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )

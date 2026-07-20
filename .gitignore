@@ -17,4 +17,5 @@ CLAUDE.local.md
 
 # Config do ctxrun (ferramenta de snapshot de contexto)
 .ctxrunrc
-.env.DS_Store
+.env
+.DS_Store
