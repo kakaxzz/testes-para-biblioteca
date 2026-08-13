@@ -22,7 +22,6 @@ export default function LoginPage() {
     })
 
     if (res.ok) {
-      localStorage.setItem("admin", "true")
       router.replace("/admin")
     } else {
       setErro("Usuario ou senha incorretos.")
@@ -30,7 +29,6 @@ export default function LoginPage() {
 
     setLoading(false)
   }
-
   return (
     <div
       style={{

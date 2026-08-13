@@ -13,6 +13,7 @@ enum TipoUsuario {
   RESPONSAVEL
 }
 
+
 model Livro {
   id         Int        @id @default(autoincrement())
   titulo     String
@@ -63,7 +64,7 @@ model Emprestimo {
 
 model Admin {
   id    Int    @id @default(autoincrement())
-  email String @unique
+email String @unique
   senha String
 }
 

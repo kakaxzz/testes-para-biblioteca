@@ -12,26 +12,19 @@ const navItems = [
   { href: "/admin/tcc", label: "TCCs & Artigos", icon: "📄" },
   { href: "/admin/stats", label: "Estatísticas", icon: "📈" },
   { href: "/admin/biblionews", label: "BiblioNews", icon: "📰" },
+  { href: "/admin/trocar-senha", label: "Trocar senha", icon: "🔑" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
 
-  useEffect(() => {
-    const admin = localStorage.getItem("admin")
-    if (!admin && pathname !== "/admin/login") {
-      router.replace("/admin/login")
-    }
-  }, [pathname, router])
-
   if (pathname === "/admin/login") return <>{children}</>
 
-  function handleLogout() {
-    localStorage.removeItem("admin")
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" })
     router.replace("/")
   }
-
   return (
     <div className="admin-shell">
       <aside className="sidebar">
