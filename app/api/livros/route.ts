@@ -29,10 +29,10 @@ export async function GET(request: Request) {
     })
 
     // Adiciona quantidadeTotal e quantidadeDisponivel em cada livro
-   const livrosComContagem = livros.map((l: any) => ({
-  ...l,
-     quantidadeTotal: l.exemplares.length,
-  quantidadeDisponivel: l.exemplares.filter((e: any) => e.status === "disponivel").length,
+    const livrosComContagem = livros.map((l: any) => ({
+      ...l,
+      quantidadeTotal: l.exemplares.length,
+      quantidadeDisponivel: l.exemplares.filter((e: any) => e.status === "disponivel").length,
       // Tombo do primeiro exemplar (para exibir na tabela)
       tombo: l.exemplares[0]?.tombo ?? null,
     }))
@@ -86,6 +86,7 @@ export async function POST(request: Request) {
         cdd: body.cdd || null,
         cutter: body.cutter || null,
         volume: body.volume || null,
+        classificacaoIndicativa: body.classificacaoIndicativa || null,
       },
     })
 

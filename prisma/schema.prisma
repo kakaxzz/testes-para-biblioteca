@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum TipoUsuario {
-  ALUNO
-  FUNCIONARIO
-  RESPONSAVEL
-}
-
-
 model Livro {
   id         Int        @id @default(autoincrement())
   titulo     String
@@ -25,7 +18,7 @@ model Livro {
   editora    String?
   edicao     String?
   volume     String?
-  cdd        String?
+ cdd        String?
   cutter     String?
   criadoEm   DateTime   @default(now())
   exemplares Exemplar[]
@@ -37,17 +30,17 @@ model Exemplar {
   tombo       Int          @unique
   status      String       @default("disponivel")
   criadoEm    DateTime     @default(now())
-  livro       Livro        @relation(fields: [livroId], references: [id])
   emprestimos Emprestimo[]
+  livro       Livro        @relation(fields: [livroId], references: [id])
 }
 
 model Usuario {
   id          Int          @id @default(autoincrement())
   nome        String
-  tipo        TipoUsuario
-  matricula   String?      @unique // preenchido apenas quando tipo = ALUNO
-  cpf         String?      @unique // preenchido quando tipo = FUNCIONARIO ou RESPONSAVEL
+  matricula   String?      @unique
   whatsapp    String
+  tipo        TipoUsuario
+  cpf         String?      @unique
   criadoEm    DateTime     @default(now())
   emprestimos Emprestimo[]
 }
@@ -58,25 +51,27 @@ model Emprestimo {
   exemplarId     Int
   dataEmprestimo DateTime  @default(now())
   dataDevolucao  DateTime?
-  usuario        Usuario   @relation(fields: [usuarioId], references: [id])
   exemplar       Exemplar  @relation(fields: [exemplarId], references: [id])
+  usuario        Usuario   @relation(fields: [usuarioId], references: [id])
 }
 
 model Admin {
   id    Int    @id @default(autoincrement())
-email String @unique
+  email String @unique
   senha String
 }
 
 model Tcc {
-  id       Int      @id @default(autoincrement())
-  titulo   String
-  autor    String
-  ano      Int
-  tipo     String   @default("tcc")
-  resumo   String?
-  arquivo  String
-  criadoEm DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  titulo       String
+  autor        String
+  ano          Int
+  tipo         String   @default("tcc")
+  resumo       String?
+  criadoEm     DateTime @default(now())
+  arquivoDados Bytes
+  arquivoNome  String
+  arquivoTipo  String   @default("application/pdf")
 }
 
 model AccessToken {
@@ -85,4 +80,19 @@ model AccessToken {
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model Aviso {
+  id       Int      @id @default(autoincrement())
+  titulo   String
+  mensagem String
+  tag      String
+  ordem    Int      @default(0)
+  criadoEm DateTime @default(now())
+}
+
+enum TipoUsuario {
+  ALUNO
+  FUNCIONARIO
+  RESPONSAVEL
 }

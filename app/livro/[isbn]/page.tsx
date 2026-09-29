@@ -32,6 +32,8 @@ export default function LivroDetalhe() {
   )
 
   const disponivel = livro.quantidadeDisponivel > 0
+  const classificacao: string = livro.classificacaoIndicativa || ""
+  const classificacaoInfo = CLASSIFICACOES[classificacao] || CLASSIFICACOES[""]
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f1ea", fontFamily: "'Source Sans 3', sans-serif" }}>
@@ -78,6 +80,25 @@ export default function LivroDetalhe() {
                 : "Nenhum exemplar disponível"}
             </div>
 
+            {/* Classificação indicativa */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 16px", borderRadius: 12, marginBottom: 24, background: classificacaoInfo.bg, border: `1px solid ${classificacaoInfo.border}` }}>
+              <div style={{
+                flexShrink: 0, width: 40, height: 40, borderRadius: 8, display: "flex", alignItems: "center",
+                justifyContent: "center", fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: classificacao ? 15 : 11,
+                background: classificacaoInfo.badgeBg, color: "#fff",
+              }}>
+                {classificacao ? `+${classificacao}` : "LIVRE"}
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 13, color: classificacaoInfo.text, marginBottom: 2 }}>
+                  {classificacaoInfo.titulo}
+                </div>
+                <div style={{ fontSize: 13, color: classificacaoInfo.text, lineHeight: 1.5, opacity: 0.9 }}>
+                  {classificacaoInfo.mensagem}
+                </div>
+              </div>
+            </div>
+
             {/* Metadados */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
               {livro.editora && <MetaItem label="Editora" value={livro.editora} />}
@@ -111,6 +132,49 @@ export default function LivroDetalhe() {
       </main>
     </div>
   )
+}
+
+const CLASSIFICACOES: Record<string, { titulo: string; mensagem: string; bg: string; border: string; badgeBg: string; text: string }> = {
+  "": {
+    titulo: "Classificação livre",
+    mensagem: "Este livro pode ser retirado por leitores de qualquer idade.",
+    bg: "rgba(240,250,244,0.6)",
+    border: "rgba(22,163,74,0.15)",
+    badgeBg: "#16a34a",
+    text: "#166534",
+  },
+  "12": {
+    titulo: "Classificação indicativa: +12 anos",
+    mensagem: "Recomendado para leitores a partir de 12 anos. Se você tiver menos que isso, é necessário solicitar autorização do seu responsável na biblioteca para retirar este livro.",
+    bg: "rgba(255,247,232,0.7)",
+    border: "rgba(217,119,6,0.18)",
+    badgeBg: "#d97706",
+    text: "#92400e",
+  },
+  "14": {
+    titulo: "Classificação indicativa: +14 anos",
+    mensagem: "Recomendado para leitores a partir de 14 anos. Se você tiver menos que isso, é necessário solicitar autorização do seu responsável na biblioteca para retirar este livro.",
+    bg: "rgba(255,247,232,0.7)",
+    border: "rgba(217,119,6,0.18)",
+    badgeBg: "#d97706",
+    text: "#92400e",
+  },
+  "16": {
+    titulo: "Classificação indicativa: +16 anos",
+    mensagem: "Recomendado para leitores a partir de 16 anos. Se você tiver menos que isso, é necessário solicitar autorização do seu responsável na biblioteca para retirar este livro.",
+    bg: "rgba(253,242,242,0.75)",
+    border: "rgba(139,30,30,0.18)",
+    badgeBg: "#8b1e1e",
+    text: "#8b1e1e",
+  },
+  "18": {
+    titulo: "Classificação indicativa: +18 anos",
+    mensagem: "Recomendado exclusivamente para leitores a partir de 18 anos. Se você tiver menos que isso, é necessário solicitar autorização do seu responsável na biblioteca para retirar este livro.",
+    bg: "rgba(253,242,242,0.75)",
+    border: "rgba(139,30,30,0.18)",
+    badgeBg: "#8b1e1e",
+    text: "#8b1e1e",
+  },
 }
 
 function MetaItem({ label, value }: { label: string; value: string }) {

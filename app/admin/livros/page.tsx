@@ -21,7 +21,7 @@ export default function AdminLivros() {
 
   const [campos, setCampos] = useState({
     capa: "", autor: "", sinopse: "", categorias: [] as string[],
-    editora: "", edicao: "", cdd: "", cutter: "", volume: "",
+    editora: "", edicao: "", cdd: "", cutter: "", volume: "", classificacaoIndicativa: "",
   })
   const [editandoCategorias, setEditandoCategorias] = useState<string[]>([])
 
@@ -52,7 +52,7 @@ export default function AdminLivros() {
 
     const scale = width / units
     let x = 0
-const bars: React.ReactElement[] = []
+    const bars: React.ReactElement[] = []
     patterns.forEach((pattern, patternIndex) => {
       pattern.split("").forEach((part, idx) => {
         const w = (part === "n" ? 1 : 2) * scale
@@ -122,6 +122,7 @@ const bars: React.ReactElement[] = []
         cdd: "",
         cutter: "",
         volume: "",
+        classificacaoIndicativa: "",
       })
     } else {
       setMensagem(data.error)
@@ -145,6 +146,7 @@ const bars: React.ReactElement[] = []
         cdd: campos.cdd,
         cutter: campos.cutter,
         volume: campos.volume,
+        classificacaoIndicativa: campos.classificacaoIndicativa,
       }),
     })
     const data = await res.json()
@@ -154,7 +156,7 @@ const bars: React.ReactElement[] = []
         : `✅ Livro cadastrado! Tombo #${String(data.tombo).padStart(7, "0")}`
       setMensagem(msg)
       setTipoMensagem("ok"); setLivro(null)
-      setCampos({ capa: "", autor: "", sinopse: "", categorias: [], editora: "", edicao: "", cdd: "", cutter: "", volume: "" })
+      setCampos({ capa: "", autor: "", sinopse: "", categorias: [], editora: "", edicao: "", cdd: "", cutter: "", volume: "", classificacaoIndicativa: "" })
       carregarLivros()
     } else {
       setMensagem(data.error); setTipoMensagem("erro")
@@ -296,6 +298,21 @@ const bars: React.ReactElement[] = []
                 </div>
 
                 <div className="input-group">
+                  <label>Classificação indicativa</label>
+                  <select
+                    className="input-field"
+                    value={campos.classificacaoIndicativa}
+                    onChange={e => setCampos(c => ({ ...c, classificacaoIndicativa: e.target.value }))}
+                  >
+                    <option value="">Livre</option>
+                    <option value="12">+12</option>
+                    <option value="14">+14</option>
+                    <option value="16">+16</option>
+                    <option value="18">+18</option>
+                  </select>
+                </div>
+
+                <div className="input-group">
                   <label>Assuntos / Categorias</label>
                   <CategoriasSelect
                     value={campos.categorias}
@@ -360,6 +377,20 @@ const bars: React.ReactElement[] = []
                     <div className="input-group"><label>Volume</label><input className="input-field" value={editando.volume || ""} onChange={e => setEditando((v: any) => ({ ...v, volume: e.target.value }))} /></div>
                   </div>
                   <div className="input-group">
+                    <label>Classificação indicativa</label>
+                    <select
+                      className="input-field"
+                      value={editando.classificacaoIndicativa || ""}
+                      onChange={e => setEditando((v: any) => ({ ...v, classificacaoIndicativa: e.target.value }))}
+                    >
+                      <option value="">Livre</option>
+                      <option value="12">+12</option>
+                      <option value="14">+14</option>
+                      <option value="16">+16</option>
+                      <option value="18">+18</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
                     <label>Assuntos / Categorias</label>
                     <CategoriasSelect
                       value={editandoCategorias}
@@ -381,12 +412,12 @@ const bars: React.ReactElement[] = []
                 <thead>
                   <tr>
                     <th><input type="checkbox" checked={filtrados.length > 0 && selecionados.length === filtrados.length} onChange={toggleTodos} /></th>
-                    <th>Tombo</th><th>Capa</th><th>Título</th><th>Autor</th><th>CDD</th><th>Cutter</th><th>Ed.</th><th>Vol.</th><th>Exemplares</th><th>Ações</th>
+                    <th>Tombo</th><th>Capa</th><th>Título</th><th>Autor</th><th>CDD</th><th>Cutter</th><th>Ed.</th><th>Vol.</th><th>Classif.</th><th>Exemplares</th><th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtrados.length === 0 && (
-                    <tr><td colSpan={11} style={{ textAlign: "center", color: "#ccc", padding: 32 }}>Nenhum livro encontrado</td></tr>
+                    <tr><td colSpan={12} style={{ textAlign: "center", color: "#ccc", padding: 32 }}>Nenhum livro encontrado</td></tr>
                   )}
                   {filtrados.flatMap((l: any) =>
                     (l.exemplares ?? [{ tombo: l.tombo, status: "disponivel", id: l.id }]).map((ex: any) => (
@@ -400,6 +431,15 @@ const bars: React.ReactElement[] = []
                         <td style={{ fontSize: 13, color: "#555" }}>{l.cutter || "—"}</td>
                         <td style={{ fontSize: 13, color: "#555" }}>{l.edicao ? `${l.edicao}ª` : "—"}</td>
                         <td style={{ fontSize: 13, color: "#555" }}>{l.volume ? `v.${l.volume}` : "—"}</td>
+                        <td>
+                          {l.classificacaoIndicativa ? (
+                            <span style={{ fontWeight: 800, fontSize: 11, padding: "2px 7px", borderRadius: 6, background: "#fdf2f2", color: "#8b1e1e", border: "1px solid rgba(139,30,30,0.2)" }}>
+                              +{l.classificacaoIndicativa}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 11, color: "#aaa" }}>Livre</span>
+                          )}
+                        </td>
                         <td>
                           <span style={{ fontWeight: 700, fontSize: 13, color: l.quantidadeDisponivel === 0 ? "#8b1e1e" : "#166534" }}>
                             {l.quantidadeDisponivel}/{l.quantidadeTotal}

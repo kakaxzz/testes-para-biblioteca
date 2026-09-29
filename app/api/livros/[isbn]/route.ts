@@ -40,11 +40,11 @@ export async function PUT(
         assuntos: body.assuntos,
         editora: body.editora,
         edicao: body.edicao,
-        cdd: body.cdd,
+                cdd: body.cdd,
         cutter: body.cutter,
         volume: body.volume || null,
-      },
-    })
+        classificacaoIndicativa: body.classificacaoIndicativa || null,
+      },})
     return NextResponse.json(livro)
   } catch {
     return NextResponse.json({ error: "Erro ao atualizar livro." }, { status: 500 })
