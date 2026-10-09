@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Livro {
+  id                      Int        @id @default(autoincrement())
+  titulo                  String
+  autor                   String
+  isbn                    String     @unique
+  sinopse                 String?
+  capa                    String?
+  assuntos                String?
+  editora                 String?
+  edicao                  String?
+  volume                  String?
+  cdd                     String?
+  cutter                  String?
+  criadoEm                DateTime   @default(now())
+  // "L", "10", "12", "14", "16" ou "18". null = não informada
+  classificacaoIndicativa String?
+  exemplares              Exemplar[]
+}
+
+model Exemplar {
+  id          Int          @id @default(autoincrement())
+  livroId     Int
+  tombo       Int          @unique
+  status      String       @default("disponivel")
+  criadoEm    DateTime     @default(now())
+  emprestimos Emprestimo[]
+  livro       Livro        @relation(fields: [livroId], references: [id])
+}
+
+model Usuario {
+  id          Int          @id @default(autoincrement())
+  nome        String
+  matricula   String?      @unique
+  whatsapp    String
+  tipo        TipoUsuario
+  cpf         String?      @unique
+  criadoEm    DateTime     @default(now())
+  turma       String?
+  emprestimos Emprestimo[]
+}
+
+model Emprestimo {
+  id                     Int       @id @default(autoincrement())
+  usuarioId              Int
+  exemplarId             Int
+  dataEmprestimo         DateTime  @default(now())
+  dataDevolucao          DateTime?
+  autorizacaoResponsavel Boolean   @default(false)
+  exemplar               Exemplar  @relation(fields: [exemplarId], references: [id])
+  usuario                Usuario   @relation(fields: [usuarioId], references: [id])
+}
+
+model Admin {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  senha String
+}
+
+// O PDF fica na própria linha do TCC (arquivoDados)
+model Tcc {
+  id           Int         @id @default(autoincrement())
+  titulo       String
+  autor        String
+  ano          Int
+  tipo         String      @default("tcc")
+  resumo       String?
+  criadoEm     DateTime    @default(now())
+  arquivoDados Bytes
+  arquivoNome  String
+  arquivoTipo  String      @default("application/pdf")
+  arquivoPdf   TccArquivo?
+}
+
+// Já existe no banco; não é usada pelo código atual
+model TccArquivo {
+  id    Int   @id @default(autoincrement())
+  tccId Int   @unique
+  dados Bytes
+  tcc   Tcc   @relation(fields: [tccId], references: [id], onDelete: Cascade)
+}
+
+model Aviso {
+  id       Int      @id @default(autoincrement())
+  titulo   String
+  mensagem String
+  tag      String
+  ordem    Int      @default(0)
+  criadoEm DateTime @default(now())
+}
+
+model AccessToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+enum TipoUsuario {
+  ALUNO
+  FUNCIONARIO
+  RESPONSAVEL
+}
