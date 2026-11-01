@@ -1,0 +1,14 @@
+// Turmas da escola (na ordem em que aparecem na caixa de seleção)
+export const TURMAS = [
+  "2AFM", "2BFM", "2AFT", "2BFT",
+  "3AFM", "3BFM", "3AFT", "3BFT",
+  "4AFM", "4BFM", "4AFT", "4BFT",
+  "5AFM", "5BFM", "5AFT", "5BFT",
+  "6AFM", "6BFM", "6AFT", "6BFT",
+  "7AFM", "7BFM", "7AFT", "7BFT",
+  "8AFM", "8BFM", "8AFT", "8BFT",
+  "9AFM", "9BFM", "9AFT", "9BFT",
+  "1001INFO1", "1001INFO2", "1003ADM-ENF", "1ANO PRÉ MILITAR",
+  "2001INFO1", "2001INFO2", "2003ADM-ENF", "2ANO PRÉ MILITAR",
+  "3001INFO1", "3001INFO2", "3003ADM-ENF", "3ANO PRÉ MILITAR",
+] as const

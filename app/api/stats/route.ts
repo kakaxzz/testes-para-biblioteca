@@ -1,63 +1,41 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { anoAtual, calcularEstatisticas } from "@/lib/estatisticas"
 
 export const dynamic = "force-dynamic"
 
-const LIMITE_TOP = 5
-
-export async function GET() {
+export async function GET(request: Request) {
+  const atual = anoAtual()
   try {
-    const [livros, usuarios, emprestimos, emaberto] = await Promise.all([
-      prisma.exemplar.count(),
-      prisma.usuario.count(),
-      prisma.emprestimo.count(),
-      prisma.emprestimo.count({ where: { dataDevolucao: null } }),
-    ])
+    const pedido = Number(new URL(request.url).searchParams.get("ano"))
+    const ano = Number.isInteger(pedido) && pedido >= 2000 && pedido <= atual ? pedido : atual
 
-    // Top livros: soma os empréstimos de todos os exemplares do mesmo livro
-    // (antes cada exemplar contava separado e o mesmo livro podia aparecer várias vezes)
-    const topLivros = (
-      await prisma.$queryRaw<
-        { id: number; titulo: string; autor: string; isbn: string; count: number }[]
-      >`
-        SELECT l."id", l."titulo", l."autor", l."isbn", COUNT(*)::int AS "count"
-        FROM "Emprestimo" e
-        JOIN "Exemplar" x ON x."id" = e."exemplarId"
-        JOIN "Livro" l ON l."id" = x."livroId"
-        GROUP BY l."id", l."titulo", l."autor", l."isbn"
-        ORDER BY "count" DESC, l."titulo" ASC
-        LIMIT ${LIMITE_TOP}
-      `
-    ).map((l) => ({ ...l, count: Number(l.count) }))
+    // Ano que já passou e teve virada: usa o resumo guardado (os formandos já foram apagados).
+    // Sem resumo (ano anterior ao sistema de virada), calcula na hora com o que existe.
+    let dados
+    if (ano < atual) {
+      // se a tabela da virada ainda não existe no banco, calcula na hora (não quebra a tela)
+      const guardado = await prisma.virada.findUnique({ where: { ano } }).catch(() => null)
+      dados = guardado ? (guardado.estatisticas as Awaited<ReturnType<typeof calcularEstatisticas>>) : await calcularEstatisticas(ano)
+    } else {
+      dados = await calcularEstatisticas(ano)
+    }
 
-    const topUsuariosGroups = await prisma.emprestimo.groupBy({
-      by: ["usuarioId"],
-      _count: { id: true },
-      orderBy: [{ _count: { id: "desc" } }, { usuarioId: "asc" }],
-      take: LIMITE_TOP,
-    })
+    // anos para o seletor: do primeiro empréstimo até hoje + anos com resumo guardado
+    const primeiro = await prisma.emprestimo.aggregate({ _min: { dataEmprestimo: true } })
+    const primeiroAno = primeiro._min.dataEmprestimo
+      ? Math.max(2000, Number(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(primeiro._min.dataEmprestimo)))
+      : atual
+    const guardados = (await prisma.virada.findMany({ select: { ano: true } }).catch(() => [])).map((v) => v.ano)
+    const anos = new Set<number>([atual, ...guardados])
+    for (let a = primeiroAno; a <= atual; a++) anos.add(a)
 
-    const usuariosTop = await prisma.usuario.findMany({
-      where: { id: { in: topUsuariosGroups.map((g) => g.usuarioId) } },
-    })
-
-    const topUsuarios = topUsuariosGroups.map((group) => {
-      const usuario = usuariosTop.find((u) => u.id === group.usuarioId)
-      return {
-        id: group.usuarioId,
-        nome: usuario?.nome ?? "Desconhecido",
-        tipo: usuario?.tipo ?? "ALUNO",
-        matricula: usuario?.matricula ?? null,
-        cpf: usuario?.cpf ?? null,
-        turma: usuario?.turma ?? null,
-        count: group._count?.id ?? 0,
-      }
-    })
-
-    return NextResponse.json({ livros, usuarios, emprestimos, emaberto, topLivros, topUsuarios })
+    return NextResponse.json({ ...dados, ano, anos: [...anos].sort((a, b) => b - a) })
   } catch (error) {
     console.error("Erro ao carregar estatísticas:", error)
     return NextResponse.json({
+      ano: atual,
+      anos: [atual],
       livros: 0,
       usuarios: 0,
       emprestimos: 0,

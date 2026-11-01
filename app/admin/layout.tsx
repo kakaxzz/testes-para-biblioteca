@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
 
-type NomeIcone = "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "chave" | "sair"
+type NomeIcone = "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "virada" | "chave" | "sair"
 
 const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean }[] = [
   { href: "/admin", label: "Dashboard", icone: "home", exact: true },
@@ -13,6 +13,7 @@ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean
   { href: "/admin/usuarios", label: "Usuários", icone: "usuarios" },
   { href: "/admin/tcc", label: "TCCs & Artigos", icone: "tcc" },
   { href: "/admin/stats", label: "Estatísticas", icone: "stats" },
+  { href: "/admin/virada", label: "Virada de ano", icone: "virada" },
   { href: "/admin/biblionews", label: "BiblioNews", icone: "news" },
   { href: "/admin/trocar-senha", label: "Trocar senha", icone: "chave" },
 ]
@@ -78,6 +79,13 @@ function Icone({ nome }: { nome: NomeIcone }) {
         <svg {...comum}>
           <rect x="4" y="5" width="16" height="14" rx="2" />
           <path d="M8 9h8M8 12.5h8M8 16h5" />
+        </svg>
+      )
+    case "virada":
+      return (
+        <svg {...comum}>
+          <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+          <path d="M8 3.5v4M16 3.5v4M4 10h16" />
         </svg>
       )
     case "chave":
@@ -423,6 +431,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           flex-direction: column;
           gap: 6px;
           margin-bottom: 16px;
+          min-width: 0;
         }
         .input-group label {
           font-size: 0.88rem;
@@ -431,6 +440,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           letter-spacing: 0.03em;
         }
         .input-field {
+          width: 100%;
+          min-width: 0;
           padding: 13px 14px;
           border: 1px solid rgba(139,30,30,0.12);
           border-radius: 14px;

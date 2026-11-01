@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { TurmaSelect } from "@/components/TurmaSelect"
+import { ModalPortal } from "@/components/ModalPortal"
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
 
@@ -166,13 +168,11 @@ export default function AdminUsuarios() {
                 </div>
                 <div className="input-group">
                   <label>Turma</label>
-                  <input
+                  <TurmaSelect
                     className="input-field"
                     value={turma}
-                    onChange={(e) => setTurma(e.target.value)}
+                    onChange={setTurma}
                     required
-                    maxLength={30}
-                    placeholder="Ex: 7º A"
                   />
                 </div>
               </>
@@ -252,7 +252,7 @@ export default function AdminUsuarios() {
 
           {/* MODAL EDITAR */}
           {editando && (
-            <div
+            <ModalPortal><div
               style={{
                 position: "fixed",
                 inset: 0,
@@ -304,12 +304,10 @@ export default function AdminUsuarios() {
                     </div>
                     <div className="input-group">
                       <label>Turma</label>
-                      <input
+                      <TurmaSelect
                         className="input-field"
-                        value={editando.turma || ""}
-                        maxLength={30}
-                        placeholder="Ex: 7º A"
-                        onChange={(e) => setEditando((v: any) => ({ ...v, turma: e.target.value }))}
+                        value={editando.turma}
+                        onChange={(t) => setEditando((v: any) => ({ ...v, turma: t }))}
                       />
                     </div>
                   </>
@@ -338,7 +336,7 @@ export default function AdminUsuarios() {
                   <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
                 </div>
               </div>
-            </div>
+            </div></ModalPortal>
           )}
 
           <div className="table-wrap">

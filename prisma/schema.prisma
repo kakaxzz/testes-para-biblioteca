@@ -124,3 +124,14 @@ enum TipoUsuario {
   FUNCIONARIO
   RESPONSAVEL
 }
+
+// Uma linha por virada de ano já feita (impede rodar duas vezes) + o resumo
+// das estatísticas daquele ano, guardado antes de apagar os alunos que saíram
+model Virada {
+  ano          Int      @id
+  executadoEm  DateTime @default(now())
+  promovidos   Int      @default(0)
+  removidos    Int      @default(0)
+  pendentes    Int      @default(0)
+  estatisticas Json
+}

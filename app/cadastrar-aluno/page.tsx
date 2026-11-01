@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { TurmaSelect } from "@/components/TurmaSelect";
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL";
 
@@ -79,12 +80,10 @@ export default function CadastrarUsuario() {
               required
               style={{ padding: "10px" }}
             />
-            <input
-              placeholder="Turma (ex: 7º A)"
+            <TurmaSelect
               value={turma}
-              onChange={(e) => setTurma(e.target.value)}
+              onChange={setTurma}
               required
-              maxLength={30}
               style={{ padding: "10px" }}
             />
           </>

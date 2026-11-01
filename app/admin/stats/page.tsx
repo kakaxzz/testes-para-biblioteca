@@ -22,6 +22,8 @@ type TopUsuario = {
 }
 
 type Stats = {
+  ano: number
+  anos: number[]
   livros: number
   usuarios: number
   emprestimos: number
@@ -33,22 +35,40 @@ type Stats = {
 export default function AdminStats() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [ano, setAno] = useState<number | null>(null) // null = ano atual
 
   useEffect(() => {
-    fetch("/api/stats")
+    setLoading(true)
+    fetch(ano ? `/api/stats?ano=${ano}` : "/api/stats")
       .then((r) => r.json())
       .then((data) => {
         setStats(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [ano])
 
   return (
     <div>
       <div className="page-header">
         <h1>Estatísticas</h1>
-        <p>Visão geral dos livros mais emprestados e dos usuários que mais leem.</p>
+        <p>Visão geral dos livros mais emprestados e dos usuários que mais leem em cada ano.</p>
+        {stats?.anos && stats.anos.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
+            <label htmlFor="ano-stats" style={{ fontWeight: 700, color: "#5e4a4a" }}>Ano</label>
+            <select
+              id="ano-stats"
+              className="input-field"
+              style={{ width: 130 }}
+              value={stats.ano}
+              onChange={(e) => setAno(Number(e.target.value))}
+            >
+              {stats.anos.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div
@@ -62,7 +82,7 @@ export default function AdminStats() {
         {[
           { label: "Livros cadastrados", value: stats?.livros ?? 0, color: "#8b1e1e" },
           { label: "Usuários cadastrados", value: stats?.usuarios ?? 0, color: "#6d1414" },
-          { label: "Empréstimos totais", value: stats?.emprestimos ?? 0, color: "#7a1c1c" },
+          { label: stats?.ano ? `Empréstimos em ${stats.ano}` : "Empréstimos no ano", value: stats?.emprestimos ?? 0, color: "#7a1c1c" },
           { label: "Empréstimos abertos", value: stats?.emaberto ?? 0, color: "#5d1111" },
         ].map((card) => (
           <div key={card.label} className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -126,7 +146,7 @@ export default function AdminStats() {
               ))}
             </div>
           ) : (
-            <div className="feedback-box">Nenhum empréstimo registrado ainda.</div>
+            <div className="feedback-box">Nenhum empréstimo registrado neste ano.</div>
           )}
         </section>
 
@@ -162,7 +182,7 @@ export default function AdminStats() {
               ))}
             </div>
           ) : (
-            <div className="feedback-box">Nenhum empréstimo registrado ainda.</div>
+            <div className="feedback-box">Nenhum empréstimo registrado neste ano.</div>
           )}
         </section>
       </div>

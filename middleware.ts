@@ -5,6 +5,7 @@ const SESSION_COOKIE = "session"
 
 const PROTECTED_API_ROUTES: { pattern: RegExp; methods: string[] }[] = [
   { pattern: /^\/api\/admin\/gerar-token$/, methods: ["POST"] },
+  { pattern: /^\/api\/admin\/virada$/, methods: ["GET", "POST"] },
   { pattern: /^\/api\/livros$/, methods: ["POST"] },
   { pattern: /^\/api\/livros\/[^/]+$/, methods: ["PUT", "DELETE"] },
   { pattern: /^\/api\/devolucoes$/, methods: ["POST"] },

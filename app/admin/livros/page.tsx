@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { CategoriasSelect, CATEGORIAS } from "@/components/CategoriaSelect"
 import { ClassificacaoSelect } from "@/components/ClassificacaoSelect"
+import { ModalPortal } from "@/components/ModalPortal"
 import { CLASSIFICACAO_INFO, normalizarClassificacao } from "@/lib/classificacao"
 import React from 'react'
 
@@ -285,16 +286,16 @@ const bars: React.ReactElement[] = []
 
             {livro && (
               <div style={{ borderTop: "2px solid #f0eded", paddingTop: 24 }}>
-                <div style={{ display: "flex", gap: 24, marginBottom: 20 }}>
+                <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
                   {campos.capa && <img src={campos.capa} alt="Capa" style={{ width: 100, height: 145, objectFit: "cover", borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.12)", flexShrink: 0 }} />}
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: "1 1 320px", minWidth: 0 }}>
                     <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, marginBottom: 4 }}>{livro.titulo}</h2>
                     <p style={{ color: "#aaa", fontSize: 13, marginBottom: 16 }}>ISBN: {livro.isbn}</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                       <div className="input-group"><label>Autor</label><input className="input-field" value={campos.autor} onChange={e => setCampos(c => ({ ...c, autor: e.target.value }))} /></div>
                       <div className="input-group"><label>Editora</label><input className="input-field" value={campos.editora} onChange={e => setCampos(c => ({ ...c, editora: e.target.value }))} /></div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 12 }}>
                       <div className="input-group"><label>CDD</label><input className="input-field" value={campos.cdd} onChange={e => setCampos(c => ({ ...c, cdd: e.target.value }))} placeholder="Ex: 823.914" /></div>
                       <div className="input-group"><label>Cutter</label><input className="input-field" value={campos.cutter} onChange={e => setCampos(c => ({ ...c, cutter: e.target.value }))} placeholder="Ex: K56c" /></div>
                       <div className="input-group"><label>Edição</label><input className="input-field" value={campos.edicao} onChange={e => setCampos(c => ({ ...c, edicao: e.target.value }))} placeholder="Ex: 3" /></div>
@@ -362,7 +363,7 @@ const bars: React.ReactElement[] = []
 
             {/* MODAL EDITAR */}
             {editando && (
-              <div className="modal-overlay">
+              <ModalPortal><div className="modal-overlay">
                 <div className="modal-surface modal-surface--wide">
                   <div className="modal-head">
                     <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20 }}>Editar livro</h2>
@@ -404,7 +405,7 @@ const bars: React.ReactElement[] = []
                     <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
                   </div>
                 </div>
-              </div>
+              </div></ModalPortal>
             )}
 
             <div className="table-wrap">
