@@ -1,11 +1,9 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { temAcessoAoTcc } from "@/lib/acesso-tcc"
+import { ehFalha, lerDadosTcc, lerPdf } from "@/lib/tcc"
 
 export const dynamic = "force-dynamic"
-
-// A Vercel limita o corpo de uma requisição a ~4,5 MB
-const TAMANHO_MAXIMO = 4 * 1024 * 1024
 
 export async function GET() {
   if (!(await temAcessoAoTcc())) {
@@ -27,45 +25,26 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const form = await request.formData()
-    const titulo = String(form.get("titulo") ?? "").trim()
-    const autor = String(form.get("autor") ?? "").trim()
-    const ano = parseInt(String(form.get("ano") ?? ""), 10)
-    const tipo = String(form.get("tipo") ?? "tcc") === "artigo" ? "artigo" : "tcc"
-    const resumo = String(form.get("resumo") ?? "").trim()
-    const arquivo = form.get("arquivo")
 
-    if (!titulo || !autor || Number.isNaN(ano)) {
-      return NextResponse.json({ error: "Título, autor e ano são obrigatórios." }, { status: 400 })
+    const lido = lerDadosTcc(form)
+    if (ehFalha(lido)) {
+      return NextResponse.json({ error: lido.erro }, { status: lido.status })
     }
 
-    if (!(arquivo instanceof File) || arquivo.size === 0) {
+    const arquivo = await lerPdf(form.get("arquivo"))
+    if (ehFalha(arquivo)) {
+      return NextResponse.json({ error: arquivo.erro }, { status: arquivo.status })
+    }
+    if (!arquivo.pdf) {
       return NextResponse.json({ error: "Arquivo PDF obrigatório." }, { status: 400 })
-    }
-
-    if (arquivo.size > TAMANHO_MAXIMO) {
-      return NextResponse.json(
-        { error: "O PDF é grande demais (máximo de 4 MB). Comprima o arquivo e tente de novo." },
-        { status: 413 }
-      )
-    }
-
-    const buffer = Buffer.from(await arquivo.arrayBuffer())
-
-    // Confere se é mesmo um PDF (todo PDF começa com "%PDF")
-    if (buffer.subarray(0, 4).toString("latin1") !== "%PDF") {
-      return NextResponse.json({ error: "O arquivo enviado não é um PDF válido." }, { status: 400 })
     }
 
     const tcc = await prisma.tcc.create({
       data: {
-        titulo,
-        autor,
-        ano,
-        tipo,
-        resumo,
-        arquivoNome: arquivo.name,
+        ...lido.dados,
+        arquivoNome: arquivo.pdf.nome,
         arquivoTipo: "application/pdf",
-        arquivoDados: buffer,
+        arquivoDados: arquivo.pdf.dados,
       },
       select: { id: true, titulo: true, autor: true, ano: true, tipo: true },
     })
