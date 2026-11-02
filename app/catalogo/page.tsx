@@ -463,9 +463,35 @@ export default function Catalogo() {
         }
 
         @media (max-width: 640px) {
-          .topbar { padding: 14px 20px; }
-          .catalog-section { padding: 32px 20px 60px; }
-          .books-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+          .topbar { padding: 12px 14px; }
+          .brand { font-size: 1.2rem; }
+          .back-link { font-size: 0.8rem; padding: 6px 12px; }
+          .catalog-section { padding: 24px 14px 40px; }
+          .catalog-accent { width: 10px; height: 30px; }
+          .catalog-title { font-size: 1.5rem; }
+          .catalog-count { font-size: 0.78rem; }
+          .search-wrap { margin-bottom: 16px; }
+          .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
+          .search-icon { left: 14px; font-size: 0.86rem; }
+          .filters-panel { padding: 10px 12px; margin-bottom: 16px; border-radius: 14px; }
+          .filters-header { margin-bottom: 10px; gap: 8px; }
+          .filters-title { font-size: 0.88rem; margin-bottom: 2px; }
+          .filters-note { font-size: 0.74rem; }
+          .filters-actions { gap: 6px; justify-content: flex-start; }
+          .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
+          .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
+          /* mais livros por linha (3 ou mais), como no computador */
+          .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+          .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
+          .book-card:hover { transform: none; }
+          .book-fallback { font-size: 1.4rem; }
+          .class-badge { left: 5px; top: 5px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.6rem; border-radius: 5px; }
+          .book-status { right: 4px; bottom: 4px; padding: 2px 6px; font-size: 0.54rem; }
+          .book-content { padding: 8px 8px 10px; }
+          .book-title { font-size: 0.78rem; line-height: 1.15; }
+          .book-author { font-size: 0.66rem; margin-bottom: 4px; }
+          .book-meta { gap: 4px; }
+          .book-meta-tag { font-size: 0.58rem; padding: 2px 5px; }
         }
       `}</style>
 

@@ -233,11 +233,34 @@ export function BiblioNews() {
         .bn-close { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; background: rgba(255,253,250,0.92); color: #6b1a17; font-size: 1.5rem; line-height: 1; box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
         @keyframes bnFade { from { opacity: 0; } to { opacity: 1; } }
 
+        /* tablet: mantém as duas colunas (destaque + lista), só um pouco menores */
         @media (max-width: 900px) {
-          .bn-grid { grid-template-columns: minmax(0, 1fr); }
           .bn-tile { width: 92px; height: 92px; }
           .bn-feature-body { padding: 20px 20px 24px; }
           .bn-modal-body { padding: 20px 20px 26px; }
+        }
+
+        /* celular: também fica lado a lado, igual ao computador, com tudo em escala menor */
+        @media (max-width: 640px) {
+          .bn-grid { gap: 10px; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+          .bn-chip { font-size: 0.78rem; padding: 5px 12px; }
+          .bn-feature { border-radius: 14px; }
+          .bn-feature-media { height: 110px; }
+          .bn-feature-body { padding: 10px 12px 14px; }
+          .bn-meta { gap: 6px; margin-bottom: 6px; }
+          .bn-date { font-size: 0.68rem; }
+          .bn-pill { font-size: 0.62rem; padding: 2px 8px; }
+          .bn-feature h3 { font-size: 0.95rem; margin-bottom: 6px; }
+          .bn-desc { font-size: 0.74rem; line-height: 1.4; margin-bottom: 8px; -webkit-line-clamp: 4; }
+          .bn-read { font-size: 0.74rem; }
+          .bn-side { gap: 8px; }
+          .bn-compact { gap: 8px; padding: 8px; border-radius: 14px; }
+          .bn-tile { width: 44px; height: 44px; border-radius: 10px; }
+          .bn-compact-info { gap: 2px; }
+          .bn-compact-info strong { font-size: 0.76rem; line-height: 1.2; }
+          .bn-compact-info small { font-size: 0.64rem; }
+          .bn-extras { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
+          .bn-more { font-size: 0.8rem; padding: 8px 16px; margin-top: 14px; }
         }
       `}</style>
 

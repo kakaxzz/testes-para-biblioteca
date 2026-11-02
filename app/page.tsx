@@ -323,16 +323,44 @@ export default function Home() {
 
           @media (max-width: 860px) {
             .topbar-inner { padding: 14px 18px; }
-            .hero-inner { grid-template-columns: 1fr; min-height: auto; padding: 0; }
-            .hero-copy { max-width: none; padding: 28px 18px 12px; }
-            .hero-logo-card { width: min(100%, 300px); }
-            .hero-logo-wrap { min-height: 210px; }
-            .catalog-section { padding-left: 18px; padding-right: 18px; }
+            /* hero: continua com texto à esquerda e logo à direita, como no computador, só que menor */
+            .hero-inner { grid-template-columns: minmax(0, 1fr) 36%; min-height: 200px; padding: 0 14px 0 0; }
+            .hero-copy { max-width: none; padding: 22px 0 22px 18px; }
+            .hero-kicker { font-size: 0.64rem; margin-bottom: 8px; }
+            .hero-title { font-size: clamp(1.5rem, 6.4vw, 2.8rem); margin-bottom: 8px; }
+            .hero-text { font-size: 0.74rem; max-width: 230px; }
+            .hero-logo-wrap { min-height: 0; padding-right: 0; }
+            .hero-logo-card { width: 100%; }
+            .catalog-section, .notice-section { padding: 32px 18px 48px; }
             .search-box { max-width: none; }
             .about-inner { grid-template-columns: 1fr; gap: 6px; padding: 32px 18px 48px; }
             .about-header { padding: 32px 18px 16px; }
             .about-gallery-track img { width: 220px; height: 190px; }
             .nav-links { gap: 8px; }
+          }
+
+          /* celular: mais livros por linha (3 ou mais), com tudo na mesma proporção do computador */
+          @media (max-width: 640px) {
+            .catalog-section, .notice-section { padding: 24px 14px 40px; }
+            .catalog-accent { width: 10px; height: 30px; }
+            .catalog-title { font-size: 1.5rem; }
+            .notice-header { gap: 10px; margin-bottom: 16px; }
+            .notice-subtitle { font-size: 0.78rem; }
+            .catalog-count { font-size: 0.78rem; }
+            .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
+            .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
+            .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
+            .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+            .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
+            .book-card:hover { transform: none; }
+            .book-fallback { font-size: 1.4rem; }
+            .class-badge { left: 5px; top: 5px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.6rem; border-radius: 5px; }
+            .book-status { right: 4px; bottom: 4px; padding: 2px 6px; font-size: 0.54rem; }
+            .book-content { padding: 8px 8px 10px; }
+            .book-title { font-size: 0.78rem; line-height: 1.15; min-height: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .book-author { font-size: 0.66rem; margin-bottom: 4px; }
+            .book-meta { gap: 4px; margin-top: 4px; }
+            .book-meta-tag { font-size: 0.58rem; padding: 2px 5px; }
           }
         `}</style>
 

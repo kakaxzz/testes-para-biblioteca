@@ -1,0 +1,139 @@
+diff --git a/app/catalogo/page.tsx b/app/catalogo/page.tsx
+index 27836e8..9ae018f 100644
+--- a/app/catalogo/page.tsx
++++ b/app/catalogo/page.tsx
+@@ -463,9 +463,35 @@ export default function Catalogo() {
+         }
+ 
+         @media (max-width: 640px) {
+-          .topbar { padding: 14px 20px; }
+-          .catalog-section { padding: 32px 20px 60px; }
+-          .books-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
++          .topbar { padding: 12px 14px; }
++          .brand { font-size: 1.2rem; }
++          .back-link { font-size: 0.8rem; padding: 6px 12px; }
++          .catalog-section { padding: 24px 14px 40px; }
++          .catalog-accent { width: 10px; height: 30px; }
++          .catalog-title { font-size: 1.5rem; }
++          .catalog-count { font-size: 0.78rem; }
++          .search-wrap { margin-bottom: 16px; }
++          .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
++          .search-icon { left: 14px; font-size: 0.86rem; }
++          .filters-panel { padding: 10px 12px; margin-bottom: 16px; border-radius: 14px; }
++          .filters-header { margin-bottom: 10px; gap: 8px; }
++          .filters-title { font-size: 0.88rem; margin-bottom: 2px; }
++          .filters-note { font-size: 0.74rem; }
++          .filters-actions { gap: 6px; justify-content: flex-start; }
++          .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
++          .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
++          /* mais livros por linha (3 ou mais), como no computador */
++          .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
++          .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
++          .book-card:hover { transform: none; }
++          .book-fallback { font-size: 1.4rem; }
++          .class-badge { left: 5px; top: 5px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.6rem; border-radius: 5px; }
++          .book-status { right: 4px; bottom: 4px; padding: 2px 6px; font-size: 0.54rem; }
++          .book-content { padding: 8px 8px 10px; }
++          .book-title { font-size: 0.78rem; line-height: 1.15; }
++          .book-author { font-size: 0.66rem; margin-bottom: 4px; }
++          .book-meta { gap: 4px; }
++          .book-meta-tag { font-size: 0.58rem; padding: 2px 5px; }
+         }
+       `}</style>
+ 
+diff --git a/app/page.tsx b/app/page.tsx
+index 68bb98d..a488d7f 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -323,17 +323,45 @@ export default function Home() {
+ 
+           @media (max-width: 860px) {
+             .topbar-inner { padding: 14px 18px; }
+-            .hero-inner { grid-template-columns: 1fr; min-height: auto; padding: 0; }
+-            .hero-copy { max-width: none; padding: 28px 18px 12px; }
+-            .hero-logo-card { width: min(100%, 300px); }
+-            .hero-logo-wrap { min-height: 210px; }
+-            .catalog-section { padding-left: 18px; padding-right: 18px; }
++            /* hero: continua com texto à esquerda e logo à direita, como no computador, só que menor */
++            .hero-inner { grid-template-columns: minmax(0, 1fr) 36%; min-height: 200px; padding: 0 14px 0 0; }
++            .hero-copy { max-width: none; padding: 22px 0 22px 18px; }
++            .hero-kicker { font-size: 0.64rem; margin-bottom: 8px; }
++            .hero-title { font-size: clamp(1.5rem, 6.4vw, 2.8rem); margin-bottom: 8px; }
++            .hero-text { font-size: 0.74rem; max-width: 230px; }
++            .hero-logo-wrap { min-height: 0; padding-right: 0; }
++            .hero-logo-card { width: 100%; }
++            .catalog-section, .notice-section { padding: 32px 18px 48px; }
+             .search-box { max-width: none; }
+             .about-inner { grid-template-columns: 1fr; gap: 6px; padding: 32px 18px 48px; }
+             .about-header { padding: 32px 18px 16px; }
+             .about-gallery-track img { width: 220px; height: 190px; }
+             .nav-links { gap: 8px; }
+           }
++
++          /* celular: mais livros por linha (3 ou mais), com tudo na mesma proporção do computador */
++          @media (max-width: 640px) {
++            .catalog-section, .notice-section { padding: 24px 14px 40px; }
++            .catalog-accent { width: 10px; height: 30px; }
++            .catalog-title { font-size: 1.5rem; }
++            .notice-header { gap: 10px; margin-bottom: 16px; }
++            .notice-subtitle { font-size: 0.78rem; }
++            .catalog-count { font-size: 0.78rem; }
++            .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
++            .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
++            .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
++            .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
++            .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
++            .book-card:hover { transform: none; }
++            .book-fallback { font-size: 1.4rem; }
++            .class-badge { left: 5px; top: 5px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.6rem; border-radius: 5px; }
++            .book-status { right: 4px; bottom: 4px; padding: 2px 6px; font-size: 0.54rem; }
++            .book-content { padding: 8px 8px 10px; }
++            .book-title { font-size: 0.78rem; line-height: 1.15; min-height: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
++            .book-author { font-size: 0.66rem; margin-bottom: 4px; }
++            .book-meta { gap: 4px; margin-top: 4px; }
++            .book-meta-tag { font-size: 0.58rem; padding: 2px 5px; }
++          }
+         `}</style>
+ 
+         <div className="home-shell">
+diff --git a/components/BiblioNews.tsx b/components/BiblioNews.tsx
+index b266375..811ba49 100644
+--- a/components/BiblioNews.tsx
++++ b/components/BiblioNews.tsx
+@@ -233,12 +233,35 @@ export function BiblioNews() {
+         .bn-close { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; background: rgba(255,253,250,0.92); color: #6b1a17; font-size: 1.5rem; line-height: 1; box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
+         @keyframes bnFade { from { opacity: 0; } to { opacity: 1; } }
+ 
++        /* tablet: mantém as duas colunas (destaque + lista), só um pouco menores */
+         @media (max-width: 900px) {
+-          .bn-grid { grid-template-columns: minmax(0, 1fr); }
+           .bn-tile { width: 92px; height: 92px; }
+           .bn-feature-body { padding: 20px 20px 24px; }
+           .bn-modal-body { padding: 20px 20px 26px; }
+         }
++
++        /* celular: também fica lado a lado, igual ao computador, com tudo em escala menor */
++        @media (max-width: 640px) {
++          .bn-grid { gap: 10px; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
++          .bn-chip { font-size: 0.78rem; padding: 5px 12px; }
++          .bn-feature { border-radius: 14px; }
++          .bn-feature-media { height: 110px; }
++          .bn-feature-body { padding: 10px 12px 14px; }
++          .bn-meta { gap: 6px; margin-bottom: 6px; }
++          .bn-date { font-size: 0.68rem; }
++          .bn-pill { font-size: 0.62rem; padding: 2px 8px; }
++          .bn-feature h3 { font-size: 0.95rem; margin-bottom: 6px; }
++          .bn-desc { font-size: 0.74rem; line-height: 1.4; margin-bottom: 8px; -webkit-line-clamp: 4; }
++          .bn-read { font-size: 0.74rem; }
++          .bn-side { gap: 8px; }
++          .bn-compact { gap: 8px; padding: 8px; border-radius: 14px; }
++          .bn-tile { width: 44px; height: 44px; border-radius: 10px; }
++          .bn-compact-info { gap: 2px; }
++          .bn-compact-info strong { font-size: 0.76rem; line-height: 1.2; }
++          .bn-compact-info small { font-size: 0.64rem; }
++          .bn-extras { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
++          .bn-more { font-size: 0.8rem; padding: 8px 16px; margin-top: 14px; }
++        }
+       `}</style>
+ 
+       <div className="bn-head">
