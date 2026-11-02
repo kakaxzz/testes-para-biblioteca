@@ -1,17 +1,53 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { CategoriasSelect, CATEGORIAS } from "@/components/CategoriaSelect"
-import { ClassificacaoSelect } from "@/components/ClassificacaoSelect"
+import { CATEGORIAS } from "@/components/CategoriaSelect"
 import { ModalPortal } from "@/components/ModalPortal"
-import { CLASSIFICACAO_INFO, normalizarClassificacao } from "@/lib/classificacao"
-import React from 'react'
+import { Code39 } from "@/components/Code39"
+import { ClassificacaoBadge } from "@/components/ClassificacaoBadge"
+import { LivroCampos, CAMPOS_VAZIOS, camposDoLivro, type CamposLivro } from "@/components/admin/LivroCampos"
+import { LivroDetalhesModal } from "@/components/admin/LivroDetalhesModal"
+
+const tombo = (n: number) => `#${String(n || 0).padStart(7, "0")}`
+const opcional = (v: string) => v || null
+const CEL = "text-[13px] text-[#555]"
+
+function Capa({ src, alt, className }: { src?: string | null; alt: string; className: string }) {
+  return src
+    ? <img src={src} alt={alt} className={`${className} rounded object-cover`} />
+    : <div className={`${className} flex items-center justify-center rounded bg-[#f0eded]`}>📖</div>
+}
+
+function FiltroData({ rotulo, valor, onChange }: { rotulo: string; valor: string; onChange: (v: string) => void }) {
+  return (
+    <label className="grid w-[calc(50%-0.25rem)] gap-1 text-[11px] font-semibold text-neutral-500 sm:w-40">
+      {rotulo}
+      <input type="date" className="input-field" value={valor} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  )
+}
+
+type AcoesProps = { onEtiqueta: () => void; onDetalhes: () => void; onEditar: () => void; onRemover: () => void }
+
+function Acoes({ onEtiqueta, onDetalhes, onEditar, onRemover }: AcoesProps) {
+  const base = "cursor-pointer rounded-md border px-2.5 py-1.5 text-xs font-semibold"
+  return (
+    <div className="flex gap-1.5">
+      <button onClick={onDetalhes} title="Ver detalhes" aria-label="Ver detalhes" className={`${base} border-[#e0e0e0] bg-[#f7f6f4]`}>👁️</button>
+      <button onClick={onEtiqueta} title="Imprimir etiqueta" aria-label="Imprimir etiqueta" className={`${base} border-[#e0e0e0] bg-[#f7f6f4]`}>🏷️</button>
+      <button onClick={onEditar} title="Editar" aria-label="Editar" className={`${base} border-blue-200 bg-blue-50 text-blue-700`}>✏️</button>
+      <button onClick={onRemover} title="Remover" aria-label="Remover" className={`${base} border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]`}>🗑️</button>
+    </div>
+  )
+}
 
 export default function AdminLivros() {
   const [aba, setAba] = useState<"cadastrar" | "acervo">("cadastrar")
   const [isbn, setIsbn] = useState("")
   const [livro, setLivro] = useState<any>(null)
-  const [editando, setEditando] = useState<any>(null)
+  const [campos, setCampos] = useState<CamposLivro>(CAMPOS_VAZIOS)
+  const [editando, setEditando] = useState<(CamposLivro & { isbn: string }) | null>(null)
+  const [detalhes, setDetalhes] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [mensagem, setMensagem] = useState("")
   const [tipoMensagem, setTipoMensagem] = useState<"ok" | "erro">("ok")
@@ -23,57 +59,9 @@ export default function AdminLivros() {
   const [printTrigger, setPrintTrigger] = useState(0)
   const [soDisponiveis, setSoDisponiveis] = useState(false)
 
-  const [campos, setCampos] = useState({
-    capa: "", autor: "", sinopse: "", categorias: [] as string[],
-    editora: "", edicao: "", cdd: "", cutter: "", volume: "", classificacaoIndicativa: "",
-  })
-  const [editandoCategorias, setEditandoCategorias] = useState<string[]>([])
-
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const CODE39_PATTERNS: Record<string, string> = {
-    "0": "nnnwwnwnn",
-    "1": "wnnwnnnnw",
-    "2": "nwnwnnnnw",
-    "3": "wwnwnnnnn",
-    "4": "nnnwwnnnw",
-    "5": "wnnwwnnnn",
-    "6": "nwnwwnnnn",
-    "7": "nnnwnnwnw",
-    "8": "wnnwnnwnn",
-    "9": "nwnwnnwnn",
-    "*": "nwnnwnwnn",
-  }
-
-  function renderCode39Barcode(value: string, width = 130, height = 34) {
-    const encoded = `*${String(value || "").toUpperCase()}*`
-    const patterns = encoded.split("").map(char => CODE39_PATTERNS[char] || CODE39_PATTERNS["0"])
-
-    const units = patterns.reduce((total, pattern) => {
-      const charUnits = pattern.split("").reduce((sum, part) => sum + (part === "n" ? 1 : 2), 0)
-      return total + charUnits + 1
-    }, -1)
-
-    const scale = width / units
-    let x = 0
-const bars: React.ReactElement[] = []
-    patterns.forEach((pattern, patternIndex) => {
-      pattern.split("").forEach((part, idx) => {
-        const w = (part === "n" ? 1 : 2) * scale
-        if (idx % 2 === 0) {
-          bars.push(<rect key={`${patternIndex}-${idx}`} x={x} y={0} width={w} height={height} fill="#000" />)
-        }
-        x += w
-      })
-      x += scale
-    })
-
-    return (
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Código de barras ${value}`}>
-        {bars}
-      </svg>
-    )
-  }
+  const avisar = (texto: string, tipo: "ok" | "erro") => { setMensagem(texto); setTipoMensagem(tipo) }
 
   useEffect(() => {
     if (!printTrigger) return
@@ -92,20 +80,15 @@ const bars: React.ReactElement[] = []
       if (de) params.set("de", de)
       if (ate) params.set("ate", ate)
       const res = await fetch("/api/livros?" + params.toString())
-      if (res.ok) {
-        const data = await res.json()
-        setLivros(data)
-      } else {
-        setLivros([])
-      }
+      setLivros(res.ok ? await res.json() : [])
     } catch (error) {
       console.error("Erro ao carregar livros:", error)
       setLivros([])
     }
   }
 
-  async function buscarLivro(codigo?: string) {
-    const cod = codigo || isbn
+  async function buscarLivro() {
+    const cod = isbn
     if (!cod) return
     setLoading(true); setMensagem(""); setLivro(null)
     const res = await fetch(`/api/buscar-isbn/${cod}`)
@@ -113,75 +96,66 @@ const bars: React.ReactElement[] = []
     if (res.ok) {
       setLivro({ ...data, isbn: cod })
       const assuntosApi: string[] = data.assuntos ?? []
-      const categoriasMatched = assuntosApi.filter((a: string) =>
-        CATEGORIAS.some(c => c.toLowerCase() === a.toLowerCase())
-      )
       setCampos({
+        ...CAMPOS_VAZIOS,
+        titulo: data.titulo || "",
         capa: data.capa || "",
         autor: data.autor || "",
         sinopse: data.sinopse || "",
-        categorias: categoriasMatched,
+        categorias: assuntosApi.filter((a) => CATEGORIAS.some((c) => c.toLowerCase() === a.toLowerCase())),
         editora: data.editora || "",
         edicao: data.edicao || "",
-        cdd: "",
-        cutter: "",
-        volume: "",
-        classificacaoIndicativa: "",
       })
     } else {
-      setMensagem(data.error)
-      setTipoMensagem("erro")
+      avisar(data.error, "erro")
     }
     setLoading(false); setIsbn(""); inputRef.current?.focus()
   }
 
   async function salvarLivro() {
+    const { categorias, ...resto } = campos
     const res = await fetch("/api/livros", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...livro,
-        autor: campos.autor,
-        sinopse: campos.sinopse,
-        capa: campos.capa,
-        assuntos: campos.categorias,
-        editora: campos.editora,
-        edicao: campos.edicao,
-        cdd: campos.cdd,
-        cutter: campos.cutter,
-        volume: campos.volume,
-        classificacaoIndicativa: campos.classificacaoIndicativa,
-      }),
+      body: JSON.stringify({ ...livro, ...resto, assuntos: categorias }),
     })
     const data = await res.json()
     if (res.ok) {
-      const msg = data.novoExemplar
-        ? `✅ Novo exemplar adicionado! Tombo #${String(data.tombo).padStart(7, "0")}`
-        : `✅ Livro cadastrado! Tombo #${String(data.tombo).padStart(7, "0")}`
-      setMensagem(msg)
-      setTipoMensagem("ok"); setLivro(null)
-      setCampos({ capa: "", autor: "", sinopse: "", categorias: [], editora: "", edicao: "", cdd: "", cutter: "", volume: "", classificacaoIndicativa: "" })
+      avisar(
+        `✅ ${data.novoExemplar ? "Novo exemplar adicionado" : "Livro cadastrado"}! Tombo ${tombo(data.tombo)}`,
+        "ok"
+      )
+      setLivro(null)
+      setCampos(CAMPOS_VAZIOS)
       carregarLivros()
     } else {
-      setMensagem(data.error); setTipoMensagem("erro")
+      avisar(data.error, "erro")
     }
     inputRef.current?.focus()
   }
 
   async function salvarEdicao() {
+    if (!editando) return
+    const { categorias, ...resto } = editando
     const res = await fetch(`/api/livros/${editando.isbn}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...editando,
-        assuntos: editandoCategorias.join(", "),
+        ...resto,
+        editora: opcional(resto.editora),
+        edicao: opcional(resto.edicao),
+        cdd: opcional(resto.cdd),
+        cutter: opcional(resto.cutter),
+        sinopse: opcional(resto.sinopse),
+        capa: opcional(resto.capa),
+        assuntos: categorias.join(", "),
       }),
     })
     if (res.ok) {
-      setMensagem("✅ Livro atualizado com sucesso!")
-      setTipoMensagem("ok"); setEditando(null); carregarLivros()
+      avisar("✅ Livro atualizado com sucesso!", "ok")
+      setEditando(null); carregarLivros()
     } else {
-      const d = await res.json(); setMensagem(d.error); setTipoMensagem("erro")
+      const d = await res.json(); avisar(d.error, "erro")
     }
   }
 
@@ -189,34 +163,38 @@ const bars: React.ReactElement[] = []
     if (!confirm(`Remover "${titulo}" do acervo? Esta ação não pode ser desfeita.`)) return
     const res = await fetch(`/api/livros/${isbn}`, { method: "DELETE" })
     if (res.ok) {
-      setMensagem(`🗑️ "${titulo}" removido do acervo.`); setTipoMensagem("ok"); carregarLivros()
+      avisar(`🗑️ "${titulo}" removido do acervo.`, "ok"); carregarLivros()
     } else {
-      const d = await res.json(); setMensagem(d.error); setTipoMensagem("erro")
+      const d = await res.json(); avisar(d.error, "erro")
     }
   }
 
-  function toggleSelecionado(id: number) {
-    setSelecionados(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
-  }
+  const toggleSelecionado = (id: number) =>
+    setSelecionados((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 
-  function toggleTodos() {
-    if (selecionados.length === filtrados.length) setSelecionados([])
-    else setSelecionados(filtrados.map((l: any) => l.id))
-  }
+  const toggleTodos = () =>
+    setSelecionados(selecionados.length === filtrados.length ? [] : filtrados.map((l) => l.id))
 
-  function imprimirSelecionados() {
-    if (selecionados.length === 0) return
-    setPrintTrigger(prev => prev + 1)
-  }
+  const imprimir = (ids: number[]) => { setSelecionados(ids); setPrintTrigger((p) => p + 1) }
 
-  const filtrados = livros.filter(l => {
-    const bateBusca =
-      l.titulo?.toLowerCase().includes(busca.toLowerCase()) ||
-      l.autor?.toLowerCase().includes(busca.toLowerCase()) ||
-      l.isbn?.includes(busca)
-    const bateDisponibilidade = !soDisponiveis || (l.quantidadeDisponivel ?? 0) > 0
-    return bateBusca && bateDisponibilidade
+  const filtrados = livros.filter((l) => {
+    const termo = busca.toLowerCase()
+    const bateBusca = l.titulo?.toLowerCase().includes(termo) || l.autor?.toLowerCase().includes(termo) || l.isbn?.includes(busca)
+    return bateBusca && (!soDisponiveis || (l.quantidadeDisponivel ?? 0) > 0)
   })
+
+  const todosSelecionados = filtrados.length > 0 && selecionados.length === filtrados.length
+  const corDisponivel = (l: any) => (l.quantidadeDisponivel === 0 ? "text-[#8b1e1e]" : "text-green-800")
+
+  // ações de um livro, iguais na tabela e nos cartões do celular
+  const acoes = (l: any) => (
+    <Acoes
+      onEtiqueta={() => imprimir([l.id])}
+      onDetalhes={() => setDetalhes(l)}
+      onEditar={() => setEditando({ isbn: l.isbn, ...camposDoLivro(l) })}
+      onRemover={() => removerLivro(l.isbn, l.titulo)}
+    />
+  )
 
   return (
     <div>
@@ -240,11 +218,11 @@ const bars: React.ReactElement[] = []
       {/* ETIQUETAS PARA IMPRESSÃO */}
       {selecionados.length > 0 && (
         <div className="etiqueta-print">
-          {livros.filter((l: any) => selecionados.includes(l.id)).flatMap((l: any) =>
+          {livros.filter((l) => selecionados.includes(l.id)).flatMap((l) =>
             (l.exemplares ?? [{ tombo: l.tombo }]).map((ex: any) => (
               <div key={`${l.id}-${ex.tombo}`} className="etiqueta-card">
                 <div className="etiqueta-barcode">
-                  {renderCode39Barcode(String(l.isbn || ex.tombo || "0"), 130, 34)}
+                  <Code39 valor={String(l.isbn || ex.tombo || "0")} />
                   <div className="etiqueta-barcode-text">{l.isbn || String(ex.tombo || 0).padStart(7, "0")}</div>
                 </div>
                 <div className="etiqueta-info">
@@ -252,7 +230,7 @@ const bars: React.ReactElement[] = []
                   <div className="etiqueta-meta">{l.cutter || "---"}</div>
                   <div className="etiqueta-meta">{l.edicao ? `${l.edicao}ª` : "---"}</div>
                   <div className="etiqueta-meta">{l.criadoEm ? new Date(l.criadoEm).getFullYear() : "---"}</div>
-                  <div className="etiqueta-tombo">#{String(ex.tombo || 0).padStart(7, "0")}</div>
+                  <div className="etiqueta-tombo">{tombo(ex.tombo)}</div>
                 </div>
               </div>
             ))
@@ -267,62 +245,42 @@ const bars: React.ReactElement[] = []
         </div>
 
         <div className="surface-strip">
-          {(["cadastrar", "acervo"] as const).map(a => (
-            <button key={a} onClick={() => setAba(a)} className={aba === a ? "active" : ""}>
-              {a === "cadastrar" ? "📚 Cadastrar livro" : `📋 Acervo (${livros.length})`}
-            </button>
+          {([["cadastrar", "📚 Cadastrar livro"], ["acervo", `📋 Acervo (${livros.length})`]] as const).map(([id, rotulo]) => (
+            <button key={id} onClick={() => setAba(id)} className={aba === id ? "active" : ""}>{rotulo}</button>
           ))}
         </div>
 
-        {mensagem && <div className={tipoMensagem === "ok" ? "mensagem-ok" : "mensagem-erro"} style={{ marginBottom: 20 }}>{mensagem}</div>}
+        {mensagem && <div className={`${tipoMensagem === "ok" ? "mensagem-ok" : "mensagem-erro"} mb-5`}>{mensagem}</div>}
 
         {/* ABA CADASTRAR */}
         {aba === "cadastrar" && (
-          <div className="card" style={{ maxWidth: 700 }}>
-            <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-              <input ref={inputRef} autoFocus className="input-field" value={isbn} onChange={e => setIsbn(e.target.value)} onKeyDown={e => e.key === "Enter" && buscarLivro()} placeholder="Escaneie ou digite o ISBN..." style={{ flex: 1 }} />
-              <button className="btn-primary" onClick={() => buscarLivro()} disabled={loading}>{loading ? "Buscando..." : "Buscar"}</button>
+          <div className="card max-w-[700px]">
+            <div className="mb-6 flex gap-2.5">
+              <input
+                ref={inputRef}
+                autoFocus
+                className="input-field flex-1"
+                value={isbn}
+                onChange={(e) => setIsbn(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && buscarLivro()}
+                placeholder="Escaneie ou digite o ISBN..."
+              />
+              <button className="btn-primary shrink-0" onClick={buscarLivro} disabled={loading}>{loading ? "Buscando..." : "Buscar"}</button>
             </div>
 
             {livro && (
-              <div style={{ borderTop: "2px solid #f0eded", paddingTop: 24 }}>
-                <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
-                  {campos.capa && <img src={campos.capa} alt="Capa" style={{ width: 100, height: 145, objectFit: "cover", borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.12)", flexShrink: 0 }} />}
-                  <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, marginBottom: 4 }}>{livro.titulo}</h2>
-                    <p style={{ color: "#aaa", fontSize: 13, marginBottom: 16 }}>ISBN: {livro.isbn}</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-                      <div className="input-group"><label>Autor</label><input className="input-field" value={campos.autor} onChange={e => setCampos(c => ({ ...c, autor: e.target.value }))} /></div>
-                      <div className="input-group"><label>Editora</label><input className="input-field" value={campos.editora} onChange={e => setCampos(c => ({ ...c, editora: e.target.value }))} /></div>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 12 }}>
-                      <div className="input-group"><label>CDD</label><input className="input-field" value={campos.cdd} onChange={e => setCampos(c => ({ ...c, cdd: e.target.value }))} placeholder="Ex: 823.914" /></div>
-                      <div className="input-group"><label>Cutter</label><input className="input-field" value={campos.cutter} onChange={e => setCampos(c => ({ ...c, cutter: e.target.value }))} placeholder="Ex: K56c" /></div>
-                      <div className="input-group"><label>Edição</label><input className="input-field" value={campos.edicao} onChange={e => setCampos(c => ({ ...c, edicao: e.target.value }))} placeholder="Ex: 3" /></div>
-                      <div className="input-group"><label>Volume</label><input className="input-field" value={campos.volume} onChange={e => setCampos(c => ({ ...c, volume: e.target.value }))} placeholder="Ex: 5" /></div>
-                    </div>
+              <div className="border-t-2 border-[#f0eded] pt-6">
+                <div className="mb-5 flex gap-4">
+                  {campos.capa && <img src={campos.capa} alt="Capa" className="h-[145px] w-[100px] shrink-0 rounded-lg object-cover shadow-[0_4px_16px_rgba(0,0,0,0.12)]" />}
+                  <div className="min-w-0">
+                    <h2 className="mb-1 font-titulo text-xl">{livro.titulo}</h2>
+                    <p className="text-[13px] text-neutral-400">ISBN: {livro.isbn}</p>
                   </div>
                 </div>
 
-                <div className="input-group">
-                  <label>Classificação indicativa</label>
-                  <ClassificacaoSelect
-                    value={campos.classificacaoIndicativa}
-                    onChange={v => setCampos(c => ({ ...c, classificacaoIndicativa: v }))}
-                  />
-                </div>
+                <LivroCampos valores={campos} onChange={(p) => setCampos((c) => ({ ...c, ...p }))} />
 
-                <div className="input-group">
-                  <label>Assuntos / Categorias</label>
-                  <CategoriasSelect
-                    value={campos.categorias}
-                    onChange={novas => setCampos(c => ({ ...c, categorias: novas }))}
-                  />
-                </div>
-
-                <div className="input-group"><label>Sinopse</label><textarea className="input-field" value={campos.sinopse} onChange={e => setCampos(c => ({ ...c, sinopse: e.target.value }))} /></div>
-                <div className="input-group"><label>URL da Capa</label><input className="input-field" value={campos.capa} onChange={e => setCampos(c => ({ ...c, capa: e.target.value }))} /></div>
-                <div style={{ display: "flex", gap: 10 }}>
+                <div className="flex flex-wrap gap-2.5">
                   <button className="btn-primary" onClick={salvarLivro}>💾 Salvar livro</button>
                   <button className="btn-secondary" onClick={() => setLivro(null)}>Cancelar</button>
                 </div>
@@ -334,143 +292,119 @@ const bars: React.ReactElement[] = []
         {/* ABA ACERVO */}
         {aba === "acervo" && (
           <div className="card">
-            <div style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-              <input className="input-field" placeholder="Buscar por título, autor ou ISBN..." value={busca} onChange={e => setBusca(e.target.value)} style={{ maxWidth: 400 }} />
-              <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-                <div className="input-group" style={{ margin: 0 }}>
-                  <label style={{ fontSize: 11, color: "#888", marginBottom: 4, display: "block" }}>Catalogado de</label>
-                  <input type="date" className="input-field" value={filtroDE} onChange={e => setFiltroDE(e.target.value)} style={{ width: 160 }} />
-                </div>
-                <div className="input-group" style={{ margin: 0 }}>
-                  <label style={{ fontSize: 11, color: "#888", marginBottom: 4, display: "block" }}>até</label>
-                  <input type="date" className="input-field" value={filtroATE} onChange={e => setFiltroATE(e.target.value)} style={{ width: 160 }} />
-                </div>
-                <button className="btn-primary" onClick={() => carregarLivros(filtroDE, filtroATE)} style={{ height: 38 }}>Filtrar</button>
+            <div className="mb-5 flex flex-wrap items-end gap-3">
+              <input className="input-field md:max-w-[400px]" placeholder="Buscar por título, autor ou ISBN..." value={busca} onChange={(e) => setBusca(e.target.value)} />
+              <div className="flex w-full flex-wrap items-end gap-2 sm:w-auto">
+                <FiltroData rotulo="Catalogado de" valor={filtroDE} onChange={setFiltroDE} />
+                <FiltroData rotulo="até" valor={filtroATE} onChange={setFiltroATE} />
+                <button className="btn-primary" onClick={() => carregarLivros(filtroDE, filtroATE)}>Filtrar</button>
                 {(filtroDE || filtroATE) && (
-                  <button className="btn-secondary" onClick={() => { setFiltroDE(""); setFiltroATE(""); carregarLivros() }} style={{ height: 38 }}>Limpar</button>
+                  <button className="btn-secondary" onClick={() => { setFiltroDE(""); setFiltroATE(""); carregarLivros() }}>Limpar</button>
                 )}
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, height: 38, fontSize: 14, fontWeight: 600, color: "#5e4a4a", cursor: "pointer" }}>
-                <input type="checkbox" checked={soDisponiveis} onChange={e => setSoDisponiveis(e.target.checked)} />
+              <label className="flex h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-[#5e4a4a]">
+                <input type="checkbox" checked={soDisponiveis} onChange={(e) => setSoDisponiveis(e.target.checked)} />
                 Só livros disponíveis
               </label>
               {selecionados.length > 0 && (
-                <button className="btn-primary" onClick={imprimirSelecionados} style={{ height: 38, background: "#8b1e1e" }}>
-                  🏷️ Imprimir etiquetas ({selecionados.length})
-                </button>
+                <button className="btn-primary" onClick={() => imprimir(selecionados)}>🏷️ Imprimir etiquetas ({selecionados.length})</button>
               )}
             </div>
 
-            {/* MODAL EDITAR */}
-            {editando && (
-              <ModalPortal><div className="modal-overlay">
-                <div className="modal-surface modal-surface--wide">
-                  <div className="modal-head">
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20 }}>Editar livro</h2>
-                    <button onClick={() => setEditando(null)} aria-label="Fechar" style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa" }}>✕</button>
-                  </div>
-
-                  <div className="modal-body">
-                    <div className="input-group"><label>Título</label><input className="input-field" value={editando.titulo} onChange={e => setEditando((v: any) => ({ ...v, titulo: e.target.value }))} /></div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-                      <div className="input-group"><label>Autor</label><input className="input-field" value={editando.autor || ""} onChange={e => setEditando((v: any) => ({ ...v, autor: e.target.value }))} /></div>
-                      <div className="input-group"><label>Editora</label><input className="input-field" value={editando.editora || ""} onChange={e => setEditando((v: any) => ({ ...v, editora: e.target.value }))} /></div>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 12 }}>
-                      <div className="input-group"><label>CDD</label><input className="input-field" value={editando.cdd || ""} onChange={e => setEditando((v: any) => ({ ...v, cdd: e.target.value }))} /></div>
-                      <div className="input-group"><label>Cutter</label><input className="input-field" value={editando.cutter || ""} onChange={e => setEditando((v: any) => ({ ...v, cutter: e.target.value }))} /></div>
-                      <div className="input-group"><label>Edição</label><input className="input-field" value={editando.edicao || ""} onChange={e => setEditando((v: any) => ({ ...v, edicao: e.target.value }))} /></div>
-                      <div className="input-group"><label>Volume</label><input className="input-field" value={editando.volume || ""} onChange={e => setEditando((v: any) => ({ ...v, volume: e.target.value }))} /></div>
-                    </div>
-                    <div className="input-group">
-                      <label>Classificação indicativa</label>
-                      <ClassificacaoSelect
-                        value={editando.classificacaoIndicativa}
-                        onChange={v => setEditando((l: any) => ({ ...l, classificacaoIndicativa: v }))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Assuntos / Categorias</label>
-                      <CategoriasSelect
-                        value={editandoCategorias}
-                        onChange={setEditandoCategorias}
-                      />
-                    </div>
-                    <div className="input-group"><label>Sinopse</label><textarea className="input-field" value={editando.sinopse || ""} onChange={e => setEditando((v: any) => ({ ...v, sinopse: e.target.value }))} /></div>
-                    <div className="input-group"><label>URL da Capa</label><input className="input-field" value={editando.capa || ""} onChange={e => setEditando((v: any) => ({ ...v, capa: e.target.value }))} /></div>
-                  </div>
-
-                  <div className="modal-foot">
-                    <button className="btn-primary" onClick={salvarEdicao}>💾 Salvar alterações</button>
-                    <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
-                  </div>
-                </div>
-              </div></ModalPortal>
+            {/* DETALHES (últimos empréstimos, total...) */}
+            {detalhes && (
+              <LivroDetalhesModal
+                livro={detalhes}
+                onClose={() => setDetalhes(null)}
+                onEditar={() => { setEditando({ isbn: detalhes.isbn, ...camposDoLivro(detalhes) }); setDetalhes(null) }}
+              />
             )}
 
-            <div className="table-wrap">
+            {/* MODAL EDITAR */}
+            {editando && (
+              <ModalPortal>
+                <div className="modal-overlay">
+                  <div className="modal-surface modal-surface--wide">
+                    <div className="modal-head">
+                      <h2 className="font-titulo text-xl">Editar livro</h2>
+                      <button onClick={() => setEditando(null)} aria-label="Fechar" className="cursor-pointer text-xl text-neutral-400 hover:text-neutral-600">✕</button>
+                    </div>
+                    <div className="modal-body">
+                      <LivroCampos comTitulo valores={editando} onChange={(p) => setEditando((v) => v && { ...v, ...p })} />
+                    </div>
+                    <div className="modal-foot">
+                      <button className="btn-primary" onClick={salvarEdicao}>💾 Salvar alterações</button>
+                      <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
+                    </div>
+                  </div>
+                </div>
+              </ModalPortal>
+            )}
+
+            {/* CELULAR / TABLET: um cartão por livro */}
+            <div className="md:hidden">
+              <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm font-semibold text-[#5e4a4a]">
+                <input type="checkbox" checked={todosSelecionados} onChange={toggleTodos} />
+                Selecionar todos ({filtrados.length})
+              </label>
+              {filtrados.length === 0 && <p className="py-8 text-center text-neutral-300">Nenhum livro encontrado</p>}
+              <div className="space-y-3">
+                {filtrados.map((l) => (
+                  <article key={l.id} className={`flex gap-3 rounded-2xl border border-[#8b1e1e]/10 p-3 ${selecionados.includes(l.id) ? "bg-[#fdf6f6]" : "bg-white/70"}`}>
+                    <input type="checkbox" className="mt-1 shrink-0 self-start" aria-label={`Selecionar ${l.titulo}`} checked={selecionados.includes(l.id)} onChange={() => toggleSelecionado(l.id)} />
+                    <Capa src={l.capa} alt={l.titulo} className="h-[58px] w-10 shrink-0" />
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div>
+                        <button onClick={() => setDetalhes(l)} className="cursor-pointer text-left font-semibold leading-snug text-[#261111]">{l.titulo}</button>{" "}
+                        <ClassificacaoBadge valor={l.classificacaoIndicativa} />
+                        <p className="text-[13px] text-[#555]">{l.autor}</p>
+                        <p className="break-all text-[11px] text-neutral-400">{l.isbn}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs font-bold">
+                        <span className={corDisponivel(l)}>{l.quantidadeDisponivel}/{l.quantidadeTotal} disponíveis</span>
+                        <span className="text-[#8b1e1e]">{(l.exemplares ?? []).map((e: any) => tombo(e.tombo)).join(", ")}</span>
+                      </div>
+                      {acoes(l)}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            {/* COMPUTADOR: tabela, uma linha por exemplar */}
+            <div className="table-wrap hidden md:block">
               <table>
                 <thead>
                   <tr>
-                    <th><input type="checkbox" checked={filtrados.length > 0 && selecionados.length === filtrados.length} onChange={toggleTodos} /></th>
+                    <th><input type="checkbox" aria-label="Selecionar todos" checked={todosSelecionados} onChange={toggleTodos} /></th>
                     <th>Tombo</th><th>Capa</th><th>Título</th><th>Autor</th><th>CDD</th><th>Cutter</th><th>Ed.</th><th>Vol.</th><th>Exemplares</th><th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtrados.length === 0 && (
-                    <tr><td colSpan={11} style={{ textAlign: "center", color: "#ccc", padding: 32 }}>Nenhum livro encontrado</td></tr>
+                    <tr><td colSpan={11} className="p-8 text-center text-neutral-300">Nenhum livro encontrado</td></tr>
                   )}
-                  {filtrados.flatMap((l: any) =>
+                  {filtrados.flatMap((l) =>
                     (l.exemplares ?? [{ tombo: l.tombo, status: "disponivel", id: l.id }]).map((ex: any) => (
-                      <tr key={`${l.id}-${ex.id}`} style={{ background: selecionados.includes(l.id) ? "#fdf6f6" : undefined }}>
+                      <tr key={`${l.id}-${ex.id}`} className={selecionados.includes(l.id) ? "bg-[#fdf6f6]" : ""}>
                         <td><input type="checkbox" checked={selecionados.includes(l.id)} onChange={() => toggleSelecionado(l.id)} /></td>
-                        <td style={{ fontWeight: 700, color: "#8b1e1e", fontSize: 13 }}>#{String(ex.tombo || 0).padStart(7, "0")}</td>
-                        <td>{l.capa ? <img src={l.capa} alt={l.titulo} style={{ width: 32, height: 46, objectFit: "cover", borderRadius: 4 }} /> : <div style={{ width: 32, height: 46, background: "#f0eded", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📖</div>}</td>
+                        <td className="text-[13px] font-bold text-[#8b1e1e]">{tombo(ex.tombo)}</td>
+                        <td><Capa src={l.capa} alt={l.titulo} className="h-[46px] w-8" /></td>
                         <td>
-                          <div style={{ fontWeight: 500 }}>
-                            {l.titulo}
-                            {normalizarClassificacao(l.classificacaoIndicativa) && (
-                              <span
-                                title={CLASSIFICACAO_INFO[normalizarClassificacao(l.classificacaoIndicativa)!].descricao}
-                                style={{
-                                  marginLeft: 8, padding: "1px 7px", borderRadius: 6, fontSize: 11, fontWeight: 800,
-                                  color: CLASSIFICACAO_INFO[normalizarClassificacao(l.classificacaoIndicativa)!].cor,
-                                  background: CLASSIFICACAO_INFO[normalizarClassificacao(l.classificacaoIndicativa)!].fundo,
-                                }}
-                              >
-                                {CLASSIFICACAO_INFO[normalizarClassificacao(l.classificacaoIndicativa)!].rotulo}
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontSize: 11, color: "#aaa" }}>{l.isbn}</div>
+                          <button onClick={() => setDetalhes(l)} title="Ver detalhes" className="cursor-pointer text-left font-medium hover:underline">{l.titulo}</button>{" "}
+                          <ClassificacaoBadge valor={l.classificacaoIndicativa} />
+                          <div className="text-[11px] text-neutral-400">{l.isbn}</div>
                         </td>
-                        <td style={{ fontSize: 13, color: "#555" }}>{l.autor}</td>
-                        <td style={{ fontSize: 13, color: "#555" }}>{l.cdd || "—"}</td>
-                        <td style={{ fontSize: 13, color: "#555" }}>{l.cutter || "—"}</td>
-                        <td style={{ fontSize: 13, color: "#555" }}>{l.edicao ? `${l.edicao}ª` : "—"}</td>
-                        <td style={{ fontSize: 13, color: "#555" }}>{l.volume ? `v.${l.volume}` : "—"}</td>
+                        <td className={CEL}>{l.autor}</td>
+                        <td className={CEL}>{l.cdd || "—"}</td>
+                        <td className={CEL}>{l.cutter || "—"}</td>
+                        <td className={CEL}>{l.edicao ? `${l.edicao}ª` : "—"}</td>
+                        <td className={CEL}>{l.volume ? `v.${l.volume}` : "—"}</td>
                         <td>
-                          <span style={{ fontWeight: 700, fontSize: 13, color: l.quantidadeDisponivel === 0 ? "#8b1e1e" : "#166534" }}>
-                            {l.quantidadeDisponivel}/{l.quantidadeTotal}
-                          </span>
-                          <div style={{ fontSize: 11, color: "#aaa" }}>disponíveis</div>
+                          <span className={`text-[13px] font-bold ${corDisponivel(l)}`}>{l.quantidadeDisponivel}/{l.quantidadeTotal}</span>
+                          <div className="text-[11px] text-neutral-400">disponíveis</div>
                         </td>
-                        <td>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button onClick={() => { setSelecionados([l.id]); setPrintTrigger(prev => prev + 1) }} style={{ padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🏷️</button>
-                            <button
-                              onClick={() => {
-                                setEditando({ ...l })
-                                const cats = l.assuntos
-                                  ? l.assuntos.split(",").map((c: string) => c.trim()).filter(Boolean)
-                                  : []
-                                setEditandoCategorias(cats)
-                              }}
-                              style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
-                            >✏️</button>
-                            <button onClick={() => removerLivro(l.isbn, l.titulo)} style={{ padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}>🗑️</button>
-                          </div>
-                        </td>
+                        <td>{acoes(l)}</td>
                       </tr>
                     ))
                   )}

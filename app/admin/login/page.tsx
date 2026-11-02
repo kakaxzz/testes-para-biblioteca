@@ -2,6 +2,10 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { PasswordInput } from "@/components/PasswordInput"
+
+const CAMPO =
+  "rounded-xl border border-[#8b1e1e]/15 bg-white/70 px-4 py-3.5 text-sm text-[#1a0f0f] shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none transition focus:border-[#8b1e1e] focus:ring-4 focus:ring-[#8b1e1e]/10"
 
 export default function LoginPage() {
   const [usuario, setUsuario] = useState("")
@@ -21,186 +25,60 @@ export default function LoginPage() {
       body: JSON.stringify({ usuario, senha }),
     })
 
-    if (res.ok) {
-      router.replace("/admin")
-    } else {
-      setErro("Usuario ou senha incorretos.")
-    }
+    if (res.ok) router.replace("/admin")
+    else setErro("Usuario ou senha incorretos.")
 
     setLoading(false)
   }
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #561010 0%, #791818 44%, #962020 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "'Source Sans 3', sans-serif",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-      `}</style>
 
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at center, rgba(255,255,255,0.05), transparent 44%)",
-        }}
-      />
+  return (
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#561010_0%,#791818_44%,#962020_100%)] p-4 font-texto">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&display=swap');`}</style>
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_44%)]" />
 
       <img
         src="/logo-jpi.png"
         alt="Logo da Biblioteca Escolar Emerson Teixeira"
-        style={{
-          position: "absolute",
-          width: "min(70vw, 780px)",
-          maxWidth: 780,
-          opacity: 0.12,
-          objectFit: "contain",
-          filter: "sepia(0.08) saturate(0.8) brightness(1.08)",
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
+        className="pointer-events-none absolute w-[min(70vw,780px)] max-w-[780px] select-none object-contain opacity-[0.12] [filter:sepia(0.08)_saturate(0.8)_brightness(1.08)]"
       />
 
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 402,
-          padding: "46px 42px",
-          borderRadius: 24,
-          textAlign: "center",
-          position: "relative",
-          zIndex: 1,
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(252,248,246,0.94) 100%)",
-          border: "1px solid rgba(255,255,255,0.22)",
-          backdropFilter: "blur(8px)",
-          boxShadow: "0 30px 70px rgba(39,8,8,0.26)",
-        }}
-      >
-        <div
-          style={{
-            width: 76,
-            height: 76,
-            borderRadius: "50%",
-            margin: "0 auto 18px",
-            background: "linear-gradient(180deg, rgba(139,30,30,0.08), rgba(139,30,30,0.14))",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 38,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)",
-          }}
-        >
+      <div className="relative z-10 w-full max-w-[402px] rounded-3xl border border-white/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(252,248,246,0.94)_100%)] px-6 py-10 text-center shadow-[0_30px_70px_rgba(39,8,8,0.26)] backdrop-blur-sm sm:px-[42px] sm:py-[46px]">
+        <div className="mx-auto mb-[18px] flex size-[76px] items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(139,30,30,0.08),rgba(139,30,30,0.14))] text-[38px] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
           📚
         </div>
 
-        <h1
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 31,
-            fontWeight: 900,
-            color: "#8b1e1e",
-            marginBottom: 6,
-          }}
-        >
-          Area Admin
-        </h1>
+        <h1 className="mb-1.5 font-titulo text-[31px] font-black text-[#8b1e1e]">Area Admin</h1>
+        <p className="mb-[30px] text-sm tracking-[0.01em] text-[#9b8f8f]">Biblioteca Escolar Emerson Teixeira</p>
 
-        <p
-          style={{
-            color: "#9b8f8f",
-            fontSize: 14,
-            marginBottom: 30,
-            letterSpacing: "0.01em",
-          }}
-        >
-          Biblioteca Escolar Emerson Teixeira
-        </p>
-
-        <form
-          onSubmit={handleLogin}
-          style={{ display: "flex", flexDirection: "column", gap: 14 }}
-        >
+        <form onSubmit={handleLogin} className="flex flex-col gap-3.5">
           <input
             placeholder="Usuario"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
+            autoComplete="username"
             required
             autoFocus
-            style={{
-              padding: "14px 16px",
-              borderRadius: 12,
-              border: "1px solid rgba(139,30,30,0.12)",
-              fontSize: 14,
-              fontFamily: "'Source Sans 3', sans-serif",
-              outline: "none",
-              background: "rgba(255,255,255,0.72)",
-              color: "#1a0f0f",
-              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)",
-            }}
+            className={CAMPO}
           />
 
-          <input
-            type="password"
+          <PasswordInput
             placeholder="Senha"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            autoComplete="current-password"
             required
-            style={{
-              padding: "14px 16px",
-              borderRadius: 12,
-              border: "1px solid rgba(139,30,30,0.12)",
-              fontSize: 14,
-              fontFamily: "'Source Sans 3', sans-serif",
-              outline: "none",
-              background: "rgba(255,255,255,0.72)",
-              color: "#1a0f0f",
-              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)",
-            }}
+            inputClassName={`w-full ${CAMPO}`}
           />
 
           {erro && (
-            <div
-              style={{
-                padding: "10px 14px",
-                background: "#fdf2f2",
-                border: "1px solid rgba(139,30,30,0.18)",
-                borderRadius: 12,
-                color: "#8b1e1e",
-                fontSize: 13,
-              }}
-            >
-              {erro}
-            </div>
+            <div className="rounded-xl border border-[#8b1e1e]/20 bg-[#fdf2f2] px-3.5 py-2.5 text-[13px] text-[#8b1e1e]">{erro}</div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              padding: "14px",
-              background: "linear-gradient(180deg, #992323 0%, #7e1717 100%)",
-              color: "white",
-              border: "none",
-              borderRadius: 12,
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.7 : 1,
-              fontFamily: "'Source Sans 3', sans-serif",
-              marginTop: 6,
-              boxShadow: "0 12px 22px rgba(126,23,23,0.24)",
-            }}
+            className="mt-1.5 cursor-pointer rounded-xl bg-[linear-gradient(180deg,#992323_0%,#7e1717_100%)] p-3.5 text-[15px] font-bold text-white shadow-[0_12px_22px_rgba(126,23,23,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>

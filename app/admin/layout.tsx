@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
 
-type NomeIcone = "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "virada" | "chave" | "sair"
+type NomeIcone = "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "config" | "sair"
 
 const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean }[] = [
   { href: "/admin", label: "Dashboard", icone: "home", exact: true },
@@ -13,9 +13,8 @@ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean
   { href: "/admin/usuarios", label: "Usuários", icone: "usuarios" },
   { href: "/admin/tcc", label: "TCCs & Artigos", icone: "tcc" },
   { href: "/admin/stats", label: "Estatísticas", icone: "stats" },
-  { href: "/admin/virada", label: "Virada de ano", icone: "virada" },
   { href: "/admin/biblionews", label: "BiblioNews", icone: "news" },
-  { href: "/admin/trocar-senha", label: "Trocar senha", icone: "chave" },
+  { href: "/admin/configuracoes", label: "Configurações", icone: "config" },
 ]
 
 function Icone({ nome }: { nome: NomeIcone }) {
@@ -81,18 +80,12 @@ function Icone({ nome }: { nome: NomeIcone }) {
           <path d="M8 9h8M8 12.5h8M8 16h5" />
         </svg>
       )
-    case "virada":
+    case "config":
       return (
         <svg {...comum}>
-          <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
-          <path d="M8 3.5v4M16 3.5v4M4 10h16" />
-        </svg>
-      )
-    case "chave":
-      return (
-        <svg {...comum}>
-          <circle cx="8" cy="15" r="3.5" />
-          <path d="M10.5 12.5L19 4M16 7l2.5 2.5M13.5 9.5l2 2" />
+          <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+          <circle cx="15" cy="7" r="2" />
+          <circle cx="9" cy="17" r="2" />
         </svg>
       )
     default:
@@ -180,7 +173,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Source+Sans+3:wght@400;500;600;700&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --vermelho: #8b1e1e;
           --vermelho-hover: #a52424;
@@ -528,7 +520,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         td {
           padding: 14px;
           border-bottom: 1px solid #f3e8e5;
-          color: var(--cinza-escuro);
           vertical-align: middle;
         }
         tr:last-child td { border-bottom: none; }
@@ -554,6 +545,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           .admin-topbar-sub { display: none; }
           .admin-back-btn { padding: 9px 14px; font-size: 0.84rem; }
           .admin-content { padding: 20px 18px 32px; }
+          .card { padding: 20px; }
           .page-header { padding: 24px 22px 20px; }
           .page-header h1 { font-size: 2rem; }
           .admin-grid-2,
