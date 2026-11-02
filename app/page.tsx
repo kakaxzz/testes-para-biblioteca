@@ -175,6 +175,7 @@ export default function Home() {
             transition: background 0.18s ease;
           }
           .nav-more-item:hover { background: rgba(139,30,30,0.08); }
+          .nav-mobile-only { display: none; }
 
           .hero {
             margin-top: 76px;
@@ -322,7 +323,14 @@ export default function Home() {
           }
 
           @media (max-width: 860px) {
-            .topbar-inner { padding: 14px 18px; }
+            html { scroll-padding-top: 56px; }
+            /* barra fininha, numa linha só (como no computador) */
+            .topbar-inner { padding: 8px 18px; gap: 10px; }
+            .brand { font-size: 1.05rem; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .nav-links { flex-wrap: nowrap; flex-shrink: 0; }
+            .nav-link { font-size: 0.82rem; padding: 6px 11px; }
+            .nav-more-btn { width: 34px; height: 34px; }
+            .hero { margin-top: 52px; }
             /* hero: continua com texto à esquerda e logo à direita, como no computador, só que menor */
             .hero-inner { grid-template-columns: minmax(0, 1fr) 36%; min-height: 200px; padding: 0 14px 0 0; }
             .hero-copy { max-width: none; padding: 22px 0 22px 18px; }
@@ -337,6 +345,13 @@ export default function Home() {
             .about-header { padding: 32px 18px 16px; }
             .about-gallery-track img { width: 220px; height: 190px; }
             .nav-links { gap: 8px; }
+          }
+
+          /* celular: os links vão para o menu "⋯" para a barra não quebrar em várias linhas */
+          @media (max-width: 640px) {
+            .brand { font-size: 0.95rem; }
+            .nav-link { display: none; }
+            .nav-mobile-only { display: block; }
           }
 
           /* celular: mais livros por linha (3 ou mais), com tudo na mesma proporção do computador */
@@ -387,6 +402,9 @@ export default function Home() {
                     <>
                       <div className="nav-more-backdrop" onClick={() => setMenuAberto(false)} />
                       <div className="nav-more-menu">
+                        <a href="#catalogo" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>Catálogo</a>
+                        <a href="#biblionews" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>BiblioNews</a>
+                        <a href="#sobre" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>Sobre a biblioteca</a>
                         <Link href="/tcc" className="nav-more-item" onClick={() => setMenuAberto(false)}>TCC &amp; Artigos</Link>
                         <Link href="/admin/login" className="nav-more-item" onClick={() => setMenuAberto(false)}>Área do Admin</Link>
                       </div>
