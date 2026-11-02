@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { CLASSIFICACAO_INFO, normalizarClassificacao, temRestricaoDeIdade } from "@/lib/classificacao"
+import { Icone } from "@/components/Icone"
 
 export default function AdminEmprestimos() {
   // ── estados: novo empréstimo ──
@@ -272,8 +273,8 @@ export default function AdminEmprestimos() {
 
         {exigeConfirmacaoIdade && classificacaoLivro && (
           <div className="surface-note warn" style={{ marginTop: 20 }}>
-            <div style={{ fontWeight: 800, color: "#854d0e", marginBottom: 6 }}>
-              ⚠️ Aviso de idade — classificação {CLASSIFICACAO_INFO[classificacaoLivro].rotulo}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, color: "#854d0e", marginBottom: 6 }}>
+              <Icone nome="alerta" tamanho={19} />Aviso de idade — classificação {CLASSIFICACAO_INFO[classificacaoLivro].rotulo}
             </div>
             <div style={{ fontSize: 14, color: "#6b4a12", marginBottom: 12 }}>
               {CLASSIFICACAO_INFO[classificacaoLivro].descricao}. O aluno só deve levar este livro se tiver a idade indicada
@@ -409,7 +410,7 @@ export default function AdminEmprestimos() {
                           style={{ padding: "7px 12px", fontSize: 12 }}
                           onClick={() => window.open(`/admin/emprestimos/recibo/${e.id}`, "_blank")}
                         >
-                          🖨️ Recibo
+                          <Icone nome="impressora" tamanho={16} />Recibo
                         </button>
                       </div>
                     </td>

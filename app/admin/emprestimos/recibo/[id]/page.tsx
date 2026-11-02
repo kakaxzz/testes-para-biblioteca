@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
+import { Icone } from "@/components/Icone"
 
 // Largura do rolo térmico. Troque para "58mm" se a impressora usar bobina menor.
 const LARGURA_PAPEL = "80mm"
@@ -62,7 +63,7 @@ export default function ReciboEmprestimo() {
       {/* Ações — somem na impressão */}
       <div className="acoes-tela no-print">
         <button className="btn-primary" onClick={() => window.print()}>
-          🖨️ Imprimir recibo
+          <Icone nome="impressora" tamanho={18} />Imprimir recibo
         </button>
       </div>
 

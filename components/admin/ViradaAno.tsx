@@ -56,7 +56,7 @@ export function ViradaAno() {
     const res = await fetch("/api/admin/virada", { method: "POST" })
     const data = await res.json()
     if (res.ok && data.ok) {
-      setMensagem({ ok: true, texto: `✅ Virada feita: ${data.promovidos} promovidos, ${data.removidos} removidos, ${data.pendentes} com livro em aberto (ficaram).` })
+      setMensagem({ ok: true, texto: `Virada feita: ${data.promovidos} promovidos, ${data.removidos} removidos, ${data.pendentes} com livro em aberto (ficaram).` })
     } else {
       setMensagem({ ok: false, texto: data.motivo || data.error || "Erro ao executar a virada." })
     }

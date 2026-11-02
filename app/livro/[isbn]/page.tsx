@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import { PublicNavbar } from "@/components/PublicNavbar"
+import { Icone } from "@/components/Icone"
 import { CLASSIFICACAO_INFO, normalizarClassificacao, temRestricaoDeIdade } from "@/lib/classificacao"
 
 type Relacionado = {
   id: number | string
   isbn: string
   titulo: string
+  autor?: string | null
   capa?: string | null
   assuntos?: string | null
   quantidadeDisponivel: number
@@ -25,6 +28,18 @@ function corDaCapa(texto: string) {
 
 function listaAssuntos(assuntos?: string | null) {
   return (assuntos ?? "").split(",").map((a) => a.trim()).filter(Boolean)
+}
+
+// Autores em minúsculas, separando "A, B" ou "A; B" em nomes diferentes
+function listaAutores(autor?: string | null) {
+  return (autor ?? "").split(/[,;]/).map((a) => a.trim().toLowerCase()).filter(Boolean)
+}
+
+// Número fixo (0 a 1) tirado do par de livros: desempata sem mostrar sempre os mais novos
+function desempate(a: string, b: string) {
+  let h = 0
+  for (const c of a + "|" + b) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return (h % 1000) / 1000
 }
 
 // Converte a data ISO em "15 de outubro" e avisa se essa data já passou
@@ -61,26 +76,55 @@ export default function LivroDetalhe() {
       .catch(() => {})
   }, [])
 
+  // "Mais como este": quanto mais assuntos em comum (assunto raro vale mais que um assunto que
+  // quase todo livro tem) e o mesmo autor, mais parecido. Empate não vira "os mais novos".
   const relacionados = useMemo<Relacionado[]>(() => {
     if (!livro || livro.error) return []
-    const meus = listaAssuntos(livro.assuntos).map((a) => a.toLowerCase())
-    if (meus.length === 0) return []
+    const meusAssuntos = new Set(listaAssuntos(livro.assuntos).map((a) => a.toLowerCase()))
+    const meusAutores = listaAutores(livro.autor)
+    if (meusAssuntos.size === 0 && meusAutores.length === 0) return []
+
+    // em quantos livros aparece cada assunto (para dar mais peso aos assuntos raros)
+    const frequencia = new Map<string, number>()
+    todos.forEach((l) => new Set(listaAssuntos(l.assuntos).map((a) => a.toLowerCase())).forEach((a) => frequencia.set(a, (frequencia.get(a) ?? 0) + 1)))
+    const peso = (a: string) => Math.log((todos.length + 1) / (frequencia.get(a) ?? 1)) + 0.1
+
     return todos
-      .filter((l: Relacionado) => l.isbn !== livro.isbn && listaAssuntos(l.assuntos).some((a) => meus.includes(a.toLowerCase())))
+      .filter((l) => l.isbn !== livro.isbn)
+      .map((l) => {
+        const assuntos = new Set(listaAssuntos(l.assuntos).map((a) => a.toLowerCase()))
+        let comum = 0, uniao = 0
+        new Set([...meusAssuntos, ...assuntos]).forEach((a) => {
+          uniao += peso(a)
+          if (meusAssuntos.has(a) && assuntos.has(a)) comum += peso(a)
+        })
+        const mesmoAutor = listaAutores(l.autor).some((a) => meusAutores.includes(a))
+        const nota = (uniao > 0 ? comum / uniao : 0) + (mesmoAutor ? 0.5 : 0)
+        return { l, nota }
+      })
+      .filter((x) => x.nota > 0)
+      .sort((a, b) => b.nota - a.nota || desempate(livro.isbn, b.l.isbn) - desempate(livro.isbn, a.l.isbn))
       .slice(0, 3)
+      .map((x) => x.l)
   }, [livro, todos])
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#f3ebe3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Source Sans 3', sans-serif", fontSize: 16, color: "#8b6b6b" }}>
-      Carregando...
+    <div style={{ minHeight: "100vh", background: "#f3ebe3", fontFamily: "'Source Sans 3', sans-serif" }}>
+      <PublicNavbar />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 66px)", fontSize: 16, color: "#8b6b6b" }}>
+        Carregando...
+      </div>
     </div>
   )
 
   if (!livro || livro.error) return (
-    <div style={{ minHeight: "100vh", background: "#f3ebe3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "'Source Sans 3', sans-serif" }}>
-      <div style={{ fontSize: 48 }}>📚</div>
-      <div style={{ fontSize: 18, color: "#5e3a3a", fontWeight: 700 }}>Livro não encontrado</div>
-      <Link href="/" style={{ color: "#8b1e1e", fontWeight: 700, textDecoration: "none" }}>← Voltar ao catálogo</Link>
+    <div style={{ minHeight: "100vh", background: "#f3ebe3", fontFamily: "'Source Sans 3', sans-serif" }}>
+      <PublicNavbar />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, minHeight: "calc(100vh - 66px)" }}>
+        <div style={{ fontSize: 48, color: "#8b6b6b", display: "flex" }}><Icone nome="livros" tamanho="1em" /></div>
+        <div style={{ fontSize: 18, color: "#5e3a3a", fontWeight: 700 }}>Livro não encontrado</div>
+        <Link href="/" style={{ color: "#8b1e1e", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><Icone nome="setaEsquerda" tamanho={17} />Voltar ao catálogo</Link>
+      </div>
     </div>
   )
 
@@ -109,21 +153,14 @@ export default function LivroDetalhe() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .ld-page { min-height: 100vh; background: #f3ebe3; font-family: 'Source Sans 3', sans-serif; color: #3a1e1e; }
 
-        .ld-header {
-          position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(120,26,26,0.96);
-          backdrop-filter: blur(12px); padding: 14px 42px; display: flex; align-items: center;
-          justify-content: space-between; gap: 12px; flex-wrap: wrap;
-        }
-        .ld-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #fff7f0; text-decoration: none; }
-        .ld-brand span { color: #f4c58c; }
         .ld-back {
-          color: #fff2ea; font-weight: 700; font-size: 0.95rem; text-decoration: none;
-          padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,0.1);
-          transition: background 0.2s ease;
+          display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px; padding: 9px 16px 9px 13px;
+          border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 0.92rem; color: #6a2a2a;
+          background: #fffdf9; border: 1px solid rgba(139, 30, 30, 0.2);
+          transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
         }
-        .ld-back:hover { background: rgba(255,255,255,0.2); }
-
-        .ld-main { max-width: 1040px; margin: 0 auto; padding: 108px 28px 80px; }
+        .ld-back:hover { transform: translateY(-1px); background: #8b1e1e; color: #fff7ef; box-shadow: 0 10px 22px rgba(101, 33, 33, 0.14); }
+        .ld-main { max-width: 1040px; margin: 0 auto; padding: 28px 28px 80px; }
         .ld-grid { display: grid; grid-template-columns: 228px minmax(0, 1fr); gap: 36px; align-items: start; }
 
         .ld-cover img { width: 100%; height: auto; display: block; border-radius: 16px; box-shadow: 0 16px 40px rgba(55,18,18,0.18); }
@@ -177,20 +214,17 @@ export default function LivroDetalhe() {
         .ld-mini-info em { font-style: normal; font-size: 0.92rem; color: #8b7a74; }
 
         @media (max-width: 760px) {
-          .ld-header { padding: 12px 18px; }
-          .ld-brand { font-size: 1.2rem; }
-          .ld-main { padding: 96px 18px 60px; }
+          .ld-main { padding: 20px 18px 60px; }
           .ld-grid { grid-template-columns: 1fr; gap: 24px; }
           .ld-cover { max-width: 220px; margin: 0 auto; width: 100%; }
         }
       `}</style>
 
-      <header className="ld-header">
-        <Link href="/" className="ld-brand">Biblioteca Escolar <span>Emerson Teixeira</span></Link>
-        <Link href="/#catalogo" className="ld-back">← Voltar ao catálogo</Link>
-      </header>
+      <PublicNavbar />
 
       <main className="ld-main">
+        <Link href="/#catalogo" className="ld-back"><Icone nome="setaEsquerda" tamanho={17} />Voltar ao catálogo</Link>
+
         <div className="ld-grid">
           {/* Capa */}
           <div className="ld-cover">

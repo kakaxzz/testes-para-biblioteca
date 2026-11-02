@@ -5,6 +5,7 @@
 // .notice-subtitle que já existem no CSS da home (app/page.tsx), para ficar igual às outras seções.
 
 import { useEffect, useMemo, useState } from "react"
+import { Icone as IconeUI } from "@/components/Icone"
 
 type Aviso = {
   id: number
@@ -310,7 +311,7 @@ export function BiblioNews() {
                 <h3>{destaque.titulo}</h3>
                 <p className="bn-desc">{destaque.mensagem}</p>
                 <button type="button" className="bn-read" onClick={() => setAberto(destaque)}>
-                  Ler aviso →
+                  Ler aviso <IconeUI nome="setaDireita" tamanho="1em" />
                 </button>
               </div>
             </article>

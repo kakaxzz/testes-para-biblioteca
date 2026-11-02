@@ -49,7 +49,7 @@ model: "gpt-4o-mini",        max_tokens: 400,
  
     if (!response.ok) {
       console.error("Erro OpenAI API:", data)
-      return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes! 🐢" })
+      return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes!" })
     }
  
     const resposta = data.choices?.[0]?.message?.content ?? "Não consegui pensar em uma resposta agora. Tenta de novo!"
@@ -57,6 +57,6 @@ model: "gpt-4o-mini",        max_tokens: 400,
     return NextResponse.json({ resposta })
   } catch (error: any) {
     console.error("Erro rota Papiro:", error)
-    return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes! 🐢" })
+    return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes!" })
   }
 }

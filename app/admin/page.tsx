@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react"
 import Link from "next/link"
+import { Icone as IconeUI } from "@/components/Icone"
 
 type Stats = {
   livros: number
@@ -118,7 +119,7 @@ export default function AdminDashboard() {
       </div>
 
       <Link href="/admin/stats" className="dash-more">
-        Ver estatísticas completas →
+        Ver estatísticas completas <IconeUI nome="setaDireita" tamanho="1em" />
       </Link>
 
       <style>{`

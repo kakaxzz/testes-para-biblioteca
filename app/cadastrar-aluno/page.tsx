@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TurmaSelect } from "@/components/TurmaSelect";
+import { Icone } from "@/components/Icone"
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL";
 
@@ -13,6 +14,7 @@ export default function CadastrarUsuario() {
   const [turma, setTurma] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [mensagemOk, setMensagemOk] = useState(false);
 
   const salvarUsuario = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,8 @@ export default function CadastrarUsuario() {
 
       if (res.ok) {
         const novoUsuario = await res.json();
-        setMensagem(`✅ Cadastrado com sucesso! O ID dele é: ${novoUsuario.id}`);
+        setMensagem(`Cadastrado com sucesso! O ID dele é: ${novoUsuario.id}`);
+        setMensagemOk(true);
         setNome("");
         setMatricula("");
         setCpf("");
@@ -42,10 +45,12 @@ export default function CadastrarUsuario() {
         setWhatsapp("");
       } else {
         const d = await res.json();
-        setMensagem(`❌ ${d.error || "Erro ao cadastrar."}`);
+        setMensagem(d.error || "Erro ao cadastrar.");
+        setMensagemOk(false);
       }
     } catch (err) {
-      setMensagem("❌ Erro de conexão.");
+      setMensagem("Erro de conexão.");
+      setMensagemOk(false);
     }
   };
 
@@ -107,10 +112,15 @@ export default function CadastrarUsuario() {
           Salvar
         </button>
       </form>
-      {mensagem && <p style={{ marginTop: "20px", fontWeight: "bold" }}>{mensagem}</p>}
+      {mensagem && (
+        <p style={{ marginTop: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: 6, color: mensagemOk ? "#166534" : "#c53030" }}>
+          <Icone nome={mensagemOk ? "checkCirculo" : "xCirculo"} tamanho={18} />
+          {mensagem}
+        </p>
+      )}
 
       <div style={{ marginTop: "20px" }}>
-        <a href="/teste-isbn">⬅️ Voltar para Busca de Livros</a>
+        <a href="/teste-isbn" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Icone nome="setaEsquerda" tamanho={16} />Voltar para Busca de Livros</a>
       </div>
     </div>
   );

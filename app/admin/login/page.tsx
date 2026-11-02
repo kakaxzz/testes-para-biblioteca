@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { PasswordInput } from "@/components/PasswordInput"
+import { Icone } from "@/components/Icone"
 
 const CAMPO =
   "rounded-xl border border-[#8b1e1e]/15 bg-white/70 px-4 py-3.5 text-sm text-[#1a0f0f] shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none transition focus:border-[#8b1e1e] focus:ring-4 focus:ring-[#8b1e1e]/10"
@@ -45,7 +46,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-[402px] rounded-3xl border border-white/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(252,248,246,0.94)_100%)] px-6 py-10 text-center shadow-[0_30px_70px_rgba(39,8,8,0.26)] backdrop-blur-sm sm:px-[42px] sm:py-[46px]">
         <div className="mx-auto mb-[18px] flex size-[76px] items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(139,30,30,0.08),rgba(139,30,30,0.14))] text-[38px] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-          📚
+          <Icone nome="livros" tamanho={38} style={{ color: "#8b1e1e" }} />
         </div>
 
         <h1 className="mb-1.5 font-titulo text-[31px] font-black text-[#8b1e1e]">Area Admin</h1>

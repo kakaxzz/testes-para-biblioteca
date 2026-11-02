@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { Icone } from "@/components/Icone"
 
 type Mensagem = {
   role: "user" | "assistant"
@@ -16,7 +17,7 @@ export function Papiro({ acervo }: PapiroProps) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([
     {
       role: "assistant",
-      content: "Olá! Eu sou o Papiro 🐢 o mascote da Biblioteca Escolar Emerson Teixeira! Me conta o que você gosta de ler e eu te indico um livro do nosso acervo!",
+      content: "Olá! Eu sou o Papiro, o mascote da Biblioteca Escolar Emerson Teixeira! Me conta o que você gosta de ler e eu te indico um livro do nosso acervo!",
     },
   ])
   const [input, setInput] = useState("")
@@ -112,8 +113,9 @@ export function Papiro({ acervo }: PapiroProps) {
             </div>
             <button
               onClick={() => setAberto(false)}
-              style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontSize: 18, cursor: "pointer" }}
-            >✕</button>
+              aria-label="Fechar"
+              style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.7)", display: "flex", cursor: "pointer" }}
+            ><Icone nome="x" tamanho={20} /></button>
           </div>
 
           {/* Mensagens */}
@@ -124,7 +126,7 @@ export function Papiro({ acervo }: PapiroProps) {
                 justifyContent: m.role === "user" ? "flex-end" : "flex-start",
               }}>
                 {m.role === "assistant" && (
-                  <span style={{ fontSize: 18, marginRight: 6, flexShrink: 0, alignSelf: "flex-end" }}>🐢</span>
+                  <img src="/papiro-mascote.png" alt="" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: "50%", background: "rgba(139,30,30,0.07)", marginRight: 6, flexShrink: 0, alignSelf: "flex-end" }} />
                 )}
                 <div style={{
                   maxWidth: "78%",
@@ -142,7 +144,7 @@ export function Papiro({ acervo }: PapiroProps) {
             ))}
             {loading && (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 18 }}>🐢</span>
+                <img src="/papiro-mascote.png" alt="" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: "50%", background: "rgba(139,30,30,0.07)" }} />
                 <div style={{ padding: "9px 13px", borderRadius: "18px 18px 18px 4px", background: "rgba(139,30,30,0.07)", fontSize: 13, color: "#8b1e1e" }}>
                   Pensando...
                 </div>
@@ -176,8 +178,9 @@ export function Papiro({ acervo }: PapiroProps) {
                 fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0, transition: "background 0.2s",
               }}
+              aria-label="Enviar"
             >
-              ➤
+              <Icone nome="enviar" tamanho={18} />
             </button>
           </div>
         </div>

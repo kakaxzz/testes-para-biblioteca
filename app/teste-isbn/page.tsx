@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icone } from "@/components/Icone"
 
 export default function ConsultaLivro() {
   const [isbn, setIsbn] = useState("");
@@ -45,12 +46,12 @@ export default function ConsultaLivro() {
       });
 
       if (response.ok) {
-        setMensagemStatus("✅ Status atualizado!");
+        setMensagemStatus("Status atualizado!");
       } else {
-        setMensagemStatus("❌ Erro ao salvar status.");
+        setMensagemStatus("Erro ao salvar status.");
       }
     } catch (error) {
-      setMensagemStatus("❌ Erro de conexão.");
+      setMensagemStatus("Erro de conexão.");
     } finally {
       setSalvandoStatus(false);
       // Limpa a mensagem após 3 segundos
@@ -72,11 +73,11 @@ export default function ConsultaLivro() {
       });
 
       if (response.ok) {
-        alert("✅ Empréstimo registrado!");
+        alert("Empréstimo registrado!");
         setUsuarioId("");
         buscarLivro();
       } else {
-        alert("❌ Erro ao realizar empréstimo.");
+        alert("Erro ao realizar empréstimo.");
       }
     } catch (error) {
       alert("Erro de conexão.");
@@ -98,7 +99,7 @@ export default function ConsultaLivro() {
       minHeight: "100vh"
     }}>
       <div style={{ backgroundColor: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
-        <h1 style={{ color: "#333", marginBottom: "20px", textAlign: "center" }}>📚 Consulta de Acervo</h1>
+        <h1 style={{ color: "#333", marginBottom: "20px", textAlign: "center" }}><Icone nome="livros" tamanho="1em" style={{ marginRight: 8 }} />Consulta de Acervo</h1>
         
         <div style={{ display: "flex", gap: "10px", marginBottom: "30px" }}>
           <input
@@ -152,7 +153,7 @@ export default function ConsultaLivro() {
 
             {/* Área de ações */}
             <div style={{ padding: "20px" }}>
-              <h3 style={{ fontSize: "18px", marginBottom: "15px" }}>⚙️ Ações de Balcão</h3>
+              <h3 style={{ fontSize: "18px", marginBottom: "15px" }}><Icone nome="config" tamanho="1em" style={{ marginRight: 8 }} />Ações de Balcão</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 
                 {/* Select de status manual - AGORA FUNCIONAL */}
@@ -178,7 +179,8 @@ export default function ConsultaLivro() {
                   )}
                 </div>
                 {mensagemStatus && (
-                  <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold" }}>
+                  <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold", display: "flex", alignItems: "center", gap: 6, color: mensagemStatus === "Status atualizado!" ? "#166534" : "#c53030" }}>
+                    <Icone nome={mensagemStatus === "Status atualizado!" ? "checkCirculo" : "xCirculo"} tamanho={17} />
                     {mensagemStatus}
                   </p>
                 )}
@@ -208,10 +210,11 @@ export default function ConsultaLivro() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ textAlign: "center", padding: "15px", backgroundColor: "#fff5f5", color: "#c53030", borderRadius: "8px", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center", padding: "15px", backgroundColor: "#fff5f5", color: "#c53030", borderRadius: "8px", fontWeight: "bold" }}>
+                    <Icone nome={livro.status === 'reservado' ? "cadeado" : "proibido"} tamanho={19} />
                     {livro.status === 'reservado' 
-                      ? "🔒 Livro reservado — altere o status para liberar empréstimos."
-                      : "🚫 Não há exemplares disponíveis para novos empréstimos."
+                      ? "Livro reservado — altere o status para liberar empréstimos."
+                      : "Não há exemplares disponíveis para novos empréstimos."
                     }
                   </div>
                 )}

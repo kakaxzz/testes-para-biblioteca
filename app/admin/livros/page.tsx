@@ -7,6 +7,7 @@ import { Code39 } from "@/components/Code39"
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge"
 import { LivroCampos, CAMPOS_VAZIOS, camposDoLivro, type CamposLivro } from "@/components/admin/LivroCampos"
 import { LivroDetalhesModal } from "@/components/admin/LivroDetalhesModal"
+import { Icone } from "@/components/Icone"
 
 const tombo = (n: number) => `#${String(n || 0).padStart(7, "0")}`
 const opcional = (v: string) => v || null
@@ -15,7 +16,7 @@ const CEL = "text-[13px] text-[#555]"
 function Capa({ src, alt, className }: { src?: string | null; alt: string; className: string }) {
   return src
     ? <img src={src} alt={alt} className={`${className} rounded object-cover`} />
-    : <div className={`${className} flex items-center justify-center rounded bg-[#f0eded]`}>📖</div>
+    : <div className={`${className} flex items-center justify-center rounded bg-[#f0eded] text-[#8b6b6b]`}><Icone nome="livro" tamanho="1.4em" /></div>
 }
 
 function FiltroData({ rotulo, valor, onChange }: { rotulo: string; valor: string; onChange: (v: string) => void }) {
@@ -30,13 +31,13 @@ function FiltroData({ rotulo, valor, onChange }: { rotulo: string; valor: string
 type AcoesProps = { onEtiqueta: () => void; onDetalhes: () => void; onEditar: () => void; onRemover: () => void }
 
 function Acoes({ onEtiqueta, onDetalhes, onEditar, onRemover }: AcoesProps) {
-  const base = "cursor-pointer rounded-md border px-2.5 py-1.5 text-xs font-semibold"
+  const base = "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1.5 text-xs font-semibold"
   return (
     <div className="flex gap-1.5">
-      <button onClick={onDetalhes} title="Ver detalhes" aria-label="Ver detalhes" className={`${base} border-[#e0e0e0] bg-[#f7f6f4]`}>👁️</button>
-      <button onClick={onEtiqueta} title="Imprimir etiqueta" aria-label="Imprimir etiqueta" className={`${base} border-[#e0e0e0] bg-[#f7f6f4]`}>🏷️</button>
-      <button onClick={onEditar} title="Editar" aria-label="Editar" className={`${base} border-blue-200 bg-blue-50 text-blue-700`}>✏️</button>
-      <button onClick={onRemover} title="Remover" aria-label="Remover" className={`${base} border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]`}>🗑️</button>
+      <button onClick={onDetalhes} title="Ver detalhes" aria-label="Ver detalhes" className={`${base} border-[#e0e0e0] bg-[#f7f6f4] text-[#555]`}><Icone nome="olho" tamanho={17} /></button>
+      <button onClick={onEtiqueta} title="Imprimir etiqueta" aria-label="Imprimir etiqueta" className={`${base} border-[#e0e0e0] bg-[#f7f6f4] text-[#555]`}><Icone nome="etiqueta" tamanho={17} /></button>
+      <button onClick={onEditar} title="Editar" aria-label="Editar" className={`${base} border-blue-200 bg-blue-50 text-blue-700`}><Icone nome="editar" tamanho={17} /></button>
+      <button onClick={onRemover} title="Remover" aria-label="Remover" className={`${base} border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]`}><Icone nome="lixeira" tamanho={17} /></button>
     </div>
   )
 }
@@ -122,7 +123,7 @@ export default function AdminLivros() {
     const data = await res.json()
     if (res.ok) {
       avisar(
-        `✅ ${data.novoExemplar ? "Novo exemplar adicionado" : "Livro cadastrado"}! Tombo ${tombo(data.tombo)}`,
+        `${data.novoExemplar ? "Novo exemplar adicionado" : "Livro cadastrado"}! Tombo ${tombo(data.tombo)}`,
         "ok"
       )
       setLivro(null)
@@ -152,7 +153,7 @@ export default function AdminLivros() {
       }),
     })
     if (res.ok) {
-      avisar("✅ Livro atualizado com sucesso!", "ok")
+      avisar("Livro atualizado com sucesso!", "ok")
       setEditando(null); carregarLivros()
     } else {
       const d = await res.json(); avisar(d.error, "erro")
@@ -163,7 +164,7 @@ export default function AdminLivros() {
     if (!confirm(`Remover "${titulo}" do acervo? Esta ação não pode ser desfeita.`)) return
     const res = await fetch(`/api/livros/${isbn}`, { method: "DELETE" })
     if (res.ok) {
-      avisar(`🗑️ "${titulo}" removido do acervo.`, "ok"); carregarLivros()
+      avisar(`"${titulo}" removido do acervo.`, "ok"); carregarLivros()
     } else {
       const d = await res.json(); avisar(d.error, "erro")
     }
@@ -245,8 +246,8 @@ export default function AdminLivros() {
         </div>
 
         <div className="surface-strip">
-          {([["cadastrar", "📚 Cadastrar livro"], ["acervo", `📋 Acervo (${livros.length})`]] as const).map(([id, rotulo]) => (
-            <button key={id} onClick={() => setAba(id)} className={aba === id ? "active" : ""}>{rotulo}</button>
+          {([["cadastrar", "livros", "Cadastrar livro"], ["acervo", "lista", `Acervo (${livros.length})`]] as const).map(([id, icone, rotulo]) => (
+            <button key={id} onClick={() => setAba(id)} className={aba === id ? "active" : ""}><Icone nome={icone} tamanho={18} />{rotulo}</button>
           ))}
         </div>
 
@@ -281,7 +282,7 @@ export default function AdminLivros() {
                 <LivroCampos valores={campos} onChange={(p) => setCampos((c) => ({ ...c, ...p }))} />
 
                 <div className="flex flex-wrap gap-2.5">
-                  <button className="btn-primary" onClick={salvarLivro}>💾 Salvar livro</button>
+                  <button className="btn-primary" onClick={salvarLivro}><Icone nome="salvar" tamanho={18} />Salvar livro</button>
                   <button className="btn-secondary" onClick={() => setLivro(null)}>Cancelar</button>
                 </div>
               </div>
@@ -307,7 +308,7 @@ export default function AdminLivros() {
                 Só livros disponíveis
               </label>
               {selecionados.length > 0 && (
-                <button className="btn-primary" onClick={() => imprimir(selecionados)}>🏷️ Imprimir etiquetas ({selecionados.length})</button>
+                <button className="btn-primary" onClick={() => imprimir(selecionados)}><Icone nome="etiqueta" tamanho={18} />Imprimir etiquetas ({selecionados.length})</button>
               )}
             </div>
 
@@ -327,13 +328,13 @@ export default function AdminLivros() {
                   <div className="modal-surface modal-surface--wide">
                     <div className="modal-head">
                       <h2 className="font-titulo text-xl">Editar livro</h2>
-                      <button onClick={() => setEditando(null)} aria-label="Fechar" className="cursor-pointer text-xl text-neutral-400 hover:text-neutral-600">✕</button>
+                      <button onClick={() => setEditando(null)} aria-label="Fechar" className="flex cursor-pointer text-neutral-400 hover:text-neutral-600"><Icone nome="x" tamanho={22} /></button>
                     </div>
                     <div className="modal-body">
                       <LivroCampos comTitulo valores={editando} onChange={(p) => setEditando((v) => v && { ...v, ...p })} />
                     </div>
                     <div className="modal-foot">
-                      <button className="btn-primary" onClick={salvarEdicao}>💾 Salvar alterações</button>
+                      <button className="btn-primary" onClick={salvarEdicao}><Icone nome="salvar" tamanho={18} />Salvar alterações</button>
                       <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
                     </div>
                   </div>

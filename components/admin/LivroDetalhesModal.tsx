@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { ModalPortal } from "@/components/ModalPortal"
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge"
+import { Icone } from "@/components/Icone"
 
 type Historico = {
   total: number
@@ -69,7 +70,7 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
         <div className="modal-surface modal-surface--wide" role="dialog" aria-modal="true" aria-label="Detalhes do livro" onClick={(e) => e.stopPropagation()}>
           <div className="modal-head">
             <h2 className="font-titulo text-xl">Detalhes do livro</h2>
-            <button onClick={onClose} aria-label="Fechar" className="cursor-pointer text-xl text-neutral-400 hover:text-neutral-600">✕</button>
+            <button onClick={onClose} aria-label="Fechar" className="flex cursor-pointer text-neutral-400 hover:text-neutral-600"><Icone nome="x" tamanho={22} /></button>
           </div>
 
           <div className="modal-body space-y-5">
@@ -78,7 +79,7 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
               {livro.capa ? (
                 <img src={livro.capa} alt={livro.titulo} className="h-28 w-20 shrink-0 rounded-lg object-cover shadow-md sm:h-36 sm:w-24" />
               ) : (
-                <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg bg-[#f0eded] text-2xl sm:h-36 sm:w-24">📖</div>
+                <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg bg-[#f0eded] text-3xl text-[#8b6b6b] sm:h-36 sm:w-24"><Icone nome="livro" tamanho="1em" /></div>
               )}
               <div className="min-w-0">
                 <h3 className="font-titulo text-lg font-bold leading-snug sm:text-xl">
@@ -160,7 +161,7 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
           </div>
 
           <div className="modal-foot">
-            <button className="btn-primary" onClick={onEditar}>✏️ Editar livro</button>
+            <button className="btn-primary" onClick={onEditar}><Icone nome="editar" tamanho={18} />Editar livro</button>
             <button className="btn-secondary" onClick={onClose}>Fechar</button>
           </div>
         </div>

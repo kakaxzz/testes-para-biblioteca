@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { TurmaSelect } from "@/components/TurmaSelect"
 import { ModalPortal } from "@/components/ModalPortal"
+import { Icone } from "@/components/Icone"
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
 
@@ -83,7 +84,7 @@ export default function AdminUsuarios() {
     })
 
     if (res.ok) {
-      setMensagem("✅ Usuário atualizado com sucesso!")
+      setMensagem("Usuário atualizado com sucesso!")
       setTipoMensagem("ok")
       setEditando(null)
       carregarUsuarios()
@@ -98,7 +99,7 @@ export default function AdminUsuarios() {
     if (!confirm(`Remover "${nome}"? Esta ação não pode ser desfeita.`)) return
     const res = await fetch(`/api/usuarios/${id}`, { method: "DELETE" })
     if (res.ok) {
-      setMensagem(`🗑️ "${nome}" removido.`)
+      setMensagem(`"${nome}" removido.`)
       setTipoMensagem("ok")
       carregarUsuarios()
     } else {
@@ -267,7 +268,7 @@ export default function AdminUsuarios() {
               <div className="modal-surface">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                   <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20 }}>Editar usuário</h2>
-                  <button onClick={() => setEditando(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa" }}>✕</button>
+                  <button onClick={() => setEditando(null)} style={{ background: "none", border: "none", display: "flex", cursor: "pointer", color: "#aaa" }}><Icone nome="x" tamanho={22} /></button>
                 </div>
 
                 <div className="input-group">
@@ -332,7 +333,7 @@ export default function AdminUsuarios() {
                 </div>
 
                 <div style={{ display: "flex", gap: 10 }}>
-                  <button className="btn-primary" onClick={salvarEdicao}>💾 Salvar alterações</button>
+                  <button className="btn-primary" onClick={salvarEdicao}><Icone nome="salvar" tamanho={18} />Salvar alterações</button>
                   <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
                 </div>
               </div>
@@ -373,15 +374,19 @@ export default function AdminUsuarios() {
                       <div style={{ display: "flex", gap: 6 }}>
                         <button
                           onClick={() => setEditando({ ...u })}
-                          style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
+                          style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
+                          title="Editar"
+                          aria-label="Editar"
                         >
-                          ✏️
+                          <Icone nome="editar" tamanho={17} />
                         </button>
                         <button
                           onClick={() => removerUsuario(u.id, u.nome)}
-                          style={{ padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}
+                          style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}
+                          title="Remover"
+                          aria-label="Remover"
                         >
-                          🗑️
+                          <Icone nome="lixeira" tamanho={17} />
                         </button>
                       </div>
                     </td>

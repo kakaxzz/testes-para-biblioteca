@@ -1,13 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
-
-const navItems = [
-  { href: "/#catalogo", label: "Catálogo" },
-  { href: "/#biblionews", label: "BiblioNews" },
-  { href: "/#sobre", label: "Sobre a biblioteca" },
-]
+import { PublicNavbar } from "@/components/PublicNavbar"
+import { Icone } from "@/components/Icone"
 
 type Trabalho = {
   id: number | string
@@ -28,7 +23,6 @@ export default function TccPage() {
   const [busca, setBusca] = useState("")
   const [tipo, setTipo] = useState<"todos" | "tcc" | "artigo">("todos")
   const [loadingTccs, setLoadingTccs] = useState(true)
-  const [menuAberto, setMenuAberto] = useState(false)
 
   useEffect(() => {
     fetch("/api/verificar-acesso")
@@ -67,15 +61,20 @@ export default function TccPage() {
 
   if (hasAccess === null) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#f4ede3", color: "#241616" }}>
-        Carregando...
+      <div style={{ minHeight: "100vh", background: "#f4ede3", color: "#241616" }}>
+        <PublicNavbar />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 66px)" }}>
+          Carregando...
+        </div>
       </div>
     )
   }
 
   if (!hasAccess) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 16, background: "#f4ede3", fontFamily: "'Source Sans 3', sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: "#f4ede3", fontFamily: "'Source Sans 3', sans-serif" }}>
+      <PublicNavbar />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 66px)", gap: 16 }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Source+Sans+3:wght@600;700&display=swap');`}</style>
         <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#2d1414" }}>Acesso restrito</h2>
         <p style={{ color: "#8a7474" }}>Digite o token fornecido pela biblioteca.</p>
@@ -95,6 +94,7 @@ export default function TccPage() {
         >
           {loading ? "Verificando..." : "Entrar"}
         </button>
+      </div>
       </div>
     )
   }
@@ -124,58 +124,6 @@ export default function TccPage() {
         a { color: inherit; }
 
         .tcc-shell { min-height: 100vh; background: #f4ede3; }
-
-        .topbar {
-          position: sticky; top: 0; z-index: 100; width: 100%;
-          background: rgba(120, 26, 26, 0.96);
-          backdrop-filter: blur(12px);
-          box-shadow: 0 8px 26px rgba(36, 10, 10, 0.12);
-        }
-        .topbar-inner {
-          width: 100%; padding: 14px 38px 14px 42px;
-          display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
-        }
-        .brand-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-        .back-link {
-          text-decoration: none; color: #fff3eb; font-size: 0.96rem; font-weight: 700;
-          padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,0.1);
-          transition: background 0.25s ease, transform 0.25s ease;
-        }
-        .back-link:hover { background: rgba(255,255,255,0.18); transform: translateY(-1px); }
-        .brand { font-family: 'Lora', serif; font-size: 1.55rem; font-weight: 700; color: #fff7f0; }
-        .brand span { color: #f4c58c; }
-
-        .nav-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .nav-link {
-          text-decoration: none; color: #fff2ea; font-family: 'Source Sans 3', sans-serif;
-          font-size: 0.94rem; font-weight: 700; padding: 8px 14px; border-radius: 999px;
-          background: rgba(255,255,255,0.1); transition: transform 0.25s ease, background 0.25s ease;
-        }
-        .nav-link:hover { transform: translateY(-1px); background: rgba(255,255,255,0.2); }
-        .nav-more { position: relative; }
-        .nav-more-btn {
-          border: none; cursor: pointer; color: #fff2ea; background: rgba(255,255,255,0.14);
-          width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center; gap: 3px;
-          transition: transform 0.25s ease, background 0.25s ease;
-        }
-        .nav-more-btn span { width: 4px; height: 4px; border-radius: 50%; background: #fff2ea; display: block; }
-        .nav-more-btn:hover { transform: translateY(-1px) scale(1.06); background: rgba(255,255,255,0.24); }
-        .nav-more-backdrop { position: fixed; inset: 0; z-index: 149; }
-        .nav-more-menu {
-          position: absolute; top: calc(100% + 10px); right: 0; z-index: 150;
-          background: #fffdf9; border-radius: 14px; padding: 8px; min-width: 200px;
-          box-shadow: 0 18px 40px rgba(36, 10, 10, 0.22); border: 1px solid rgba(139,30,30,0.08);
-          display: flex; flex-direction: column; gap: 2px;
-          animation: menuPop 0.18s ease-out both;
-        }
-        @keyframes menuPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-more-item {
-          display: block; text-decoration: none; color: #3b1616; font-family: 'Source Sans 3', sans-serif;
-          font-weight: 700; font-size: 0.94rem; padding: 10px 12px; border-radius: 9px;
-          transition: background 0.18s ease;
-        }
-        .nav-more-item:hover { background: rgba(139,30,30,0.08); }
 
         .hero { background: #8a1f1f; position: relative; overflow: hidden; animation: fadeInSoft 0.7s ease-out; }
         .hero::before {
@@ -215,7 +163,7 @@ export default function TccPage() {
         }
         .filters-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
         .search-box { position: relative; flex: 1; min-width: 280px; }
-        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 1rem; }
+        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 1rem; display: flex; pointer-events: none; }
         .search-input {
           width: 100%; border: none; outline: none; border-radius: 999px;
           padding: 18px 24px 18px 52px; font-size: 0.98rem; font-family: 'Source Sans 3', sans-serif;
@@ -247,7 +195,7 @@ export default function TccPage() {
         .section-title { font-family: 'Lora', serif; font-size: clamp(2rem, 3vw, 2.5rem); font-weight: 700; color: #2d1414; }
         .section-count { font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #9c8d8d; font-weight: 700; }
         .feedback-box { font-family: 'Source Sans 3', sans-serif; text-align: center; padding: 80px 20px; color: #8f7e7e; font-weight: 700; }
-        .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.8; }
+        .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.8; display: flex; justify-content: center; color: #7a3434; }
         .work-list { display: grid; gap: 20px; }
         .work-card {
           background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,250,245,0.9) 100%);
@@ -293,49 +241,18 @@ export default function TccPage() {
         }
 
         @media (max-width: 900px) {
-          .topbar-inner, .hero-inner, .search-shell, .content { padding-left: 18px; padding-right: 18px; }
+          .hero-inner, .search-shell, .content { padding-left: 18px; padding-right: 18px; }
           .hero-inner { grid-template-columns: 1fr; min-height: auto; padding-top: 18px; padding-bottom: 18px; }
           .hero-copy { padding: 22px 0 8px; }
           .hero-mark { min-height: 180px; }
           .hero-mark-card { width: min(100%, 220px); }
-          .nav-links { gap: 8px; }
           .filters-row, .work-card-inner { flex-direction: column; }
           .pdf-link { align-self: flex-start; }
         }
       `}</style>
 
       <div className="tcc-shell">
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div className="brand-row">
-              <Link href="/" className="back-link">Voltar</Link>
-              <div className="brand">Biblioteca Escolar <span>Emerson Teixeira</span></div>
-            </div>
-            <nav className="nav-links">
-              {navItems.map((item) => (
-                <a key={item.href} href={item.href} className="nav-link">{item.label}</a>
-              ))}
-              <div className="nav-more">
-                <button
-                  type="button"
-                  className="nav-more-btn"
-                  onClick={() => setMenuAberto((v) => !v)}
-                  aria-label="Mais opções"
-                >
-                  <span /><span /><span />
-                </button>
-                {menuAberto && (
-                  <>
-                    <div className="nav-more-backdrop" onClick={() => setMenuAberto(false)} />
-                    <div className="nav-more-menu">
-                      <Link href="/admin/login" className="nav-more-item" onClick={() => setMenuAberto(false)}>Área do Admin</Link>
-                    </div>
-                  </>
-                )}
-              </div>
-            </nav>
-          </div>
-        </header>
+        <PublicNavbar />
 
         <section className="hero">
           <div className="hero-inner">
@@ -357,7 +274,7 @@ export default function TccPage() {
         <section className="search-shell">
           <div className="filters-row">
             <div className="search-box">
-              <span className="search-icon">⌕</span>
+              <span className="search-icon"><Icone nome="busca" tamanho="1.2em" /></span>
               <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
@@ -392,7 +309,7 @@ export default function TccPage() {
 
           {!loadingTccs && filtrados.length === 0 && (
             <div className="feedback-box">
-              <div className="empty-icon">✦</div>
+              <div className="empty-icon"><Icone nome="tcc" tamanho="1em" /></div>
               <p>{busca ? "Nenhum resultado encontrado." : "Nenhum trabalho cadastrado ainda."}</p>
             </div>
           )}

@@ -3,8 +3,7 @@
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
-
-type NomeIcone = "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "config" | "sair"
+import { Icone, type NomeIcone } from "@/components/Icone"
 
 const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean }[] = [
   { href: "/admin", label: "Dashboard", icone: "home", exact: true },
@@ -16,87 +15,6 @@ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean
   { href: "/admin/biblionews", label: "BiblioNews", icone: "news" },
   { href: "/admin/configuracoes", label: "Configurações", icone: "config" },
 ]
-
-function Icone({ nome }: { nome: NomeIcone }) {
-  const comum = {
-    width: 22,
-    height: 22,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  }
-  switch (nome) {
-    case "home":
-      return (
-        <svg {...comum}>
-          <path d="M4 11l8-6.5L20 11" />
-          <path d="M6 10v9h12v-9" />
-          <path d="M10 19v-5h4v5" />
-        </svg>
-      )
-    case "livros":
-      return (
-        <svg {...comum}>
-          <path d="M5 4h3.5v16H5zM10.5 4H14v16h-3.5z" />
-          <path d="M15.8 5.4l3.3-.9 3 14.6-3.3.9z" />
-        </svg>
-      )
-    case "emprestimos":
-      return (
-        <svg {...comum}>
-          <path d="M4 8h13l-3-3" />
-          <path d="M20 16H7l3 3" />
-        </svg>
-      )
-    case "usuarios":
-      return (
-        <svg {...comum}>
-          <path d="M2.5 9.5L12 5l9.5 4.5L12 14z" />
-          <path d="M6.5 11.8V16c0 1.4 2.5 2.7 5.5 2.7s5.5-1.3 5.5-2.7v-4.2" />
-          <path d="M21.5 9.5V15" />
-        </svg>
-      )
-    case "tcc":
-      return (
-        <svg {...comum}>
-          <path d="M7 3.5h7l4 4V20.5H7z" />
-          <path d="M14 3.5v4h4M9.5 12h5M9.5 15.5h5" />
-        </svg>
-      )
-    case "stats":
-      return (
-        <svg {...comum}>
-          <path d="M5 20V11M12 20V4M19 20v-6" />
-        </svg>
-      )
-    case "news":
-      return (
-        <svg {...comum}>
-          <rect x="4" y="5" width="16" height="14" rx="2" />
-          <path d="M8 9h8M8 12.5h8M8 16h5" />
-        </svg>
-      )
-    case "config":
-      return (
-        <svg {...comum}>
-          <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
-          <circle cx="15" cy="7" r="2" />
-          <circle cx="9" cy="17" r="2" />
-        </svg>
-      )
-    default:
-      return (
-        <svg {...comum}>
-          <path d="M10 4H5.5A1.5 1.5 0 004 5.5v13A1.5 1.5 0 005.5 20H10" />
-          <path d="M15 8l4 4-4 4M19 12H9" />
-        </svg>
-      )
-  }
-}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -315,6 +233,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           border: 1px solid rgba(120,32,32,0.05);
         }
         .surface-strip button {
+          display: inline-flex; align-items: center; gap: 8px;
           padding: 10px 20px;
           border-radius: 14px;
           border: none;
@@ -452,6 +371,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         textarea.input-field { resize: vertical; min-height: 100px; }
         select.input-field { cursor: pointer; }
         .btn-primary {
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
           padding: 12px 24px;
           background: linear-gradient(180deg, #992323 0%, #7e1717 100%);
           color: white;
@@ -470,6 +390,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-secondary {
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
           padding: 12px 24px;
           background: rgba(255,255,255,0.86);
           color: var(--vermelho);
@@ -500,6 +421,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           font-size: 0.95rem;
           margin-top: 16px;
         }
+        .mensagem-ok::before, .mensagem-erro::before {
+          content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -4px;
+          background-color: currentColor; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+          -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain;
+        }
+        .mensagem-ok::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M7.5 12.5l3 3 6-6.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M7.5 12.5l3 3 6-6.5'/%3E%3C/svg%3E"); }
+        .mensagem-erro::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8.5 8.5l7 7M15.5 8.5l-7 7'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8.5 8.5l7 7M15.5 8.5l-7 7'/%3E%3C/svg%3E"); }
         .table-wrap { overflow-x: auto; }
         table {
           width: 100%;

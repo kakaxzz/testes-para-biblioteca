@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { Icone } from "@/components/Icone"
 
 export const CATEGORIAS = [
   "Literatura brasileira", "Literatura estrangeira", "Poesia", "Romance", "Ficcção científica", "Fantasia", "Mistério / Suspense", "Terror", "Aventura", "Infantojuvenil", "Clássicos", "Política", "Economia", "Administração", "Culinária", "HQs / Mangás",
@@ -87,13 +88,13 @@ export function CategoriasSelect({ value, onChange }: CategoriasSelectProps) {
               onClick={e => { e.stopPropagation(); onChange(value.filter(c => c !== cat)) }}
               style={{
                 background: "none", border: "none", cursor: "pointer",
-                color: "#8b1e1e", padding: 0, fontSize: 14, lineHeight: 1, opacity: 0.6
+                color: "#8b1e1e", padding: 0, display: "flex", lineHeight: 1, opacity: 0.6
               }}
-            >×</button>
+            ><Icone nome="x" tamanho={14} /></button>
           </span>
         ))}
-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#aaa", userSelect: "none" }}>
-          {aberto ? "▲" : "▼"}
+        <span style={{ marginLeft: "auto", display: "flex", color: "#aaa", userSelect: "none" }}>
+          <Icone nome={aberto ? "chevronCima" : "chevronBaixo"} tamanho={16} />
         </span>
       </div>
 

@@ -1,0 +1,2349 @@
+diff --git a/app/admin/biblionews/page.tsx b/app/admin/biblionews/page.tsx
+index 9f895c9..b715848 100644
+--- a/app/admin/biblionews/page.tsx
++++ b/app/admin/biblionews/page.tsx
+@@ -1,6 +1,7 @@
+ "use client"
+ 
+ import { useEffect, useRef, useState } from "react"
++import { Icone } from "@/components/Icone"
+ 
+ type Aviso = {
+   chave: string // identificador local, só para o React
+@@ -211,10 +212,10 @@ export default function AdminBiblioNews() {
+               return (
+                 <div key={aviso.chave} className="ab-card">
+                   <div className="ab-card-top">
+-                    <span className={`ab-badge${indice === 0 ? " destaque" : ""}`}>{indice === 0 ? "★ Destaque" : `Aviso ${indice + 1}`}</span>
++                    <span className={`ab-badge${indice === 0 ? " destaque" : ""}`}>{indice === 0 ? <><Icone nome="estrela" tamanho="1em" /> Destaque</> : `Aviso ${indice + 1}`}</span>
+                     <div className="ab-card-actions">
+                       <button type="button" className="ab-icon-btn" onClick={() => mover(aviso.chave, -1)} disabled={indice === 0} aria-label="Mover para cima">
+-                        ↑
++                        <Icone nome="setaCima" tamanho={17} />
+                       </button>
+                       <button
+                         type="button"
+@@ -223,7 +224,7 @@ export default function AdminBiblioNews() {
+                         disabled={indice === avisos.length - 1}
+                         aria-label="Mover para baixo"
+                       >
+-                        ↓
++                        <Icone nome="setaBaixo" tamanho={17} />
+                       </button>
+                       <button type="button" className="ab-delete" onClick={() => remover(aviso.chave)}>
+                         Remover aviso
+@@ -320,7 +321,7 @@ export default function AdminBiblioNews() {
+         .ab-badge { font-size: 0.8rem; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: #f4ede3; color: #7d6a6a; }
+         .ab-badge.destaque { background: #f4e4c4; color: #8a5a12; }
+         .ab-card-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+-        .ab-icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(139,30,30,0.18); background: #fff; color: #6a2a2a; font-size: 1rem; cursor: pointer; }
++        .ab-icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(139,30,30,0.18); background: #fff; color: #6a2a2a; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+         .ab-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+         .ab-delete { border: none; background: rgba(255,230,226,0.95); color: #8b1e1e; padding: 9px 14px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 0.88rem; }
+         .ab-card-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; align-items: start; }
+diff --git a/app/admin/emprestimos/page.tsx b/app/admin/emprestimos/page.tsx
+index 67b895e..4785883 100644
+--- a/app/admin/emprestimos/page.tsx
++++ b/app/admin/emprestimos/page.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useEffect, useState } from "react"
+ import { CLASSIFICACAO_INFO, normalizarClassificacao, temRestricaoDeIdade } from "@/lib/classificacao"
++import { Icone } from "@/components/Icone"
+ 
+ export default function AdminEmprestimos() {
+   // ── estados: novo empréstimo ──
+@@ -272,8 +273,8 @@ export default function AdminEmprestimos() {
+ 
+         {exigeConfirmacaoIdade && classificacaoLivro && (
+           <div className="surface-note warn" style={{ marginTop: 20 }}>
+-            <div style={{ fontWeight: 800, color: "#854d0e", marginBottom: 6 }}>
+-              ⚠️ Aviso de idade — classificação {CLASSIFICACAO_INFO[classificacaoLivro].rotulo}
++            <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, color: "#854d0e", marginBottom: 6 }}>
++              <Icone nome="alerta" tamanho={19} />Aviso de idade — classificação {CLASSIFICACAO_INFO[classificacaoLivro].rotulo}
+             </div>
+             <div style={{ fontSize: 14, color: "#6b4a12", marginBottom: 12 }}>
+               {CLASSIFICACAO_INFO[classificacaoLivro].descricao}. O aluno só deve levar este livro se tiver a idade indicada
+@@ -409,7 +410,7 @@ export default function AdminEmprestimos() {
+                           style={{ padding: "7px 12px", fontSize: 12 }}
+                           onClick={() => window.open(`/admin/emprestimos/recibo/${e.id}`, "_blank")}
+                         >
+-                          🖨️ Recibo
++                          <Icone nome="impressora" tamanho={16} />Recibo
+                         </button>
+                       </div>
+                     </td>
+diff --git a/app/admin/emprestimos/recibo/[id]/page.tsx b/app/admin/emprestimos/recibo/[id]/page.tsx
+index 90d4416..0164ea5 100644
+--- a/app/admin/emprestimos/recibo/[id]/page.tsx
++++ b/app/admin/emprestimos/recibo/[id]/page.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useEffect, useState } from "react"
+ import { useParams, useSearchParams } from "next/navigation"
++import { Icone } from "@/components/Icone"
+ 
+ // Largura do rolo térmico. Troque para "58mm" se a impressora usar bobina menor.
+ const LARGURA_PAPEL = "80mm"
+@@ -62,7 +63,7 @@ export default function ReciboEmprestimo() {
+       {/* Ações — somem na impressão */}
+       <div className="acoes-tela no-print">
+         <button className="btn-primary" onClick={() => window.print()}>
+-          🖨️ Imprimir recibo
++          <Icone nome="impressora" tamanho={18} />Imprimir recibo
+         </button>
+       </div>
+ 
+diff --git a/app/admin/layout.tsx b/app/admin/layout.tsx
+index e97dc3c..bef1d92 100644
+--- a/app/admin/layout.tsx
++++ b/app/admin/layout.tsx
+@@ -3,8 +3,7 @@
+ import { usePathname, useRouter } from "next/navigation"
+ import { useState } from "react"
+ import Link from "next/link"
+-
+-type NomeIcone = "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "config" | "sair"
++import { Icone, type NomeIcone } from "@/components/Icone"
+ 
+ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean }[] = [
+   { href: "/admin", label: "Dashboard", icone: "home", exact: true },
+@@ -17,87 +16,6 @@ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean
+   { href: "/admin/configuracoes", label: "Configurações", icone: "config" },
+ ]
+ 
+-function Icone({ nome }: { nome: NomeIcone }) {
+-  const comum = {
+-    width: 22,
+-    height: 22,
+-    viewBox: "0 0 24 24",
+-    fill: "none",
+-    stroke: "currentColor",
+-    strokeWidth: 1.8,
+-    strokeLinecap: "round" as const,
+-    strokeLinejoin: "round" as const,
+-    "aria-hidden": true,
+-  }
+-  switch (nome) {
+-    case "home":
+-      return (
+-        <svg {...comum}>
+-          <path d="M4 11l8-6.5L20 11" />
+-          <path d="M6 10v9h12v-9" />
+-          <path d="M10 19v-5h4v5" />
+-        </svg>
+-      )
+-    case "livros":
+-      return (
+-        <svg {...comum}>
+-          <path d="M5 4h3.5v16H5zM10.5 4H14v16h-3.5z" />
+-          <path d="M15.8 5.4l3.3-.9 3 14.6-3.3.9z" />
+-        </svg>
+-      )
+-    case "emprestimos":
+-      return (
+-        <svg {...comum}>
+-          <path d="M4 8h13l-3-3" />
+-          <path d="M20 16H7l3 3" />
+-        </svg>
+-      )
+-    case "usuarios":
+-      return (
+-        <svg {...comum}>
+-          <path d="M2.5 9.5L12 5l9.5 4.5L12 14z" />
+-          <path d="M6.5 11.8V16c0 1.4 2.5 2.7 5.5 2.7s5.5-1.3 5.5-2.7v-4.2" />
+-          <path d="M21.5 9.5V15" />
+-        </svg>
+-      )
+-    case "tcc":
+-      return (
+-        <svg {...comum}>
+-          <path d="M7 3.5h7l4 4V20.5H7z" />
+-          <path d="M14 3.5v4h4M9.5 12h5M9.5 15.5h5" />
+-        </svg>
+-      )
+-    case "stats":
+-      return (
+-        <svg {...comum}>
+-          <path d="M5 20V11M12 20V4M19 20v-6" />
+-        </svg>
+-      )
+-    case "news":
+-      return (
+-        <svg {...comum}>
+-          <rect x="4" y="5" width="16" height="14" rx="2" />
+-          <path d="M8 9h8M8 12.5h8M8 16h5" />
+-        </svg>
+-      )
+-    case "config":
+-      return (
+-        <svg {...comum}>
+-          <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+-          <circle cx="15" cy="7" r="2" />
+-          <circle cx="9" cy="17" r="2" />
+-        </svg>
+-      )
+-    default:
+-      return (
+-        <svg {...comum}>
+-          <path d="M10 4H5.5A1.5 1.5 0 004 5.5v13A1.5 1.5 0 005.5 20H10" />
+-          <path d="M15 8l4 4-4 4M19 12H9" />
+-        </svg>
+-      )
+-  }
+-}
+-
+ export default function AdminLayout({ children }: { children: React.ReactNode }) {
+   const pathname = usePathname()
+   const router = useRouter()
+@@ -315,6 +233,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+           border: 1px solid rgba(120,32,32,0.05);
+         }
+         .surface-strip button {
++          display: inline-flex; align-items: center; gap: 8px;
+           padding: 10px 20px;
+           border-radius: 14px;
+           border: none;
+@@ -452,6 +371,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+         textarea.input-field { resize: vertical; min-height: 100px; }
+         select.input-field { cursor: pointer; }
+         .btn-primary {
++          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+           padding: 12px 24px;
+           background: linear-gradient(180deg, #992323 0%, #7e1717 100%);
+           color: white;
+@@ -470,6 +390,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+         }
+         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+         .btn-secondary {
++          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+           padding: 12px 24px;
+           background: rgba(255,255,255,0.86);
+           color: var(--vermelho);
+@@ -500,6 +421,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+           font-size: 0.95rem;
+           margin-top: 16px;
+         }
++        .mensagem-ok::before, .mensagem-erro::before {
++          content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -4px;
++          background-color: currentColor; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
++          -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain;
++        }
++        .mensagem-ok::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M7.5 12.5l3 3 6-6.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M7.5 12.5l3 3 6-6.5'/%3E%3C/svg%3E"); }
++        .mensagem-erro::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8.5 8.5l7 7M15.5 8.5l-7 7'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8.5 8.5l7 7M15.5 8.5l-7 7'/%3E%3C/svg%3E"); }
+         .table-wrap { overflow-x: auto; }
+         table {
+           width: 100%;
+diff --git a/app/admin/livros/page.tsx b/app/admin/livros/page.tsx
+index d3f760f..14ac405 100644
+--- a/app/admin/livros/page.tsx
++++ b/app/admin/livros/page.tsx
+@@ -7,6 +7,7 @@ import { Code39 } from "@/components/Code39"
+ import { ClassificacaoBadge } from "@/components/ClassificacaoBadge"
+ import { LivroCampos, CAMPOS_VAZIOS, camposDoLivro, type CamposLivro } from "@/components/admin/LivroCampos"
+ import { LivroDetalhesModal } from "@/components/admin/LivroDetalhesModal"
++import { Icone } from "@/components/Icone"
+ 
+ const tombo = (n: number) => `#${String(n || 0).padStart(7, "0")}`
+ const opcional = (v: string) => v || null
+@@ -15,7 +16,7 @@ const CEL = "text-[13px] text-[#555]"
+ function Capa({ src, alt, className }: { src?: string | null; alt: string; className: string }) {
+   return src
+     ? <img src={src} alt={alt} className={`${className} rounded object-cover`} />
+-    : <div className={`${className} flex items-center justify-center rounded bg-[#f0eded]`}>📖</div>
++    : <div className={`${className} flex items-center justify-center rounded bg-[#f0eded] text-[#8b6b6b]`}><Icone nome="livro" tamanho="1.4em" /></div>
+ }
+ 
+ function FiltroData({ rotulo, valor, onChange }: { rotulo: string; valor: string; onChange: (v: string) => void }) {
+@@ -30,13 +31,13 @@ function FiltroData({ rotulo, valor, onChange }: { rotulo: string; valor: string
+ type AcoesProps = { onEtiqueta: () => void; onDetalhes: () => void; onEditar: () => void; onRemover: () => void }
+ 
+ function Acoes({ onEtiqueta, onDetalhes, onEditar, onRemover }: AcoesProps) {
+-  const base = "cursor-pointer rounded-md border px-2.5 py-1.5 text-xs font-semibold"
++  const base = "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1.5 text-xs font-semibold"
+   return (
+     <div className="flex gap-1.5">
+-      <button onClick={onDetalhes} title="Ver detalhes" aria-label="Ver detalhes" className={`${base} border-[#e0e0e0] bg-[#f7f6f4]`}>👁️</button>
+-      <button onClick={onEtiqueta} title="Imprimir etiqueta" aria-label="Imprimir etiqueta" className={`${base} border-[#e0e0e0] bg-[#f7f6f4]`}>🏷️</button>
+-      <button onClick={onEditar} title="Editar" aria-label="Editar" className={`${base} border-blue-200 bg-blue-50 text-blue-700`}>✏️</button>
+-      <button onClick={onRemover} title="Remover" aria-label="Remover" className={`${base} border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]`}>🗑️</button>
++      <button onClick={onDetalhes} title="Ver detalhes" aria-label="Ver detalhes" className={`${base} border-[#e0e0e0] bg-[#f7f6f4] text-[#555]`}><Icone nome="olho" tamanho={17} /></button>
++      <button onClick={onEtiqueta} title="Imprimir etiqueta" aria-label="Imprimir etiqueta" className={`${base} border-[#e0e0e0] bg-[#f7f6f4] text-[#555]`}><Icone nome="etiqueta" tamanho={17} /></button>
++      <button onClick={onEditar} title="Editar" aria-label="Editar" className={`${base} border-blue-200 bg-blue-50 text-blue-700`}><Icone nome="editar" tamanho={17} /></button>
++      <button onClick={onRemover} title="Remover" aria-label="Remover" className={`${base} border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]`}><Icone nome="lixeira" tamanho={17} /></button>
+     </div>
+   )
+ }
+@@ -122,7 +123,7 @@ export default function AdminLivros() {
+     const data = await res.json()
+     if (res.ok) {
+       avisar(
+-        `✅ ${data.novoExemplar ? "Novo exemplar adicionado" : "Livro cadastrado"}! Tombo ${tombo(data.tombo)}`,
++        `${data.novoExemplar ? "Novo exemplar adicionado" : "Livro cadastrado"}! Tombo ${tombo(data.tombo)}`,
+         "ok"
+       )
+       setLivro(null)
+@@ -152,7 +153,7 @@ export default function AdminLivros() {
+       }),
+     })
+     if (res.ok) {
+-      avisar("✅ Livro atualizado com sucesso!", "ok")
++      avisar("Livro atualizado com sucesso!", "ok")
+       setEditando(null); carregarLivros()
+     } else {
+       const d = await res.json(); avisar(d.error, "erro")
+@@ -163,7 +164,7 @@ export default function AdminLivros() {
+     if (!confirm(`Remover "${titulo}" do acervo? Esta ação não pode ser desfeita.`)) return
+     const res = await fetch(`/api/livros/${isbn}`, { method: "DELETE" })
+     if (res.ok) {
+-      avisar(`🗑️ "${titulo}" removido do acervo.`, "ok"); carregarLivros()
++      avisar(`"${titulo}" removido do acervo.`, "ok"); carregarLivros()
+     } else {
+       const d = await res.json(); avisar(d.error, "erro")
+     }
+@@ -245,8 +246,8 @@ export default function AdminLivros() {
+         </div>
+ 
+         <div className="surface-strip">
+-          {([["cadastrar", "📚 Cadastrar livro"], ["acervo", `📋 Acervo (${livros.length})`]] as const).map(([id, rotulo]) => (
+-            <button key={id} onClick={() => setAba(id)} className={aba === id ? "active" : ""}>{rotulo}</button>
++          {([["cadastrar", "livros", "Cadastrar livro"], ["acervo", "lista", `Acervo (${livros.length})`]] as const).map(([id, icone, rotulo]) => (
++            <button key={id} onClick={() => setAba(id)} className={aba === id ? "active" : ""}><Icone nome={icone} tamanho={18} />{rotulo}</button>
+           ))}
+         </div>
+ 
+@@ -281,7 +282,7 @@ export default function AdminLivros() {
+                 <LivroCampos valores={campos} onChange={(p) => setCampos((c) => ({ ...c, ...p }))} />
+ 
+                 <div className="flex flex-wrap gap-2.5">
+-                  <button className="btn-primary" onClick={salvarLivro}>💾 Salvar livro</button>
++                  <button className="btn-primary" onClick={salvarLivro}><Icone nome="salvar" tamanho={18} />Salvar livro</button>
+                   <button className="btn-secondary" onClick={() => setLivro(null)}>Cancelar</button>
+                 </div>
+               </div>
+@@ -307,7 +308,7 @@ export default function AdminLivros() {
+                 Só livros disponíveis
+               </label>
+               {selecionados.length > 0 && (
+-                <button className="btn-primary" onClick={() => imprimir(selecionados)}>🏷️ Imprimir etiquetas ({selecionados.length})</button>
++                <button className="btn-primary" onClick={() => imprimir(selecionados)}><Icone nome="etiqueta" tamanho={18} />Imprimir etiquetas ({selecionados.length})</button>
+               )}
+             </div>
+ 
+@@ -327,13 +328,13 @@ export default function AdminLivros() {
+                   <div className="modal-surface modal-surface--wide">
+                     <div className="modal-head">
+                       <h2 className="font-titulo text-xl">Editar livro</h2>
+-                      <button onClick={() => setEditando(null)} aria-label="Fechar" className="cursor-pointer text-xl text-neutral-400 hover:text-neutral-600">✕</button>
++                      <button onClick={() => setEditando(null)} aria-label="Fechar" className="flex cursor-pointer text-neutral-400 hover:text-neutral-600"><Icone nome="x" tamanho={22} /></button>
+                     </div>
+                     <div className="modal-body">
+                       <LivroCampos comTitulo valores={editando} onChange={(p) => setEditando((v) => v && { ...v, ...p })} />
+                     </div>
+                     <div className="modal-foot">
+-                      <button className="btn-primary" onClick={salvarEdicao}>💾 Salvar alterações</button>
++                      <button className="btn-primary" onClick={salvarEdicao}><Icone nome="salvar" tamanho={18} />Salvar alterações</button>
+                       <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
+                     </div>
+                   </div>
+diff --git a/app/admin/login/page.tsx b/app/admin/login/page.tsx
+index 2934325..42fac69 100644
+--- a/app/admin/login/page.tsx
++++ b/app/admin/login/page.tsx
+@@ -3,6 +3,7 @@
+ import { useState } from "react"
+ import { useRouter } from "next/navigation"
+ import { PasswordInput } from "@/components/PasswordInput"
++import { Icone } from "@/components/Icone"
+ 
+ const CAMPO =
+   "rounded-xl border border-[#8b1e1e]/15 bg-white/70 px-4 py-3.5 text-sm text-[#1a0f0f] shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none transition focus:border-[#8b1e1e] focus:ring-4 focus:ring-[#8b1e1e]/10"
+@@ -45,7 +46,7 @@ export default function LoginPage() {
+ 
+       <div className="relative z-10 w-full max-w-[402px] rounded-3xl border border-white/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(252,248,246,0.94)_100%)] px-6 py-10 text-center shadow-[0_30px_70px_rgba(39,8,8,0.26)] backdrop-blur-sm sm:px-[42px] sm:py-[46px]">
+         <div className="mx-auto mb-[18px] flex size-[76px] items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(139,30,30,0.08),rgba(139,30,30,0.14))] text-[38px] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+-          📚
++          <Icone nome="livros" tamanho={38} style={{ color: "#8b1e1e" }} />
+         </div>
+ 
+         <h1 className="mb-1.5 font-titulo text-[31px] font-black text-[#8b1e1e]">Area Admin</h1>
+diff --git a/app/admin/page.tsx b/app/admin/page.tsx
+index 878ea5e..36232e4 100644
+--- a/app/admin/page.tsx
++++ b/app/admin/page.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { Fragment, useEffect, useState } from "react"
+ import Link from "next/link"
++import { Icone as IconeUI } from "@/components/Icone"
+ 
+ type Stats = {
+   livros: number
+@@ -118,7 +119,7 @@ export default function AdminDashboard() {
+       </div>
+ 
+       <Link href="/admin/stats" className="dash-more">
+-        Ver estatísticas completas →
++        Ver estatísticas completas <IconeUI nome="setaDireita" tamanho="1em" />
+       </Link>
+ 
+       <style>{`
+diff --git a/app/admin/usuarios/page.tsx b/app/admin/usuarios/page.tsx
+index cb81c85..ad7e1b5 100644
+--- a/app/admin/usuarios/page.tsx
++++ b/app/admin/usuarios/page.tsx
+@@ -3,6 +3,7 @@
+ import { useEffect, useState } from "react"
+ import { TurmaSelect } from "@/components/TurmaSelect"
+ import { ModalPortal } from "@/components/ModalPortal"
++import { Icone } from "@/components/Icone"
+ 
+ type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
+ 
+@@ -83,7 +84,7 @@ export default function AdminUsuarios() {
+     })
+ 
+     if (res.ok) {
+-      setMensagem("✅ Usuário atualizado com sucesso!")
++      setMensagem("Usuário atualizado com sucesso!")
+       setTipoMensagem("ok")
+       setEditando(null)
+       carregarUsuarios()
+@@ -98,7 +99,7 @@ export default function AdminUsuarios() {
+     if (!confirm(`Remover "${nome}"? Esta ação não pode ser desfeita.`)) return
+     const res = await fetch(`/api/usuarios/${id}`, { method: "DELETE" })
+     if (res.ok) {
+-      setMensagem(`🗑️ "${nome}" removido.`)
++      setMensagem(`"${nome}" removido.`)
+       setTipoMensagem("ok")
+       carregarUsuarios()
+     } else {
+@@ -267,7 +268,7 @@ export default function AdminUsuarios() {
+               <div className="modal-surface">
+                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                   <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20 }}>Editar usuário</h2>
+-                  <button onClick={() => setEditando(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa" }}>✕</button>
++                  <button onClick={() => setEditando(null)} style={{ background: "none", border: "none", display: "flex", cursor: "pointer", color: "#aaa" }}><Icone nome="x" tamanho={22} /></button>
+                 </div>
+ 
+                 <div className="input-group">
+@@ -332,7 +333,7 @@ export default function AdminUsuarios() {
+                 </div>
+ 
+                 <div style={{ display: "flex", gap: 10 }}>
+-                  <button className="btn-primary" onClick={salvarEdicao}>💾 Salvar alterações</button>
++                  <button className="btn-primary" onClick={salvarEdicao}><Icone nome="salvar" tamanho={18} />Salvar alterações</button>
+                   <button className="btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
+                 </div>
+               </div>
+@@ -373,15 +374,19 @@ export default function AdminUsuarios() {
+                       <div style={{ display: "flex", gap: 6 }}>
+                         <button
+                           onClick={() => setEditando({ ...u })}
+-                          style={{ padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
++                          style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
++                          title="Editar"
++                          aria-label="Editar"
+                         >
+-                          ✏️
++                          <Icone nome="editar" tamanho={17} />
+                         </button>
+                         <button
+                           onClick={() => removerUsuario(u.id, u.nome)}
+-                          style={{ padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}
++                          style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}
++                          title="Remover"
++                          aria-label="Remover"
+                         >
+-                          🗑️
++                          <Icone nome="lixeira" tamanho={17} />
+                         </button>
+                       </div>
+                     </td>
+diff --git a/app/api/papiro/route.ts b/app/api/papiro/route.ts
+index 6eea59b..020e76a 100644
+--- a/app/api/papiro/route.ts
++++ b/app/api/papiro/route.ts
+@@ -49,7 +49,7 @@ model: "gpt-4o-mini",        max_tokens: 400,
+  
+     if (!response.ok) {
+       console.error("Erro OpenAI API:", data)
+-      return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes! 🐢" })
++      return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes!" })
+     }
+  
+     const resposta = data.choices?.[0]?.message?.content ?? "Não consegui pensar em uma resposta agora. Tenta de novo!"
+@@ -57,6 +57,6 @@ model: "gpt-4o-mini",        max_tokens: 400,
+     return NextResponse.json({ resposta })
+   } catch (error: any) {
+     console.error("Erro rota Papiro:", error)
+-    return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes! 🐢" })
++    return NextResponse.json({ resposta: "Ops! Tive um probleminha aqui. Tenta de novo em instantes!" })
+   }
+ }
+\ No newline at end of file
+diff --git a/app/cadastrar-aluno/page.tsx b/app/cadastrar-aluno/page.tsx
+index 9fa3608..eb12a94 100644
+--- a/app/cadastrar-aluno/page.tsx
++++ b/app/cadastrar-aluno/page.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useState } from "react";
+ import { TurmaSelect } from "@/components/TurmaSelect";
++import { Icone } from "@/components/Icone"
+ 
+ type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL";
+ 
+@@ -13,6 +14,7 @@ export default function CadastrarUsuario() {
+   const [turma, setTurma] = useState("");
+   const [whatsapp, setWhatsapp] = useState("");
+   const [mensagem, setMensagem] = useState("");
++  const [mensagemOk, setMensagemOk] = useState(false);
+ 
+   const salvarUsuario = async (e: React.FormEvent) => {
+     e.preventDefault();
+@@ -34,7 +36,8 @@ export default function CadastrarUsuario() {
+ 
+       if (res.ok) {
+         const novoUsuario = await res.json();
+-        setMensagem(`✅ Cadastrado com sucesso! O ID dele é: ${novoUsuario.id}`);
++        setMensagem(`Cadastrado com sucesso! O ID dele é: ${novoUsuario.id}`);
++        setMensagemOk(true);
+         setNome("");
+         setMatricula("");
+         setCpf("");
+@@ -42,10 +45,12 @@ export default function CadastrarUsuario() {
+         setWhatsapp("");
+       } else {
+         const d = await res.json();
+-        setMensagem(`❌ ${d.error || "Erro ao cadastrar."}`);
++        setMensagem(d.error || "Erro ao cadastrar.");
++        setMensagemOk(false);
+       }
+     } catch (err) {
+-      setMensagem("❌ Erro de conexão.");
++      setMensagem("Erro de conexão.");
++      setMensagemOk(false);
+     }
+   };
+ 
+@@ -107,10 +112,15 @@ export default function CadastrarUsuario() {
+           Salvar
+         </button>
+       </form>
+-      {mensagem && <p style={{ marginTop: "20px", fontWeight: "bold" }}>{mensagem}</p>}
++      {mensagem && (
++        <p style={{ marginTop: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: 6, color: mensagemOk ? "#166534" : "#c53030" }}>
++          <Icone nome={mensagemOk ? "checkCirculo" : "xCirculo"} tamanho={18} />
++          {mensagem}
++        </p>
++      )}
+ 
+       <div style={{ marginTop: "20px" }}>
+-        <a href="/teste-isbn">⬅️ Voltar para Busca de Livros</a>
++        <a href="/teste-isbn" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Icone nome="setaEsquerda" tamanho={16} />Voltar para Busca de Livros</a>
+       </div>
+     </div>
+   );
+diff --git a/app/catalogo/page.tsx b/app/catalogo/page.tsx
+index 9ae018f..0bd0ef5 100644
+--- a/app/catalogo/page.tsx
++++ b/app/catalogo/page.tsx
+@@ -3,6 +3,9 @@
+ import { useEffect, useMemo, useState } from "react"
+ import Link from "next/link"
+ import { CLASSIFICACAO_INFO, normalizarClassificacao } from "@/lib/classificacao"
++import { PublicNavbar } from "@/components/PublicNavbar"
++import { FiltrosCatalogo } from "@/components/FiltrosCatalogo"
++import { Icone } from "@/components/Icone"
+ 
+ type Livro = {
+   id: number | string
+@@ -22,7 +25,6 @@ export default function Catalogo() {
+   const [livros, setLivros] = useState<Livro[]>([])
+   const [busca, setBusca] = useState("")
+   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
+-  const [filtrosAbertos, setFiltrosAbertos] = useState(false)
+   const [soDisponiveis, setSoDisponiveis] = useState(false)
+   const [loading, setLoading] = useState(true)
+ 
+@@ -87,47 +89,6 @@ export default function Catalogo() {
+           background: #f5ede4;
+         }
+ 
+-        .topbar {
+-          background: linear-gradient(135deg, #5f1212 0%, #8b2020 60%, #a02828 100%);
+-          width: 100%;
+-          padding: 14px 42px;
+-          display: flex;
+-          align-items: center;
+-          justify-content: space-between;
+-          gap: 20px;
+-        }
+-
+-        .brand {
+-          font-family: 'Playfair Display', serif;
+-          font-size: 1.65rem;
+-          font-weight: 700;
+-          color: #fff7f0;
+-          text-decoration: none;
+-          letter-spacing: 0.01em;
+-        }
+-
+-        .brand span { color: #f4c58c; }
+-
+-        .back-link {
+-          text-decoration: none;
+-          color: #fff2ea;
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-size: 0.98rem;
+-          font-weight: 700;
+-          padding: 8px 16px;
+-          border-radius: 999px;
+-          background: rgba(255,255,255,0.1);
+-          transition: transform 0.25s ease, background 0.25s ease;
+-          display: flex;
+-          align-items: center;
+-          gap: 6px;
+-        }
+-
+-        .back-link:hover {
+-          transform: translateY(-1px);
+-          background: rgba(255,255,255,0.2);
+-        }
+-
+         .catalog-section {
+           width: 100%;
+           padding: 52px 56px 86px 42px;
+@@ -205,163 +166,8 @@ export default function Catalogo() {
+           transform: translateY(-50%);
+           color: #7c5b5b;
+           font-size: 1rem;
+-        }
+-
+-        .filters-panel {
+-          background: rgba(255, 255, 255, 0.92);
+-          border: 1px solid rgba(140, 92, 92, 0.16);
+-          border-radius: 18px;
+-          padding: 14px 18px 14px;
+-          margin-bottom: 24px;
+-          box-shadow: 0 10px 22px rgba(102, 47, 47, 0.05);
+-        }
+-
+-        .filters-header {
+-          display: flex;
+-          align-items: center;
+-          justify-content: space-between;
+-          gap: 12px;
+-          margin-bottom: 14px;
+-          flex-wrap: wrap;
+-        }
+-
+-        .filters-title {
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-size: 1rem;
+-          font-weight: 800;
+-          color: #3b1616;
+-          margin-bottom: 6px;
+-        }
+-
+-        .filters-note {
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-size: 0.9rem;
+-          color: #6f5e5e;
+-          line-height: 1.4;
+-        }
+-
+-        .selected-filters {
+-          display: flex;
+-          flex-wrap: wrap;
+-          gap: 8px;
+-          margin-bottom: 12px;
+-        }
+-
+-        .filter-chip {
+-          border: none;
+-          cursor: pointer;
+-          background: #f4e6df;
+-          color: #6a2a2a;
+-          border-radius: 999px;
+-          padding: 8px 12px;
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-weight: 700;
+-          font-size: 0.88rem;
+-          transition: transform 0.18s ease, background 0.18s ease;
+-        }
+-
+-        .filter-chip:hover {
+-          transform: translateY(-1px);
+-          background: #e9d2c8;
+-        }
+-
+-        .filter-clear {
+-          border: none;
+-          cursor: pointer;
+-          color: #8b1e1e;
+-          background: rgba(255, 230, 226, 0.95);
+-          padding: 10px 16px;
+-          border-radius: 999px;
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-weight: 700;
+-          transition: transform 0.18s ease, background 0.18s ease;
+-        }
+-
+-        .filter-clear:hover {
+-          transform: translateY(-1px);
+-          background: rgba(255, 215, 208, 0.96);
+-        }
+-
+-        .filters-actions {
+           display: flex;
+-          align-items: center;
+-          gap: 10px;
+-          flex-wrap: wrap;
+-          justify-content: flex-end;
+-        }
+-
+-        .filters-toggle {
+-          border: 1px solid rgba(139, 30, 30, 0.18);
+-          background: white;
+-          color: #6a2a2a;
+-          border-radius: 999px;
+-          padding: 10px 18px;
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-weight: 700;
+-          cursor: pointer;
+-          transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+-        }
+-
+-        .filters-toggle:hover {
+-          transform: translateY(-1px);
+-          box-shadow: 0 10px 22px rgba(101, 33, 33, 0.09);
+-        }
+-
+-        .filters-body {
+-          max-height: 0;
+-          overflow: hidden;
+-          transition: max-height 0.28s ease;
+-        }
+-
+-        .filters-body.open {
+-          max-height: 220px;
+-        }
+-
+-        .filter-box {
+-          background: #fffdfa;
+-          border: 1px solid rgba(139, 30, 30, 0.12);
+-          border-radius: 18px;
+-          padding: 14px 14px 12px;
+-          box-shadow: 0 10px 18px rgba(111, 40, 40, 0.05);
+-        }
+-
+-        .filter-box-title {
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-size: 0.98rem;
+-          font-weight: 700;
+-          color: #3c1818;
+-          margin-bottom: 12px;
+-        }
+-
+-        .filters-empty {
+-          font-family: 'Source Sans 3', sans-serif;
+-          color: #8c7474;
+-          font-size: 0.94rem;
+-          padding: 14px 0;
+-        }
+-
+-        .category-select {
+-          width: 100%;
+-          border: 1px solid rgba(139, 30, 30, 0.22);
+-          border-radius: 12px;
+-          padding: 12px 16px;
+-          font-size: 0.96rem;
+-          font-family: 'Source Sans 3', sans-serif;
+-          font-weight: 600;
+-          color: #3c1818;
+-          background: #fffaf7;
+-          cursor: pointer;
+-          appearance: none;
+-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236a1717' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+-          background-repeat: no-repeat;
+-          background-position: right 14px center;
+-          outline: none;
+-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+-        }
+-
+-        .category-select:focus {
+-          border-color: rgba(139, 30, 30, 0.5);
+-          box-shadow: 0 0 0 3px rgba(139, 30, 30, 0.08);
++          pointer-events: none;
+         }
+ 
+         .feedback-box {
+@@ -403,7 +209,6 @@ export default function Catalogo() {
+ 
+         .book-cover img { width: 100%; height: 100%; object-fit: cover; }
+         .class-badge { position: absolute; left: 10px; top: 10px; min-width: 28px; height: 28px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+-        .filters-toggle.filters-toggle--on { background: #8b1e1e; color: #fff; border-color: #8b1e1e; }
+ 
+         .book-fallback {
+           width: 100%;
+@@ -463,9 +268,6 @@ export default function Catalogo() {
+         }
+ 
+         @media (max-width: 640px) {
+-          .topbar { padding: 12px 14px; }
+-          .brand { font-size: 1.2rem; }
+-          .back-link { font-size: 0.8rem; padding: 6px 12px; }
+           .catalog-section { padding: 24px 14px 40px; }
+           .catalog-accent { width: 10px; height: 30px; }
+           .catalog-title { font-size: 1.5rem; }
+@@ -473,13 +275,6 @@ export default function Catalogo() {
+           .search-wrap { margin-bottom: 16px; }
+           .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
+           .search-icon { left: 14px; font-size: 0.86rem; }
+-          .filters-panel { padding: 10px 12px; margin-bottom: 16px; border-radius: 14px; }
+-          .filters-header { margin-bottom: 10px; gap: 8px; }
+-          .filters-title { font-size: 0.88rem; margin-bottom: 2px; }
+-          .filters-note { font-size: 0.74rem; }
+-          .filters-actions { gap: 6px; justify-content: flex-start; }
+-          .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
+-          .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
+           /* mais livros por linha (3 ou mais), como no computador */
+           .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+           .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
+@@ -496,14 +291,7 @@ export default function Catalogo() {
+       `}</style>
+ 
+       <div className="page-wrap">
+-        <header className="topbar">
+-          <Link href="/" className="brand">
+-            Biblio<span>teca</span>
+-          </Link>
+-          <Link href="/" className="back-link">
+-            ← Voltar ao início
+-          </Link>
+-        </header>
++        <PublicNavbar />
+ 
+         <section className="catalog-section">
+           <div className="catalog-header">
+@@ -517,7 +305,7 @@ export default function Catalogo() {
+           </div>
+ 
+           <div className="search-wrap">
+-            <span className="search-icon">🔍</span>
++            <span className="search-icon"><Icone nome="busca" tamanho="1.15em" /></span>
+             <input
+               className="search-input"
+               value={busca}
+@@ -526,76 +314,15 @@ export default function Catalogo() {
+             />
+           </div>
+ 
+-          <div className="filters-panel">
+-            <div className="filters-header">
+-              <div>
+-                <div className="filters-title">Filtros</div>
+-                <div className="filters-note">
+-                  Selecione assuntos para refinar a busca ou limpe os filtros.
+-                </div>
+-              </div>
+-              <div className="filters-actions">
+-                <button
+-                  type="button"
+-                  className="filters-toggle"
+-                  onClick={() => setFiltrosAbertos((prev) => !prev)}
+-                >
+-                  {filtrosAbertos ? "Ocultar filtros" : "Mostrar filtros"}
+-                </button>
+-                <button
+-                  type="button"
+-                  className={`filters-toggle${soDisponiveis ? " filters-toggle--on" : ""}`}
+-                  aria-pressed={soDisponiveis}
+-                  onClick={() => setSoDisponiveis((prev) => !prev)}
+-                >
+-                  {soDisponiveis ? "✓ " : ""}Livros disponíveis
+-                </button>
+-                {(selectedGeneros.length > 0 || busca || soDisponiveis) && (
+-                  <button type="button" onClick={clearFiltros} className="filter-clear">
+-                    Limpar filtros
+-                  </button>
+-                )}
+-              </div>
+-            </div>
+-
+-            {selectedGeneros.length > 0 && (
+-              <div className="selected-filters">
+-                {selectedGeneros.map((g) => (
+-                  <button
+-                    key={g}
+-                    type="button"
+-                    onClick={() => setSelectedGeneros((prev) => prev.filter((item) => item !== g))}
+-                    className="filter-chip"
+-                  >
+-                    {g} ×
+-                  </button>
+-                ))}
+-              </div>
+-            )}
+-
+-            <div className={`filters-body ${filtrosAbertos ? "open" : ""}`}>
+-              <div className="filter-box">
+-                <div className="filter-box-title">Filtrar por assunto</div>
+-                {generos.length > 0 ? (
+-                  <select
+-                    className="category-select"
+-                    value={selectedGeneros[0] ?? ""}
+-                    onChange={(e) => {
+-                      const val = e.target.value
+-                      setSelectedGeneros(val ? [val] : [])
+-                    }}
+-                  >
+-                    <option value="">— Todos os assuntos —</option>
+-                    {generos.map((g) => (
+-                      <option key={g} value={g}>{g}</option>
+-                    ))}
+-                  </select>
+-                ) : (
+-                  <div className="filters-empty">Nenhum assunto encontrado.</div>
+-                )}
+-              </div>
+-            </div>
+-          </div>
++          <FiltrosCatalogo
++            generos={generos}
++            selectedGeneros={selectedGeneros}
++            onChangeGeneros={setSelectedGeneros}
++            soDisponiveis={soDisponiveis}
++            onChangeSoDisponiveis={setSoDisponiveis}
++            temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
++            onLimpar={clearFiltros}
++          />
+ 
+           {loading && <div className="feedback-box">Carregando acervo...</div>}
+ 
+@@ -616,7 +343,7 @@ export default function Catalogo() {
+                     {livro.capa ? (
+                       <img src={livro.capa} alt={livro.titulo || "Capa do livro"} />
+                     ) : (
+-                      <div className="book-fallback">📚</div>
++                      <div className="book-fallback"><Icone nome="livros" tamanho="1em" /></div>
+                     )}
+                     {normalizarClassificacao(livro.classificacaoIndicativa) && (
+                       <div
+diff --git a/app/livro/[isbn]/page.tsx b/app/livro/[isbn]/page.tsx
+index 9015666..a2a4c78 100644
+--- a/app/livro/[isbn]/page.tsx
++++ b/app/livro/[isbn]/page.tsx
+@@ -3,6 +3,8 @@
+ import { useEffect, useMemo, useState } from "react"
+ import { useParams } from "next/navigation"
+ import Link from "next/link"
++import { PublicNavbar } from "@/components/PublicNavbar"
++import { Icone } from "@/components/Icone"
+ import { CLASSIFICACAO_INFO, normalizarClassificacao, temRestricaoDeIdade } from "@/lib/classificacao"
+ 
+ type Relacionado = {
+@@ -107,16 +109,22 @@ export default function LivroDetalhe() {
+   }, [livro, todos])
+ 
+   if (loading) return (
+-    <div style={{ minHeight: "100vh", background: "#f3ebe3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Source Sans 3', sans-serif", fontSize: 16, color: "#8b6b6b" }}>
+-      Carregando...
++    <div style={{ minHeight: "100vh", background: "#f3ebe3", fontFamily: "'Source Sans 3', sans-serif" }}>
++      <PublicNavbar />
++      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 66px)", fontSize: 16, color: "#8b6b6b" }}>
++        Carregando...
++      </div>
+     </div>
+   )
+ 
+   if (!livro || livro.error) return (
+-    <div style={{ minHeight: "100vh", background: "#f3ebe3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "'Source Sans 3', sans-serif" }}>
+-      <div style={{ fontSize: 48 }}>📚</div>
+-      <div style={{ fontSize: 18, color: "#5e3a3a", fontWeight: 700 }}>Livro não encontrado</div>
+-      <Link href="/" style={{ color: "#8b1e1e", fontWeight: 700, textDecoration: "none" }}>← Voltar ao catálogo</Link>
++    <div style={{ minHeight: "100vh", background: "#f3ebe3", fontFamily: "'Source Sans 3', sans-serif" }}>
++      <PublicNavbar />
++      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, minHeight: "calc(100vh - 66px)" }}>
++        <div style={{ fontSize: 48, color: "#8b6b6b", display: "flex" }}><Icone nome="livros" tamanho="1em" /></div>
++        <div style={{ fontSize: 18, color: "#5e3a3a", fontWeight: 700 }}>Livro não encontrado</div>
++        <Link href="/" style={{ color: "#8b1e1e", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><Icone nome="setaEsquerda" tamanho={17} />Voltar ao catálogo</Link>
++      </div>
+     </div>
+   )
+ 
+@@ -145,21 +153,14 @@ export default function LivroDetalhe() {
+         * { box-sizing: border-box; margin: 0; padding: 0; }
+         .ld-page { min-height: 100vh; background: #f3ebe3; font-family: 'Source Sans 3', sans-serif; color: #3a1e1e; }
+ 
+-        .ld-header {
+-          position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(120,26,26,0.96);
+-          backdrop-filter: blur(12px); padding: 14px 42px; display: flex; align-items: center;
+-          justify-content: space-between; gap: 12px; flex-wrap: wrap;
+-        }
+-        .ld-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #fff7f0; text-decoration: none; }
+-        .ld-brand span { color: #f4c58c; }
+         .ld-back {
+-          color: #fff2ea; font-weight: 700; font-size: 0.95rem; text-decoration: none;
+-          padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,0.1);
+-          transition: background 0.2s ease;
++          display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px; padding: 9px 16px 9px 13px;
++          border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 0.92rem; color: #6a2a2a;
++          background: #fffdf9; border: 1px solid rgba(139, 30, 30, 0.2);
++          transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+         }
+-        .ld-back:hover { background: rgba(255,255,255,0.2); }
+-
+-        .ld-main { max-width: 1040px; margin: 0 auto; padding: 108px 28px 80px; }
++        .ld-back:hover { transform: translateY(-1px); background: #8b1e1e; color: #fff7ef; box-shadow: 0 10px 22px rgba(101, 33, 33, 0.14); }
++        .ld-main { max-width: 1040px; margin: 0 auto; padding: 28px 28px 80px; }
+         .ld-grid { display: grid; grid-template-columns: 228px minmax(0, 1fr); gap: 36px; align-items: start; }
+ 
+         .ld-cover img { width: 100%; height: auto; display: block; border-radius: 16px; box-shadow: 0 16px 40px rgba(55,18,18,0.18); }
+@@ -213,20 +214,17 @@ export default function LivroDetalhe() {
+         .ld-mini-info em { font-style: normal; font-size: 0.92rem; color: #8b7a74; }
+ 
+         @media (max-width: 760px) {
+-          .ld-header { padding: 12px 18px; }
+-          .ld-brand { font-size: 1.2rem; }
+-          .ld-main { padding: 96px 18px 60px; }
++          .ld-main { padding: 20px 18px 60px; }
+           .ld-grid { grid-template-columns: 1fr; gap: 24px; }
+           .ld-cover { max-width: 220px; margin: 0 auto; width: 100%; }
+         }
+       `}</style>
+ 
+-      <header className="ld-header">
+-        <Link href="/" className="ld-brand">Biblioteca Escolar <span>Emerson Teixeira</span></Link>
+-        <Link href="/#catalogo" className="ld-back">← Voltar ao catálogo</Link>
+-      </header>
++      <PublicNavbar />
+ 
+       <main className="ld-main">
++        <Link href="/#catalogo" className="ld-back"><Icone nome="setaEsquerda" tamanho={17} />Voltar ao catálogo</Link>
++
+         <div className="ld-grid">
+           {/* Capa */}
+           <div className="ld-cover">
+diff --git a/app/page.tsx b/app/page.tsx
+index bef00ca..031c792 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react"
+ import Link from "next/link"
+ import { Papiro } from "@/components/Papiro"
+ import { BiblioNews } from "@/components/BiblioNews"
++import { PublicNavbar } from "@/components/PublicNavbar"
++import { FiltrosCatalogo } from "@/components/FiltrosCatalogo"
++import { Icone } from "@/components/Icone"
+ import { CLASSIFICACAO_INFO, normalizarClassificacao } from "@/lib/classificacao"
+ 
+ type Livro = {
+@@ -24,12 +27,10 @@ export default function Home() {
+   const [livros, setLivros] = useState<Livro[]>([])
+   const [busca, setBusca] = useState("")
+   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
+-  const [filtrosAbertos, setFiltrosAbertos] = useState(false)
+   const [soDisponiveis, setSoDisponiveis] = useState(false)
+   const [loading, setLoading] = useState(true)
+   const [toastVisivel, setToastVisivel] = useState(false)
+   const [toastSaindo, setToastSaindo] = useState(false)
+-  const [menuAberto, setMenuAberto] = useState(false)
+ 
+   useEffect(() => {
+     fetch("/api/livros")
+@@ -128,57 +129,7 @@ export default function Home() {
+ 
+           .home-shell { min-height: 100vh; background: #f4ede3; }
+ 
+-          .topbar {
+-            position: fixed; top: 0; width: 100%; z-index: 100;
+-            background: rgba(120, 26, 26, 0.96); backdrop-filter: blur(12px);
+-            box-shadow: 0 8px 26px rgba(36, 10, 10, 0.12);
+-          }
+-          .topbar-inner {
+-            width: 100%; max-width: none; margin: 0;
+-            padding: 14px 38px 14px 42px;
+-            display: flex; align-items: center; justify-content: space-between; gap: 20px;
+-          }
+-          .brand {
+-            font-family: 'Playfair Display', serif; font-size: 1.65rem; font-weight: 700;
+-            color: #fff7f0; text-decoration: none; letter-spacing: 0.01em;
+-          }
+-          .brand span { color: #f4c58c; }
+-          .nav-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+-          .nav-link {
+-            text-decoration: none; color: #fff2ea;
+-            font-family: 'Source Sans 3', sans-serif; font-size: 0.98rem; font-weight: 700;
+-            padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,0.1);
+-            transition: transform 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+-          }
+-          .nav-link:hover { transform: translateY(-1px); background: rgba(255,255,255,0.2); }
+-          .nav-more { position: relative; }
+-          .nav-more-btn {
+-            border: none; cursor: pointer; color: #fff2ea; background: rgba(255,255,255,0.14);
+-            width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+-            display: flex; align-items: center; justify-content: center; gap: 3px;
+-            transition: transform 0.25s ease, background 0.25s ease;
+-          }
+-          .nav-more-btn span { width: 4px; height: 4px; border-radius: 50%; background: #fff2ea; display: block; }
+-          .nav-more-btn:hover { transform: translateY(-1px) scale(1.06); background: rgba(255,255,255,0.24); }
+-          .nav-more-backdrop { position: fixed; inset: 0; z-index: 149; }
+-          .nav-more-menu {
+-            position: absolute; top: calc(100% + 10px); right: 0; z-index: 150;
+-            background: #fffdf9; border-radius: 14px; padding: 8px; min-width: 200px;
+-            box-shadow: 0 18px 40px rgba(36, 10, 10, 0.22); border: 1px solid rgba(139,30,30,0.08);
+-            display: flex; flex-direction: column; gap: 2px;
+-            animation: menuPop 0.18s ease-out both;
+-          }
+-          @keyframes menuPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+-          .nav-more-item {
+-            display: block; text-decoration: none; color: #3b1616; font-family: 'Source Sans 3', sans-serif;
+-            font-weight: 700; font-size: 0.94rem; padding: 10px 12px; border-radius: 9px;
+-            transition: background 0.18s ease;
+-          }
+-          .nav-more-item:hover { background: rgba(139,30,30,0.08); }
+-          .nav-mobile-only { display: none; }
+-
+           .hero {
+-            margin-top: 76px;
+             background: linear-gradient(90deg, #6d1414 0%, #8b1e1e 44%, #9a2424 72%, #8f2222 100%);
+             position: relative; overflow: hidden; animation: fadeInSoft 0.7s ease-out;
+           }
+@@ -222,7 +173,7 @@ export default function Home() {
+           .search-input { width: 100%; border: none; outline: none; border-radius: 999px; padding: 14px 20px 14px 46px; font-size: 0.94rem; font-family: 'Source Sans 3', sans-serif; background: rgba(231, 221, 210, 0.96); color: #321515; box-shadow: 0 10px 30px rgba(68, 27, 27, 0.08); transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease; }
+           .search-input:focus { background: rgba(242, 237, 232, 0.98); box-shadow: 0 14px 34px rgba(68, 27, 27, 0.12); transform: translateY(-1px); }
+           .search-input::placeholder { color: #6d5f5f; }
+-          .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 0.94rem; }
++          .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 0.94rem; display: flex; pointer-events: none; }
+ 
+           .catalog-section { width: 100%; max-width: none; margin: 0; padding: 52px 56px 80px 42px; }
+           .catalog-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+@@ -231,25 +182,6 @@ export default function Home() {
+           .catalog-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 2.5rem); font-weight: 700; color: #2d1414; }
+           .catalog-count { font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #9c8d8d; font-weight: 700; }
+ 
+-          .filters-panel { margin-bottom: 26px; }
+-          .filters-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+-          .filters-dropdown-wrap { position: relative; }
+-          .filters-toggle { border: 1px solid rgba(139, 30, 30, 0.18); background: white; color: #6a2a2a; border-radius: 999px; padding: 10px 18px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; }
+-          .filters-toggle:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(101, 33, 33, 0.09); }
+-          .filters-backdrop { position: fixed; inset: 0; z-index: 59; }
+-          .filters-dropdown { position: absolute; top: calc(100% + 10px); left: 0; z-index: 60; background: #fffdfa; border: 1px solid rgba(139, 30, 30, 0.14); border-radius: 16px; padding: 10px; min-width: 240px; max-width: 300px; max-height: 320px; overflow-y: auto; box-shadow: 0 18px 40px rgba(60,14,14,0.14); animation: menuPop 0.18s ease-out both; }
+-          .filters-dropdown-title { font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; font-weight: 800; color: #a1888b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding: 4px 10px 0; }
+-          .filters-options { display: flex; flex-direction: column; gap: 1px; }
+-          .filters-option { text-align: left; border: none; background: transparent; cursor: pointer; padding: 9px 10px; border-radius: 10px; font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #3b1616; transition: background 0.15s ease; }
+-          .filters-option:hover { background: rgba(139, 30, 30, 0.06); }
+-          .filters-option.active { background: rgba(139, 30, 30, 0.12); font-weight: 700; color: #6a2a2a; }
+-          .selected-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+-          .filter-chip { border: none; cursor: pointer; background: #f4e6df; color: #6a2a2a; border-radius: 999px; padding: 8px 12px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.88rem; transition: transform 0.18s ease, background 0.18s ease; }
+-          .filter-chip:hover { transform: translateY(-1px); background: #e9d2c8; }
+-          .filter-clear { border: none; cursor: pointer; color: #8b1e1e; background: rgba(255, 230, 226, 0.95); padding: 10px 16px; border-radius: 999px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; transition: transform 0.18s ease, background 0.18s ease; }
+-          .filter-clear:hover { transform: translateY(-1px); background: rgba(255, 215, 208, 0.96); }
+-          .filters-empty { font-family: 'Source Sans 3', sans-serif; color: #8c7474; font-size: 0.94rem; padding: 10px; }
+-
+           .feedback-box { text-align: center; padding: 64px 20px; color: #8f7e7e; font-family: 'Source Sans 3', sans-serif; font-weight: 700; }
+ 
+           .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px; }
+@@ -258,7 +190,6 @@ export default function Home() {
+           .book-cover { position: relative; aspect-ratio: 2 / 3; overflow: hidden; background: linear-gradient(180deg, rgba(122, 36, 36, 0.12), rgba(58, 18, 18, 0.18)), #ede5db; }
+           .book-cover img { width: 100%; height: 100%; object-fit: cover; }
+           .class-badge { position: absolute; left: 10px; top: 10px; min-width: 28px; height: 28px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+-          .filters-toggle.filters-toggle--on { background: #8b1e1e; color: #fff; border-color: #8b1e1e; }
+           .book-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #7a3434; }
+           .book-status { position: absolute; right: 10px; bottom: 10px; padding: 5px 10px; border-radius: 999px; font-family: 'Source Sans 3', sans-serif; font-size: 0.72rem; font-weight: 800; backdrop-filter: blur(8px); }
+           .book-status.available { background: rgba(240, 250, 244, 0.92); color: #166534; }
+@@ -289,7 +220,7 @@ export default function Home() {
+           .toast-label { font-family: 'Source Sans 3', sans-serif; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #f4c58c; margin-bottom: 2px; }
+           .toast-msg { font-family: 'Source Sans 3', sans-serif; font-size: 0.96rem; font-weight: 700; color: #fff7f0; line-height: 1.3; }
+           .toast-sub { font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 2px; }
+-          .toast-close { background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; flex-shrink: 0; transition: color 0.2s; }
++          .toast-close { background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; padding: 4px; line-height: 1; display: flex; flex-shrink: 0; transition: color 0.2s; }
+           .toast-close:hover { color: #fff; }
+           .notice-header { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 28px; flex-wrap: wrap; }
+           .notice-subtitle { font-family: 'Source Sans 3', sans-serif; font-size: 0.98rem; color: #7a5e5e; max-width: 540px; }
+@@ -323,14 +254,6 @@ export default function Home() {
+           }
+ 
+           @media (max-width: 860px) {
+-            html { scroll-padding-top: 56px; }
+-            /* barra fininha, numa linha só (como no computador) */
+-            .topbar-inner { padding: 8px 18px; gap: 10px; }
+-            .brand { font-size: 1.05rem; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+-            .nav-links { flex-wrap: nowrap; flex-shrink: 0; }
+-            .nav-link { font-size: 0.82rem; padding: 6px 11px; }
+-            .nav-more-btn { width: 34px; height: 34px; }
+-            .hero { margin-top: 52px; }
+             /* hero: continua com texto à esquerda e logo à direita, como no computador, só que menor */
+             .hero-inner { grid-template-columns: minmax(0, 1fr) 36%; min-height: 200px; padding: 0 14px 0 0; }
+             .hero-copy { max-width: none; padding: 22px 0 22px 18px; }
+@@ -344,14 +267,6 @@ export default function Home() {
+             .about-inner { grid-template-columns: 1fr; gap: 6px; padding: 32px 18px 48px; }
+             .about-header { padding: 32px 18px 16px; }
+             .about-gallery-track img { width: 220px; height: 190px; }
+-            .nav-links { gap: 8px; }
+-          }
+-
+-          /* celular: os links vão para o menu "⋯" para a barra não quebrar em várias linhas */
+-          @media (max-width: 640px) {
+-            .brand { font-size: 0.95rem; }
+-            .nav-link { display: none; }
+-            .nav-mobile-only { display: block; }
+           }
+ 
+           /* celular: mais livros por linha (3 ou mais), com tudo na mesma proporção do computador */
+@@ -363,8 +278,6 @@ export default function Home() {
+             .notice-subtitle { font-size: 0.78rem; }
+             .catalog-count { font-size: 0.78rem; }
+             .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
+-            .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
+-            .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
+             .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+             .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
+             .book-card:hover { transform: none; }
+@@ -380,40 +293,7 @@ export default function Home() {
+         `}</style>
+ 
+         <div className="home-shell">
+-          <header className="topbar">
+-            <div className="topbar-inner">
+-              <div className="brand">
+-                Biblioteca Escolar <span>Emerson Teixeira</span>
+-              </div>
+-              <nav className="nav-links">
+-                <a href="#catalogo" className="nav-link">Catálogo</a>
+-                <a href="#biblionews" className="nav-link">BiblioNews</a>
+-                <a href="#sobre" className="nav-link">Sobre a biblioteca</a>
+-                <div className="nav-more">
+-                  <button
+-                    type="button"
+-                    className="nav-more-btn"
+-                    onClick={() => setMenuAberto((v) => !v)}
+-                    aria-label="Mais opções"
+-                  >
+-                    <span /><span /><span />
+-                  </button>
+-                  {menuAberto && (
+-                    <>
+-                      <div className="nav-more-backdrop" onClick={() => setMenuAberto(false)} />
+-                      <div className="nav-more-menu">
+-                        <a href="#catalogo" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>Catálogo</a>
+-                        <a href="#biblionews" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>BiblioNews</a>
+-                        <a href="#sobre" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>Sobre a biblioteca</a>
+-                        <Link href="/tcc" className="nav-more-item" onClick={() => setMenuAberto(false)}>TCC &amp; Artigos</Link>
+-                        <Link href="/admin/login" className="nav-more-item" onClick={() => setMenuAberto(false)}>Área do Admin</Link>
+-                      </div>
+-                    </>
+-                  )}
+-                </div>
+-              </nav>
+-            </div>
+-          </header>
++          <PublicNavbar />
+ 
+           <section className="hero">
+             <div className="hero-inner">
+@@ -448,7 +328,7 @@ export default function Home() {
+                 </span>
+               </div>
+               <div className="search-box">
+-                <span className="search-icon">⌕</span>
++                <span className="search-icon"><Icone nome="busca" tamanho="1.15em" /></span>
+                 <input
+                   value={busca}
+                   onChange={(e) => setBusca(e.target.value)}
+@@ -458,69 +338,15 @@ export default function Home() {
+               </div>
+             </div>
+ 
+-            <div className="filters-panel">
+-              <div className="filters-row">
+-                <div className="filters-dropdown-wrap">
+-                  <button type="button" className="filters-toggle" onClick={() => setFiltrosAbertos((prev) => !prev)}>
+-                    {filtrosAbertos ? "Ocultar filtros" : "Mostrar filtros"}
+-                  </button>
+-                  {filtrosAbertos && (
+-                    <>
+-                      <div className="filters-backdrop" onClick={() => setFiltrosAbertos(false)} />
+-                      <div className="filters-dropdown">
+-                        <div className="filters-dropdown-title">Filtrar por assunto</div>
+-                        {generos.length > 0 ? (
+-                          <div className="filters-options">
+-                            <button
+-                              type="button"
+-                              className={`filters-option${selectedGeneros.length === 0 ? " active" : ""}`}
+-                              onClick={() => { setSelectedGeneros([]); setFiltrosAbertos(false) }}
+-                            >
+-                              Todos os assuntos
+-                            </button>
+-                            {generos.map((g) => (
+-                              <button
+-                                key={g}
+-                                type="button"
+-                                className={`filters-option${selectedGeneros[0] === g ? " active" : ""}`}
+-                                onClick={() => { setSelectedGeneros([g]); setFiltrosAbertos(false) }}
+-                              >
+-                                {g}
+-                              </button>
+-                            ))}
+-                          </div>
+-                        ) : (
+-                          <div className="filters-empty">Nenhum assunto encontrado.</div>
+-                        )}
+-                      </div>
+-                    </>
+-                  )}
+-                </div>
+-
+-                <button
+-                  type="button"
+-                  className={`filters-toggle${soDisponiveis ? " filters-toggle--on" : ""}`}
+-                  aria-pressed={soDisponiveis}
+-                  onClick={() => setSoDisponiveis((prev) => !prev)}
+-                >
+-                  {soDisponiveis ? "✓ " : ""}Livros disponíveis
+-                </button>
+-
+-                {selectedGeneros.length > 0 && (
+-                  <div className="selected-filters">
+-                    {selectedGeneros.map((g) => (
+-                      <button key={g} type="button" onClick={() => setSelectedGeneros((prev) => prev.filter((item) => item !== g))} className="filter-chip">
+-                        {g} ×
+-                      </button>
+-                    ))}
+-                  </div>
+-                )}
+-
+-                {(selectedGeneros.length > 0 || busca || soDisponiveis) && (
+-                  <button type="button" onClick={clearFiltros} className="filter-clear">Limpar filtros</button>
+-                )}
+-              </div>
+-            </div>
++            <FiltrosCatalogo
++              generos={generos}
++              selectedGeneros={selectedGeneros}
++              onChangeGeneros={setSelectedGeneros}
++              soDisponiveis={soDisponiveis}
++              onChangeSoDisponiveis={setSoDisponiveis}
++              temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
++              onLimpar={clearFiltros}
++            />
+ 
+             {loading && <div className="feedback-box">Carregando acervo...</div>}
+             {!loading && filtrados.length === 0 && (
+@@ -538,7 +364,7 @@ export default function Home() {
+                       {livro.capa ? (
+                         <img src={livro.capa} alt={livro.titulo || "Capa do livro"} />
+                       ) : (
+-                        <div className="book-fallback">📚</div>
++                        <div className="book-fallback"><Icone nome="livros" tamanho="1em" /></div>
+                       )}
+                       {normalizarClassificacao(livro.classificacaoIndicativa) && (
+                         <div
+@@ -654,7 +480,7 @@ export default function Home() {
+             <div className="toast-msg">Novos livros chegaram ao acervo!</div>
+             <div className="toast-sub">Confira os títulos mais recentes</div>
+           </div>
+-          <button className="toast-close" onClick={fecharToast} aria-label="Fechar">✕</button>
++          <button className="toast-close" onClick={fecharToast} aria-label="Fechar"><Icone nome="x" tamanho={18} /></button>
+         </div>
+       )}
+ 
+diff --git a/app/tcc/page.tsx b/app/tcc/page.tsx
+index 377e3b0..51065e8 100644
+--- a/app/tcc/page.tsx
++++ b/app/tcc/page.tsx
+@@ -1,13 +1,8 @@
+ "use client"
+ 
+ import { useEffect, useState } from "react"
+-import Link from "next/link"
+-
+-const navItems = [
+-  { href: "/#catalogo", label: "Catálogo" },
+-  { href: "/#biblionews", label: "BiblioNews" },
+-  { href: "/#sobre", label: "Sobre a biblioteca" },
+-]
++import { PublicNavbar } from "@/components/PublicNavbar"
++import { Icone } from "@/components/Icone"
+ 
+ type Trabalho = {
+   id: number | string
+@@ -28,7 +23,6 @@ export default function TccPage() {
+   const [busca, setBusca] = useState("")
+   const [tipo, setTipo] = useState<"todos" | "tcc" | "artigo">("todos")
+   const [loadingTccs, setLoadingTccs] = useState(true)
+-  const [menuAberto, setMenuAberto] = useState(false)
+ 
+   useEffect(() => {
+     fetch("/api/verificar-acesso")
+@@ -67,15 +61,20 @@ export default function TccPage() {
+ 
+   if (hasAccess === null) {
+     return (
+-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#f4ede3", color: "#241616" }}>
+-        Carregando...
++      <div style={{ minHeight: "100vh", background: "#f4ede3", color: "#241616" }}>
++        <PublicNavbar />
++        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 66px)" }}>
++          Carregando...
++        </div>
+       </div>
+     )
+   }
+ 
+   if (!hasAccess) {
+     return (
+-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 16, background: "#f4ede3", fontFamily: "'Source Sans 3', sans-serif" }}>
++      <div style={{ minHeight: "100vh", background: "#f4ede3", fontFamily: "'Source Sans 3', sans-serif" }}>
++      <PublicNavbar />
++      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 66px)", gap: 16 }}>
+         <style>{`@import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Source+Sans+3:wght@600;700&display=swap');`}</style>
+         <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#2d1414" }}>Acesso restrito</h2>
+         <p style={{ color: "#8a7474" }}>Digite o token fornecido pela biblioteca.</p>
+@@ -96,6 +95,7 @@ export default function TccPage() {
+           {loading ? "Verificando..." : "Entrar"}
+         </button>
+       </div>
++      </div>
+     )
+   }
+ 
+@@ -125,58 +125,6 @@ export default function TccPage() {
+ 
+         .tcc-shell { min-height: 100vh; background: #f4ede3; }
+ 
+-        .topbar {
+-          position: sticky; top: 0; z-index: 100; width: 100%;
+-          background: rgba(120, 26, 26, 0.96);
+-          backdrop-filter: blur(12px);
+-          box-shadow: 0 8px 26px rgba(36, 10, 10, 0.12);
+-        }
+-        .topbar-inner {
+-          width: 100%; padding: 14px 38px 14px 42px;
+-          display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+-        }
+-        .brand-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+-        .back-link {
+-          text-decoration: none; color: #fff3eb; font-size: 0.96rem; font-weight: 700;
+-          padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,0.1);
+-          transition: background 0.25s ease, transform 0.25s ease;
+-        }
+-        .back-link:hover { background: rgba(255,255,255,0.18); transform: translateY(-1px); }
+-        .brand { font-family: 'Lora', serif; font-size: 1.55rem; font-weight: 700; color: #fff7f0; }
+-        .brand span { color: #f4c58c; }
+-
+-        .nav-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+-        .nav-link {
+-          text-decoration: none; color: #fff2ea; font-family: 'Source Sans 3', sans-serif;
+-          font-size: 0.94rem; font-weight: 700; padding: 8px 14px; border-radius: 999px;
+-          background: rgba(255,255,255,0.1); transition: transform 0.25s ease, background 0.25s ease;
+-        }
+-        .nav-link:hover { transform: translateY(-1px); background: rgba(255,255,255,0.2); }
+-        .nav-more { position: relative; }
+-        .nav-more-btn {
+-          border: none; cursor: pointer; color: #fff2ea; background: rgba(255,255,255,0.14);
+-          width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+-          display: flex; align-items: center; justify-content: center; gap: 3px;
+-          transition: transform 0.25s ease, background 0.25s ease;
+-        }
+-        .nav-more-btn span { width: 4px; height: 4px; border-radius: 50%; background: #fff2ea; display: block; }
+-        .nav-more-btn:hover { transform: translateY(-1px) scale(1.06); background: rgba(255,255,255,0.24); }
+-        .nav-more-backdrop { position: fixed; inset: 0; z-index: 149; }
+-        .nav-more-menu {
+-          position: absolute; top: calc(100% + 10px); right: 0; z-index: 150;
+-          background: #fffdf9; border-radius: 14px; padding: 8px; min-width: 200px;
+-          box-shadow: 0 18px 40px rgba(36, 10, 10, 0.22); border: 1px solid rgba(139,30,30,0.08);
+-          display: flex; flex-direction: column; gap: 2px;
+-          animation: menuPop 0.18s ease-out both;
+-        }
+-        @keyframes menuPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+-        .nav-more-item {
+-          display: block; text-decoration: none; color: #3b1616; font-family: 'Source Sans 3', sans-serif;
+-          font-weight: 700; font-size: 0.94rem; padding: 10px 12px; border-radius: 9px;
+-          transition: background 0.18s ease;
+-        }
+-        .nav-more-item:hover { background: rgba(139,30,30,0.08); }
+-
+         .hero { background: #8a1f1f; position: relative; overflow: hidden; animation: fadeInSoft 0.7s ease-out; }
+         .hero::before {
+           content: ""; position: absolute; inset: 0;
+@@ -215,7 +163,7 @@ export default function TccPage() {
+         }
+         .filters-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+         .search-box { position: relative; flex: 1; min-width: 280px; }
+-        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 1rem; }
++        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 1rem; display: flex; pointer-events: none; }
+         .search-input {
+           width: 100%; border: none; outline: none; border-radius: 999px;
+           padding: 18px 24px 18px 52px; font-size: 0.98rem; font-family: 'Source Sans 3', sans-serif;
+@@ -247,7 +195,7 @@ export default function TccPage() {
+         .section-title { font-family: 'Lora', serif; font-size: clamp(2rem, 3vw, 2.5rem); font-weight: 700; color: #2d1414; }
+         .section-count { font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #9c8d8d; font-weight: 700; }
+         .feedback-box { font-family: 'Source Sans 3', sans-serif; text-align: center; padding: 80px 20px; color: #8f7e7e; font-weight: 700; }
+-        .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.8; }
++        .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.8; display: flex; justify-content: center; color: #7a3434; }
+         .work-list { display: grid; gap: 20px; }
+         .work-card {
+           background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,250,245,0.9) 100%);
+@@ -293,49 +241,18 @@ export default function TccPage() {
+         }
+ 
+         @media (max-width: 900px) {
+-          .topbar-inner, .hero-inner, .search-shell, .content { padding-left: 18px; padding-right: 18px; }
++          .hero-inner, .search-shell, .content { padding-left: 18px; padding-right: 18px; }
+           .hero-inner { grid-template-columns: 1fr; min-height: auto; padding-top: 18px; padding-bottom: 18px; }
+           .hero-copy { padding: 22px 0 8px; }
+           .hero-mark { min-height: 180px; }
+           .hero-mark-card { width: min(100%, 220px); }
+-          .nav-links { gap: 8px; }
+           .filters-row, .work-card-inner { flex-direction: column; }
+           .pdf-link { align-self: flex-start; }
+         }
+       `}</style>
+ 
+       <div className="tcc-shell">
+-        <header className="topbar">
+-          <div className="topbar-inner">
+-            <div className="brand-row">
+-              <Link href="/" className="back-link">Voltar</Link>
+-              <div className="brand">Biblioteca Escolar <span>Emerson Teixeira</span></div>
+-            </div>
+-            <nav className="nav-links">
+-              {navItems.map((item) => (
+-                <a key={item.href} href={item.href} className="nav-link">{item.label}</a>
+-              ))}
+-              <div className="nav-more">
+-                <button
+-                  type="button"
+-                  className="nav-more-btn"
+-                  onClick={() => setMenuAberto((v) => !v)}
+-                  aria-label="Mais opções"
+-                >
+-                  <span /><span /><span />
+-                </button>
+-                {menuAberto && (
+-                  <>
+-                    <div className="nav-more-backdrop" onClick={() => setMenuAberto(false)} />
+-                    <div className="nav-more-menu">
+-                      <Link href="/admin/login" className="nav-more-item" onClick={() => setMenuAberto(false)}>Área do Admin</Link>
+-                    </div>
+-                  </>
+-                )}
+-              </div>
+-            </nav>
+-          </div>
+-        </header>
++        <PublicNavbar />
+ 
+         <section className="hero">
+           <div className="hero-inner">
+@@ -357,7 +274,7 @@ export default function TccPage() {
+         <section className="search-shell">
+           <div className="filters-row">
+             <div className="search-box">
+-              <span className="search-icon">⌕</span>
++              <span className="search-icon"><Icone nome="busca" tamanho="1.2em" /></span>
+               <input
+                 value={busca}
+                 onChange={(e) => setBusca(e.target.value)}
+@@ -392,7 +309,7 @@ export default function TccPage() {
+ 
+           {!loadingTccs && filtrados.length === 0 && (
+             <div className="feedback-box">
+-              <div className="empty-icon">✦</div>
++              <div className="empty-icon"><Icone nome="tcc" tamanho="1em" /></div>
+               <p>{busca ? "Nenhum resultado encontrado." : "Nenhum trabalho cadastrado ainda."}</p>
+             </div>
+           )}
+diff --git a/app/teste-isbn/page.tsx b/app/teste-isbn/page.tsx
+index f45784a..1dce13c 100644
+--- a/app/teste-isbn/page.tsx
++++ b/app/teste-isbn/page.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+ import { useState } from "react";
++import { Icone } from "@/components/Icone"
+ 
+ export default function ConsultaLivro() {
+   const [isbn, setIsbn] = useState("");
+@@ -45,12 +46,12 @@ export default function ConsultaLivro() {
+       });
+ 
+       if (response.ok) {
+-        setMensagemStatus("✅ Status atualizado!");
++        setMensagemStatus("Status atualizado!");
+       } else {
+-        setMensagemStatus("❌ Erro ao salvar status.");
++        setMensagemStatus("Erro ao salvar status.");
+       }
+     } catch (error) {
+-      setMensagemStatus("❌ Erro de conexão.");
++      setMensagemStatus("Erro de conexão.");
+     } finally {
+       setSalvandoStatus(false);
+       // Limpa a mensagem após 3 segundos
+@@ -72,11 +73,11 @@ export default function ConsultaLivro() {
+       });
+ 
+       if (response.ok) {
+-        alert("✅ Empréstimo registrado!");
++        alert("Empréstimo registrado!");
+         setUsuarioId("");
+         buscarLivro();
+       } else {
+-        alert("❌ Erro ao realizar empréstimo.");
++        alert("Erro ao realizar empréstimo.");
+       }
+     } catch (error) {
+       alert("Erro de conexão.");
+@@ -98,7 +99,7 @@ export default function ConsultaLivro() {
+       minHeight: "100vh"
+     }}>
+       <div style={{ backgroundColor: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
+-        <h1 style={{ color: "#333", marginBottom: "20px", textAlign: "center" }}>📚 Consulta de Acervo</h1>
++        <h1 style={{ color: "#333", marginBottom: "20px", textAlign: "center" }}><Icone nome="livros" tamanho="1em" style={{ marginRight: 8 }} />Consulta de Acervo</h1>
+         
+         <div style={{ display: "flex", gap: "10px", marginBottom: "30px" }}>
+           <input
+@@ -152,7 +153,7 @@ export default function ConsultaLivro() {
+ 
+             {/* Área de ações */}
+             <div style={{ padding: "20px" }}>
+-              <h3 style={{ fontSize: "18px", marginBottom: "15px" }}>⚙️ Ações de Balcão</h3>
++              <h3 style={{ fontSize: "18px", marginBottom: "15px" }}><Icone nome="config" tamanho="1em" style={{ marginRight: 8 }} />Ações de Balcão</h3>
+               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                 
+                 {/* Select de status manual - AGORA FUNCIONAL */}
+@@ -178,7 +179,8 @@ export default function ConsultaLivro() {
+                   )}
+                 </div>
+                 {mensagemStatus && (
+-                  <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold" }}>
++                  <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold", display: "flex", alignItems: "center", gap: 6, color: mensagemStatus === "Status atualizado!" ? "#166534" : "#c53030" }}>
++                    <Icone nome={mensagemStatus === "Status atualizado!" ? "checkCirculo" : "xCirculo"} tamanho={17} />
+                     {mensagemStatus}
+                   </p>
+                 )}
+@@ -208,10 +210,11 @@ export default function ConsultaLivro() {
+                     </div>
+                   </div>
+                 ) : (
+-                  <div style={{ textAlign: "center", padding: "15px", backgroundColor: "#fff5f5", color: "#c53030", borderRadius: "8px", fontWeight: "bold" }}>
++                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center", padding: "15px", backgroundColor: "#fff5f5", color: "#c53030", borderRadius: "8px", fontWeight: "bold" }}>
++                    <Icone nome={livro.status === 'reservado' ? "cadeado" : "proibido"} tamanho={19} />
+                     {livro.status === 'reservado' 
+-                      ? "🔒 Livro reservado — altere o status para liberar empréstimos."
+-                      : "🚫 Não há exemplares disponíveis para novos empréstimos."
++                      ? "Livro reservado — altere o status para liberar empréstimos."
++                      : "Não há exemplares disponíveis para novos empréstimos."
+                     }
+                   </div>
+                 )}
+diff --git a/components/BiblioNews.tsx b/components/BiblioNews.tsx
+index 811ba49..15b3c63 100644
+--- a/components/BiblioNews.tsx
++++ b/components/BiblioNews.tsx
+@@ -5,6 +5,7 @@
+ // .notice-subtitle que já existem no CSS da home (app/page.tsx), para ficar igual às outras seções.
+ 
+ import { useEffect, useMemo, useState } from "react"
++import { Icone as IconeUI } from "@/components/Icone"
+ 
+ type Aviso = {
+   id: number
+@@ -310,7 +311,7 @@ export function BiblioNews() {
+                 <h3>{destaque.titulo}</h3>
+                 <p className="bn-desc">{destaque.mensagem}</p>
+                 <button type="button" className="bn-read" onClick={() => setAberto(destaque)}>
+-                  Ler aviso →
++                  Ler aviso <IconeUI nome="setaDireita" tamanho="1em" />
+                 </button>
+               </div>
+             </article>
+diff --git a/components/CategoriaSelect.tsx b/components/CategoriaSelect.tsx
+index 4fea3b3..595fb12 100644
+--- a/components/CategoriaSelect.tsx
++++ b/components/CategoriaSelect.tsx
+@@ -1,6 +1,7 @@
+ "use client"
+ 
+ import { useState, useRef, useEffect } from "react"
++import { Icone } from "@/components/Icone"
+ 
+ export const CATEGORIAS = [
+   "Literatura brasileira", "Literatura estrangeira", "Poesia", "Romance", "Ficcção científica", "Fantasia", "Mistério / Suspense", "Terror", "Aventura", "Infantojuvenil", "Clássicos", "Política", "Economia", "Administração", "Culinária", "HQs / Mangás",
+@@ -87,13 +88,13 @@ export function CategoriasSelect({ value, onChange }: CategoriasSelectProps) {
+               onClick={e => { e.stopPropagation(); onChange(value.filter(c => c !== cat)) }}
+               style={{
+                 background: "none", border: "none", cursor: "pointer",
+-                color: "#8b1e1e", padding: 0, fontSize: 14, lineHeight: 1, opacity: 0.6
++                color: "#8b1e1e", padding: 0, display: "flex", lineHeight: 1, opacity: 0.6
+               }}
+-            >×</button>
++            ><Icone nome="x" tamanho={14} /></button>
+           </span>
+         ))}
+-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#aaa", userSelect: "none" }}>
+-          {aberto ? "▲" : "▼"}
++        <span style={{ marginLeft: "auto", display: "flex", color: "#aaa", userSelect: "none" }}>
++          <Icone nome={aberto ? "chevronCima" : "chevronBaixo"} tamanho={16} />
+         </span>
+       </div>
+ 
+diff --git a/components/FiltrosCatalogo.tsx b/components/FiltrosCatalogo.tsx
+new file mode 100644
+index 0000000..4fe962c
+--- /dev/null
++++ b/components/FiltrosCatalogo.tsx
+@@ -0,0 +1,131 @@
++"use client"
++
++import { useState } from "react"
++import { Icone } from "@/components/Icone"
++
++type Props = {
++  generos: string[]
++  selectedGeneros: string[]
++  onChangeGeneros: (generos: string[]) => void
++  soDisponiveis: boolean
++  onChangeSoDisponiveis: (valor: boolean) => void
++  /** true quando há busca, assunto ou "disponíveis" ativos (mostra o botão Limpar filtros) */
++  temFiltroAtivo: boolean
++  onLimpar: () => void
++}
++
++// Os filtros do catálogo ficam aqui para a página inicial e o catálogo completo
++// serem sempre apresentados exatamente do mesmo jeito.
++export function FiltrosCatalogo({
++  generos,
++  selectedGeneros,
++  onChangeGeneros,
++  soDisponiveis,
++  onChangeSoDisponiveis,
++  temFiltroAtivo,
++  onLimpar,
++}: Props) {
++  const [aberto, setAberto] = useState(false)
++
++  return (
++    <div className="filters-panel">
++      <style>{`
++        .filters-panel { margin-bottom: 26px; }
++        .filters-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
++        .filters-dropdown-wrap { position: relative; }
++        .filters-toggle { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(139, 30, 30, 0.18); background: white; color: #6a2a2a; border-radius: 999px; padding: 10px 18px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; }
++        .filters-toggle:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(101, 33, 33, 0.09); }
++        .filters-toggle.filters-toggle--on { background: #8b1e1e; color: #fff; border-color: #8b1e1e; }
++        .filters-backdrop { position: fixed; inset: 0; z-index: 59; }
++        .filters-dropdown { position: absolute; top: calc(100% + 10px); left: 0; z-index: 60; background: #fffdfa; border: 1px solid rgba(139, 30, 30, 0.14); border-radius: 16px; padding: 10px; min-width: 240px; max-width: 300px; max-height: 320px; overflow-y: auto; box-shadow: 0 18px 40px rgba(60,14,14,0.14); animation: filtrosPop 0.18s ease-out both; }
++        @keyframes filtrosPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
++        .filters-dropdown-title { font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; font-weight: 800; color: #a1888b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding: 4px 10px 0; }
++        .filters-options { display: flex; flex-direction: column; gap: 1px; }
++        .filters-option { text-align: left; border: none; background: transparent; cursor: pointer; padding: 9px 10px; border-radius: 10px; font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #3b1616; transition: background 0.15s ease; }
++        .filters-option:hover { background: rgba(139, 30, 30, 0.06); }
++        .filters-option.active { background: rgba(139, 30, 30, 0.12); font-weight: 700; color: #6a2a2a; }
++        .selected-filters { display: flex; flex-wrap: wrap; gap: 8px; }
++        .filter-chip { display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; background: #f4e6df; color: #6a2a2a; border-radius: 999px; padding: 8px 12px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.88rem; transition: transform 0.18s ease, background 0.18s ease; }
++        .filter-chip:hover { transform: translateY(-1px); background: #e9d2c8; }
++        .filter-clear { border: none; cursor: pointer; color: #8b1e1e; background: rgba(255, 230, 226, 0.95); padding: 10px 16px; border-radius: 999px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; transition: transform 0.18s ease, background 0.18s ease; }
++        .filter-clear:hover { transform: translateY(-1px); background: rgba(255, 215, 208, 0.96); }
++        .filters-empty { font-family: 'Source Sans 3', sans-serif; color: #8c7474; font-size: 0.94rem; padding: 10px; }
++
++        @media (max-width: 640px) {
++          .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
++          .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
++        }
++      `}</style>
++
++      <div className="filters-row">
++        <div className="filters-dropdown-wrap">
++          <button type="button" className="filters-toggle" onClick={() => setAberto((prev) => !prev)}>
++            {aberto ? "Ocultar filtros" : "Mostrar filtros"}
++          </button>
++          {aberto && (
++            <>
++              <div className="filters-backdrop" onClick={() => setAberto(false)} />
++              <div className="filters-dropdown">
++                <div className="filters-dropdown-title">Filtrar por assunto</div>
++                {generos.length > 0 ? (
++                  <div className="filters-options">
++                    <button
++                      type="button"
++                      className={`filters-option${selectedGeneros.length === 0 ? " active" : ""}`}
++                      onClick={() => { onChangeGeneros([]); setAberto(false) }}
++                    >
++                      Todos os assuntos
++                    </button>
++                    {generos.map((g) => (
++                      <button
++                        key={g}
++                        type="button"
++                        className={`filters-option${selectedGeneros[0] === g ? " active" : ""}`}
++                        onClick={() => { onChangeGeneros([g]); setAberto(false) }}
++                      >
++                        {g}
++                      </button>
++                    ))}
++                  </div>
++                ) : (
++                  <div className="filters-empty">Nenhum assunto encontrado.</div>
++                )}
++              </div>
++            </>
++          )}
++        </div>
++
++        <button
++          type="button"
++          className={`filters-toggle${soDisponiveis ? " filters-toggle--on" : ""}`}
++          aria-pressed={soDisponiveis}
++          onClick={() => onChangeSoDisponiveis(!soDisponiveis)}
++        >
++          {soDisponiveis && <Icone nome="check" tamanho="1.05em" />}
++          Livros disponíveis
++        </button>
++
++        {selectedGeneros.length > 0 && (
++          <div className="selected-filters">
++            {selectedGeneros.map((g) => (
++              <button
++                key={g}
++                type="button"
++                onClick={() => onChangeGeneros(selectedGeneros.filter((item) => item !== g))}
++                className="filter-chip"
++                aria-label={`Remover filtro ${g}`}
++              >
++                {g}
++                <Icone nome="x" tamanho="0.95em" />
++              </button>
++            ))}
++          </div>
++        )}
++
++        {temFiltroAtivo && (
++          <button type="button" onClick={onLimpar} className="filter-clear">Limpar filtros</button>
++        )}
++      </div>
++    </div>
++  )
++}
+diff --git a/components/Icone.tsx b/components/Icone.tsx
+new file mode 100644
+index 0000000..bced310
+--- /dev/null
++++ b/components/Icone.tsx
+@@ -0,0 +1,203 @@
++import type { CSSProperties, ReactNode } from "react"
++
++// Ícones de traço no mesmo estilo do menu do admin (24x24, traço 1.8, pontas arredondadas).
++// Use <Icone nome="..." /> no lugar de emojis.
++export type NomeIcone =
++  // menu do admin
++  | "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "config" | "sair"
++  // ações
++  | "livro" | "olho" | "etiqueta" | "editar" | "lixeira" | "salvar" | "lista" | "impressora"
++  | "busca" | "enviar" | "menu" | "cadeado"
++  // status / feedback
++  | "check" | "checkCirculo" | "xCirculo" | "x" | "alerta" | "info" | "proibido" | "estrela"
++  // direções
++  | "setaEsquerda" | "setaDireita" | "setaCima" | "setaBaixo" | "chevronCima" | "chevronBaixo"
++
++const ICONES: Record<NomeIcone, ReactNode> = {
++  home: (
++    <>
++      <path d="M4 11l8-6.5L20 11" />
++      <path d="M6 10v9h12v-9" />
++      <path d="M10 19v-5h4v5" />
++    </>
++  ),
++  livros: (
++    <>
++      <path d="M5 4h3.5v16H5zM10.5 4H14v16h-3.5z" />
++      <path d="M15.8 5.4l3.3-.9 3 14.6-3.3.9z" />
++    </>
++  ),
++  emprestimos: (
++    <>
++      <path d="M4 8h13l-3-3" />
++      <path d="M20 16H7l3 3" />
++    </>
++  ),
++  usuarios: (
++    <>
++      <path d="M2.5 9.5L12 5l9.5 4.5L12 14z" />
++      <path d="M6.5 11.8V16c0 1.4 2.5 2.7 5.5 2.7s5.5-1.3 5.5-2.7v-4.2" />
++      <path d="M21.5 9.5V15" />
++    </>
++  ),
++  tcc: (
++    <>
++      <path d="M7 3.5h7l4 4V20.5H7z" />
++      <path d="M14 3.5v4h4M9.5 12h5M9.5 15.5h5" />
++    </>
++  ),
++  stats: <path d="M5 20V11M12 20V4M19 20v-6" />,
++  news: (
++    <>
++      <rect x="4" y="5" width="16" height="14" rx="2" />
++      <path d="M8 9h8M8 12.5h8M8 16h5" />
++    </>
++  ),
++  config: (
++    <>
++      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
++      <circle cx="15" cy="7" r="2" />
++      <circle cx="9" cy="17" r="2" />
++    </>
++  ),
++  sair: (
++    <>
++      <path d="M10 4H5.5A1.5 1.5 0 004 5.5v13A1.5 1.5 0 005.5 20H10" />
++      <path d="M15 8l4 4-4 4M19 12H9" />
++    </>
++  ),
++
++  livro: (
++    <>
++      <path d="M6.5 4H18v13H6.5A1.5 1.5 0 005 18.5v-13A1.5 1.5 0 016.5 4z" />
++      <path d="M5 18.5A1.5 1.5 0 006.5 20H18v-3M9.5 8h5" />
++    </>
++  ),
++  olho: (
++    <>
++      <path d="M2.5 12s3.6-6.5 9.5-6.5S21.5 12 21.5 12 17.9 18.5 12 18.5 2.5 12 2.5 12z" />
++      <circle cx="12" cy="12" r="3" />
++    </>
++  ),
++  etiqueta: (
++    <>
++      <path d="M3.5 12.2V4.5a1 1 0 011-1h7.7a1 1 0 01.7.3l7.6 7.6a1 1 0 010 1.4l-7.7 7.7a1 1 0 01-1.4 0L3.8 12.9a1 1 0 01-.3-.7z" />
++      <circle cx="8.2" cy="8.2" r="1.2" />
++    </>
++  ),
++  editar: (
++    <>
++      <path d="M4 20l1-4.2L16.3 4.5a2.1 2.1 0 013 3L8.2 19z" />
++      <path d="M14.5 6.3l3.2 3.2" />
++    </>
++  ),
++  lixeira: (
++    <>
++      <path d="M4 7h16M10 3.5h4" />
++      <path d="M6.5 7l.8 12a1.5 1.5 0 001.5 1.4h6.4a1.5 1.5 0 001.5-1.4l.8-12" />
++      <path d="M10 11v6M14 11v6" />
++    </>
++  ),
++  salvar: (
++    <>
++      <path d="M5 4h11l3 3v12a1 1 0 01-1 1H6a1 1 0 01-1-1z" />
++      <path d="M8 4v5h7V4M8 20v-6h8v6" />
++    </>
++  ),
++  lista: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
++  impressora: (
++    <>
++      <path d="M7 9V3.5h10V9" />
++      <rect x="4" y="9" width="16" height="8" rx="2" />
++      <path d="M7 14h10v6.5H7z" />
++    </>
++  ),
++  busca: (
++    <>
++      <circle cx="11" cy="11" r="6.5" />
++      <path d="M16 16l4.5 4.5" />
++    </>
++  ),
++  enviar: (
++    <>
++      <path d="M20.5 3.5L3.5 10.2l6.8 3.2 3.2 6.9z" />
++      <path d="M20.5 3.5l-10.2 9.9" />
++    </>
++  ),
++  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
++  cadeado: (
++    <>
++      <rect x="5" y="10.5" width="14" height="9.5" rx="2" />
++      <path d="M8.5 10.5V8a3.5 3.5 0 017 0v2.5" />
++    </>
++  ),
++
++  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
++  checkCirculo: (
++    <>
++      <circle cx="12" cy="12" r="10" />
++      <path d="M7.5 12.5l3 3 6-6.5" />
++    </>
++  ),
++  xCirculo: (
++    <>
++      <circle cx="12" cy="12" r="10" />
++      <path d="M8.5 8.5l7 7M15.5 8.5l-7 7" />
++    </>
++  ),
++  x: <path d="M6 6l12 12M18 6L6 18" />,
++  alerta: (
++    <>
++      <path d="M12 4l9 16H3z" />
++      <path d="M12 10v4.5M12 17.5h.01" />
++    </>
++  ),
++  info: (
++    <>
++      <circle cx="12" cy="12" r="10" />
++      <path d="M12 11v5M12 7.5h.01" />
++    </>
++  ),
++  proibido: (
++    <>
++      <circle cx="12" cy="12" r="9" />
++      <path d="M5.7 5.7l12.6 12.6" />
++    </>
++  ),
++  estrela: <path d="M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z" />,
++
++  setaEsquerda: <path d="M19 12H5M11 6l-6 6 6 6" />,
++  setaDireita: <path d="M5 12h14M13 6l6 6-6 6" />,
++  setaCima: <path d="M12 19V5M6 11l6-6 6 6" />,
++  setaBaixo: <path d="M12 5v14M6 13l6 6 6-6" />,
++  chevronCima: <path d="M6 15l6-6 6 6" />,
++  chevronBaixo: <path d="M6 9l6 6 6-6" />,
++}
++
++type Props = {
++  nome: NomeIcone
++  /** px (número) ou qualquer medida CSS, ex.: "1.1em" para acompanhar o texto. Padrão: 22 */
++  tamanho?: number | string
++  className?: string
++  style?: CSSProperties
++}
++
++export function Icone({ nome, tamanho = 22, className, style }: Props) {
++  return (
++    <svg
++      width={tamanho}
++      height={tamanho}
++      viewBox="0 0 24 24"
++      fill="none"
++      stroke="currentColor"
++      strokeWidth={1.8}
++      strokeLinecap="round"
++      strokeLinejoin="round"
++      aria-hidden="true"
++      className={className}
++      style={{ display: "inline-block", verticalAlign: "-0.2em", flexShrink: 0, ...style }}
++    >
++      {ICONES[nome]}
++    </svg>
++  )
++}
+diff --git a/components/Papiro.tsx b/components/Papiro.tsx
+index 48e85dc..551a0be 100644
+--- a/components/Papiro.tsx
++++ b/components/Papiro.tsx
+@@ -1,6 +1,7 @@
+ "use client"
+ 
+ import { useState, useRef, useEffect } from "react"
++import { Icone } from "@/components/Icone"
+ 
+ type Mensagem = {
+   role: "user" | "assistant"
+@@ -16,7 +17,7 @@ export function Papiro({ acervo }: PapiroProps) {
+   const [mensagens, setMensagens] = useState<Mensagem[]>([
+     {
+       role: "assistant",
+-      content: "Olá! Eu sou o Papiro 🐢 o mascote da Biblioteca Escolar Emerson Teixeira! Me conta o que você gosta de ler e eu te indico um livro do nosso acervo!",
++      content: "Olá! Eu sou o Papiro, o mascote da Biblioteca Escolar Emerson Teixeira! Me conta o que você gosta de ler e eu te indico um livro do nosso acervo!",
+     },
+   ])
+   const [input, setInput] = useState("")
+@@ -112,8 +113,9 @@ export function Papiro({ acervo }: PapiroProps) {
+             </div>
+             <button
+               onClick={() => setAberto(false)}
+-              style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontSize: 18, cursor: "pointer" }}
+-            >✕</button>
++              aria-label="Fechar"
++              style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.7)", display: "flex", cursor: "pointer" }}
++            ><Icone nome="x" tamanho={20} /></button>
+           </div>
+ 
+           {/* Mensagens */}
+@@ -124,7 +126,7 @@ export function Papiro({ acervo }: PapiroProps) {
+                 justifyContent: m.role === "user" ? "flex-end" : "flex-start",
+               }}>
+                 {m.role === "assistant" && (
+-                  <span style={{ fontSize: 18, marginRight: 6, flexShrink: 0, alignSelf: "flex-end" }}>🐢</span>
++                  <img src="/papiro-mascote.png" alt="" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: "50%", background: "rgba(139,30,30,0.07)", marginRight: 6, flexShrink: 0, alignSelf: "flex-end" }} />
+                 )}
+                 <div style={{
+                   maxWidth: "78%",
+@@ -142,7 +144,7 @@ export function Papiro({ acervo }: PapiroProps) {
+             ))}
+             {loading && (
+               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+-                <span style={{ fontSize: 18 }}>🐢</span>
++                <img src="/papiro-mascote.png" alt="" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: "50%", background: "rgba(139,30,30,0.07)" }} />
+                 <div style={{ padding: "9px 13px", borderRadius: "18px 18px 18px 4px", background: "rgba(139,30,30,0.07)", fontSize: 13, color: "#8b1e1e" }}>
+                   Pensando...
+                 </div>
+@@ -176,8 +178,9 @@ export function Papiro({ acervo }: PapiroProps) {
+                 fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center",
+                 flexShrink: 0, transition: "background 0.2s",
+               }}
++              aria-label="Enviar"
+             >
+-              ➤
++              <Icone nome="enviar" tamanho={18} />
+             </button>
+           </div>
+         </div>
+diff --git a/components/PublicNavbar.tsx b/components/PublicNavbar.tsx
+new file mode 100644
+index 0000000..43ac878
+--- /dev/null
++++ b/components/PublicNavbar.tsx
+@@ -0,0 +1,187 @@
++"use client"
++
++import Link from "next/link"
++import { usePathname } from "next/navigation"
++import { useState } from "react"
++import { Icone, type NomeIcone } from "@/components/Icone"
++
++type Item = {
++  href: string
++  label: string
++  icone: NomeIcone
++  /** links com # são âncoras da página inicial: usam <a> para manter a rolagem suave */
++  ancora?: boolean
++  ativo?: (caminho: string) => boolean
++}
++
++const ITENS: Item[] = [
++  { href: "/#catalogo", label: "Catálogo", icone: "livros", ancora: true, ativo: (p) => p.startsWith("/catalogo") || p.startsWith("/livro") },
++  { href: "/#biblionews", label: "BiblioNews", icone: "news", ancora: true },
++  { href: "/#sobre", label: "Sobre a biblioteca", icone: "info", ancora: true },
++  { href: "/tcc", label: "TCC & Artigos", icone: "tcc", ativo: (p) => p.startsWith("/tcc") },
++]
++
++const ADMIN: Item = { href: "/admin/login", label: "Área do Admin", icone: "cadeado" }
++
++export function PublicNavbar() {
++  const caminho = usePathname() ?? "/"
++  const [menuAberto, setMenuAberto] = useState(false)
++
++  const fechar = () => setMenuAberto(false)
++  const estaAtivo = (item: Item) => !!item.ativo?.(caminho)
++
++  function renderLink(item: Item, classe: string, aoClicar?: () => void, tamanhoIcone = 17) {
++    const conteudo = (
++      <>
++        <Icone nome={item.icone} tamanho={tamanhoIcone} />
++        <span>{item.label}</span>
++      </>
++    )
++    const props = {
++      className: `${classe}${estaAtivo(item) ? " ativo" : ""}`,
++      onClick: aoClicar,
++      "aria-current": estaAtivo(item) ? ("page" as const) : undefined,
++    }
++    return item.ancora ? (
++      <a key={item.href} href={item.href} {...props}>{conteudo}</a>
++    ) : (
++      <Link key={item.href} href={item.href} {...props}>{conteudo}</Link>
++    )
++  }
++
++  return (
++    <>
++      <style>{`
++        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap');
++
++        html { scroll-padding-top: 60px; }
++
++        .pn-bar {
++          position: sticky; top: 0; z-index: 100; width: 100%;
++          background: rgba(120, 26, 26, 0.96); backdrop-filter: blur(12px);
++          box-shadow: 0 8px 26px rgba(36, 10, 10, 0.12);
++          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
++          font-family: 'Source Sans 3', sans-serif;
++        }
++        .pn-inner {
++          width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
++          padding: 12px 38px 12px 42px;
++        }
++
++        /* Nome da biblioteca: mesma fonte minimalista da área de admin, igual em todas as páginas */
++        .pn-brand {
++          min-width: 0; text-decoration: none; color: #fff7f0;
++          font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.86rem;
++          letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.25;
++        }
++        .pn-brand b { font-weight: 700; color: #f4c58c; }
++
++        .pn-links { display: flex; align-items: center; gap: 8px; }
++        .pn-link, .pn-admin {
++          display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
++          padding: 8px 14px; border-radius: 999px; text-decoration: none;
++          font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.9rem;
++          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
++        }
++        .pn-link {
++          color: #fff2ea; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.13);
++        }
++        .pn-link svg { opacity: 0.85; transition: opacity 0.2s ease; }
++        .pn-link:hover { transform: translateY(-1px); background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.26); }
++        .pn-link:hover svg { opacity: 1; }
++        .pn-link.ativo {
++          background: #fff7ef; color: #6d1414; border-color: #fff7ef;
++          box-shadow: 0 8px 18px rgba(36, 10, 10, 0.22);
++        }
++        .pn-link.ativo svg { opacity: 1; }
++
++        .pn-admin {
++          margin-left: 6px; color: #4a0e0e; border: 1px solid rgba(255, 255, 255, 0.4);
++          background: linear-gradient(180deg, #f9deb2 0%, #f0bd7f 100%);
++          box-shadow: 0 8px 18px rgba(36, 10, 10, 0.25);
++        }
++        .pn-admin:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 12px 22px rgba(36, 10, 10, 0.3); }
++
++        .pn-link:focus-visible, .pn-admin:focus-visible, .pn-menu-btn:focus-visible, .pn-menu-item:focus-visible, .pn-brand:focus-visible {
++          outline: 2px solid #f4c58c; outline-offset: 3px;
++        }
++
++        /* menu do celular */
++        .pn-mobile { position: relative; display: none; }
++        .pn-menu-btn {
++          width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.18); cursor: pointer;
++          display: flex; align-items: center; justify-content: center; color: #fff2ea;
++          background: rgba(255, 255, 255, 0.12); transition: background 0.2s ease, transform 0.2s ease;
++        }
++        .pn-menu-btn:hover { background: rgba(255, 255, 255, 0.22); transform: translateY(-1px); }
++        .pn-backdrop { position: fixed; inset: 0; z-index: 149; }
++        .pn-menu {
++          position: absolute; top: calc(100% + 10px); right: 0; z-index: 150; min-width: 236px;
++          background: #fffdf9; border-radius: 18px; padding: 8px; border: 1px solid rgba(139, 30, 30, 0.1);
++          box-shadow: 0 18px 40px rgba(36, 10, 10, 0.24);
++          display: flex; flex-direction: column; gap: 2px; animation: pnPop 0.18s ease-out both;
++        }
++        @keyframes pnPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
++        .pn-menu-item {
++          display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px;
++          text-decoration: none; color: #3b1616; font-weight: 700; font-size: 0.95rem;
++          transition: background 0.18s ease;
++        }
++        .pn-menu-item svg { color: #8b1e1e; }
++        .pn-menu-item:hover { background: rgba(139, 30, 30, 0.08); }
++        .pn-menu-item.ativo { background: rgba(139, 30, 30, 0.12); color: #6d1414; }
++        .pn-menu-sep { height: 1px; margin: 6px 4px; background: rgba(139, 30, 30, 0.12); }
++        .pn-menu-item.admin { background: linear-gradient(180deg, #f9deb2 0%, #f0bd7f 100%); color: #4a0e0e; }
++        .pn-menu-item.admin svg { color: #4a0e0e; }
++
++        @media (max-width: 1240px) {
++          .pn-links { display: none; }
++          .pn-mobile { display: block; }
++        }
++        @media (max-width: 640px) {
++          .pn-inner { padding: 9px 14px; gap: 12px; }
++          .pn-brand { font-size: 0.7rem; letter-spacing: 0.08em; }
++          .pn-menu-btn { width: 38px; height: 38px; }
++        }
++        @media (max-width: 420px) {
++          .pn-brand span, .pn-brand b { display: block; }
++        }
++      `}</style>
++
++      <header className="pn-bar">
++        <div className="pn-inner">
++          <Link href="/" className="pn-brand" aria-label="Biblioteca Escolar Emerson Teixeira — ir para o início">
++            <span>Biblioteca Escolar</span> <b>Emerson Teixeira</b>
++          </Link>
++
++          <nav className="pn-links" aria-label="Navegação principal">
++            {ITENS.map((item) => renderLink(item, "pn-link"))}
++            {renderLink(ADMIN, "pn-admin")}
++          </nav>
++
++          <div className="pn-mobile">
++            <button
++              type="button"
++              className="pn-menu-btn"
++              onClick={() => setMenuAberto((v) => !v)}
++              aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
++              aria-expanded={menuAberto}
++            >
++              <Icone nome={menuAberto ? "x" : "menu"} tamanho={20} />
++            </button>
++            {menuAberto && (
++              <>
++                <div className="pn-backdrop" onClick={fechar} />
++                <div className="pn-menu">
++                  {ITENS.map((item) => renderLink(item, "pn-menu-item", fechar, 19))}
++                  <div className="pn-menu-sep" />
++                  {renderLink(ADMIN, "pn-menu-item admin", fechar, 19)}
++                </div>
++              </>
++            )}
++          </div>
++        </div>
++      </header>
++    </>
++  )
++}
+diff --git a/components/admin/LivroDetalhesModal.tsx b/components/admin/LivroDetalhesModal.tsx
+index 8e19bed..84ee692 100644
+--- a/components/admin/LivroDetalhesModal.tsx
++++ b/components/admin/LivroDetalhesModal.tsx
+@@ -3,6 +3,7 @@
+ import { useEffect, useState } from "react"
+ import { ModalPortal } from "@/components/ModalPortal"
+ import { ClassificacaoBadge } from "@/components/ClassificacaoBadge"
++import { Icone } from "@/components/Icone"
+ 
+ type Historico = {
+   total: number
+@@ -69,7 +70,7 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
+         <div className="modal-surface modal-surface--wide" role="dialog" aria-modal="true" aria-label="Detalhes do livro" onClick={(e) => e.stopPropagation()}>
+           <div className="modal-head">
+             <h2 className="font-titulo text-xl">Detalhes do livro</h2>
+-            <button onClick={onClose} aria-label="Fechar" className="cursor-pointer text-xl text-neutral-400 hover:text-neutral-600">✕</button>
++            <button onClick={onClose} aria-label="Fechar" className="flex cursor-pointer text-neutral-400 hover:text-neutral-600"><Icone nome="x" tamanho={22} /></button>
+           </div>
+ 
+           <div className="modal-body space-y-5">
+@@ -78,7 +79,7 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
+               {livro.capa ? (
+                 <img src={livro.capa} alt={livro.titulo} className="h-28 w-20 shrink-0 rounded-lg object-cover shadow-md sm:h-36 sm:w-24" />
+               ) : (
+-                <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg bg-[#f0eded] text-2xl sm:h-36 sm:w-24">📖</div>
++                <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg bg-[#f0eded] text-3xl text-[#8b6b6b] sm:h-36 sm:w-24"><Icone nome="livro" tamanho="1em" /></div>
+               )}
+               <div className="min-w-0">
+                 <h3 className="font-titulo text-lg font-bold leading-snug sm:text-xl">
+@@ -160,7 +161,7 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
+           </div>
+ 
+           <div className="modal-foot">
+-            <button className="btn-primary" onClick={onEditar}>✏️ Editar livro</button>
++            <button className="btn-primary" onClick={onEditar}><Icone nome="editar" tamanho={18} />Editar livro</button>
+             <button className="btn-secondary" onClick={onClose}>Fechar</button>
+           </div>
+         </div>
+diff --git a/components/admin/ViradaAno.tsx b/components/admin/ViradaAno.tsx
+index 357fa78..7d9af0b 100644
+--- a/components/admin/ViradaAno.tsx
++++ b/components/admin/ViradaAno.tsx
+@@ -56,7 +56,7 @@ export function ViradaAno() {
+     const res = await fetch("/api/admin/virada", { method: "POST" })
+     const data = await res.json()
+     if (res.ok && data.ok) {
+-      setMensagem({ ok: true, texto: `✅ Virada feita: ${data.promovidos} promovidos, ${data.removidos} removidos, ${data.pendentes} com livro em aberto (ficaram).` })
++      setMensagem({ ok: true, texto: `Virada feita: ${data.promovidos} promovidos, ${data.removidos} removidos, ${data.pendentes} com livro em aberto (ficaram).` })
+     } else {
+       setMensagem({ ok: false, texto: data.motivo || data.error || "Erro ao executar a virada." })
+     }

@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Papiro } from "@/components/Papiro"
 import { BiblioNews } from "@/components/BiblioNews"
+import { PublicNavbar } from "@/components/PublicNavbar"
+import { FiltrosCatalogo } from "@/components/FiltrosCatalogo"
+import { Icone } from "@/components/Icone"
 import { CLASSIFICACAO_INFO, normalizarClassificacao } from "@/lib/classificacao"
 
 type Livro = {
@@ -24,12 +27,10 @@ export default function Home() {
   const [livros, setLivros] = useState<Livro[]>([])
   const [busca, setBusca] = useState("")
   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
-  const [filtrosAbertos, setFiltrosAbertos] = useState(false)
   const [soDisponiveis, setSoDisponiveis] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toastVisivel, setToastVisivel] = useState(false)
   const [toastSaindo, setToastSaindo] = useState(false)
-  const [menuAberto, setMenuAberto] = useState(false)
 
   useEffect(() => {
     fetch("/api/livros")
@@ -128,57 +129,7 @@ export default function Home() {
 
           .home-shell { min-height: 100vh; background: #f4ede3; }
 
-          .topbar {
-            position: fixed; top: 0; width: 100%; z-index: 100;
-            background: rgba(120, 26, 26, 0.96); backdrop-filter: blur(12px);
-            box-shadow: 0 8px 26px rgba(36, 10, 10, 0.12);
-          }
-          .topbar-inner {
-            width: 100%; max-width: none; margin: 0;
-            padding: 14px 38px 14px 42px;
-            display: flex; align-items: center; justify-content: space-between; gap: 20px;
-          }
-          .brand {
-            font-family: 'Playfair Display', serif; font-size: 1.65rem; font-weight: 700;
-            color: #fff7f0; text-decoration: none; letter-spacing: 0.01em;
-          }
-          .brand span { color: #f4c58c; }
-          .nav-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-          .nav-link {
-            text-decoration: none; color: #fff2ea;
-            font-family: 'Source Sans 3', sans-serif; font-size: 0.98rem; font-weight: 700;
-            padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,0.1);
-            transition: transform 0.25s ease, background 0.25s ease, opacity 0.25s ease;
-          }
-          .nav-link:hover { transform: translateY(-1px); background: rgba(255,255,255,0.2); }
-          .nav-more { position: relative; }
-          .nav-more-btn {
-            border: none; cursor: pointer; color: #fff2ea; background: rgba(255,255,255,0.14);
-            width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; gap: 3px;
-            transition: transform 0.25s ease, background 0.25s ease;
-          }
-          .nav-more-btn span { width: 4px; height: 4px; border-radius: 50%; background: #fff2ea; display: block; }
-          .nav-more-btn:hover { transform: translateY(-1px) scale(1.06); background: rgba(255,255,255,0.24); }
-          .nav-more-backdrop { position: fixed; inset: 0; z-index: 149; }
-          .nav-more-menu {
-            position: absolute; top: calc(100% + 10px); right: 0; z-index: 150;
-            background: #fffdf9; border-radius: 14px; padding: 8px; min-width: 200px;
-            box-shadow: 0 18px 40px rgba(36, 10, 10, 0.22); border: 1px solid rgba(139,30,30,0.08);
-            display: flex; flex-direction: column; gap: 2px;
-            animation: menuPop 0.18s ease-out both;
-          }
-          @keyframes menuPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-          .nav-more-item {
-            display: block; text-decoration: none; color: #3b1616; font-family: 'Source Sans 3', sans-serif;
-            font-weight: 700; font-size: 0.94rem; padding: 10px 12px; border-radius: 9px;
-            transition: background 0.18s ease;
-          }
-          .nav-more-item:hover { background: rgba(139,30,30,0.08); }
-          .nav-mobile-only { display: none; }
-
           .hero {
-            margin-top: 76px;
             background: linear-gradient(90deg, #6d1414 0%, #8b1e1e 44%, #9a2424 72%, #8f2222 100%);
             position: relative; overflow: hidden; animation: fadeInSoft 0.7s ease-out;
           }
@@ -222,7 +173,7 @@ export default function Home() {
           .search-input { width: 100%; border: none; outline: none; border-radius: 999px; padding: 14px 20px 14px 46px; font-size: 0.94rem; font-family: 'Source Sans 3', sans-serif; background: rgba(231, 221, 210, 0.96); color: #321515; box-shadow: 0 10px 30px rgba(68, 27, 27, 0.08); transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease; }
           .search-input:focus { background: rgba(242, 237, 232, 0.98); box-shadow: 0 14px 34px rgba(68, 27, 27, 0.12); transform: translateY(-1px); }
           .search-input::placeholder { color: #6d5f5f; }
-          .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 0.94rem; }
+          .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #7c5b5b; font-size: 0.94rem; display: flex; pointer-events: none; }
 
           .catalog-section { width: 100%; max-width: none; margin: 0; padding: 52px 56px 80px 42px; }
           .catalog-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
@@ -230,25 +181,6 @@ export default function Home() {
           .catalog-accent { width: 16px; height: 42px; border-radius: 999px; background: linear-gradient(180deg, #5f1212 0%, #8f2222 100%); box-shadow: 0 8px 18px rgba(95, 18, 18, 0.22); }
           .catalog-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 2.5rem); font-weight: 700; color: #2d1414; }
           .catalog-count { font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #9c8d8d; font-weight: 700; }
-
-          .filters-panel { margin-bottom: 26px; }
-          .filters-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-          .filters-dropdown-wrap { position: relative; }
-          .filters-toggle { border: 1px solid rgba(139, 30, 30, 0.18); background: white; color: #6a2a2a; border-radius: 999px; padding: 10px 18px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; }
-          .filters-toggle:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(101, 33, 33, 0.09); }
-          .filters-backdrop { position: fixed; inset: 0; z-index: 59; }
-          .filters-dropdown { position: absolute; top: calc(100% + 10px); left: 0; z-index: 60; background: #fffdfa; border: 1px solid rgba(139, 30, 30, 0.14); border-radius: 16px; padding: 10px; min-width: 240px; max-width: 300px; max-height: 320px; overflow-y: auto; box-shadow: 0 18px 40px rgba(60,14,14,0.14); animation: menuPop 0.18s ease-out both; }
-          .filters-dropdown-title { font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; font-weight: 800; color: #a1888b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding: 4px 10px 0; }
-          .filters-options { display: flex; flex-direction: column; gap: 1px; }
-          .filters-option { text-align: left; border: none; background: transparent; cursor: pointer; padding: 9px 10px; border-radius: 10px; font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; color: #3b1616; transition: background 0.15s ease; }
-          .filters-option:hover { background: rgba(139, 30, 30, 0.06); }
-          .filters-option.active { background: rgba(139, 30, 30, 0.12); font-weight: 700; color: #6a2a2a; }
-          .selected-filters { display: flex; flex-wrap: wrap; gap: 8px; }
-          .filter-chip { border: none; cursor: pointer; background: #f4e6df; color: #6a2a2a; border-radius: 999px; padding: 8px 12px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.88rem; transition: transform 0.18s ease, background 0.18s ease; }
-          .filter-chip:hover { transform: translateY(-1px); background: #e9d2c8; }
-          .filter-clear { border: none; cursor: pointer; color: #8b1e1e; background: rgba(255, 230, 226, 0.95); padding: 10px 16px; border-radius: 999px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; transition: transform 0.18s ease, background 0.18s ease; }
-          .filter-clear:hover { transform: translateY(-1px); background: rgba(255, 215, 208, 0.96); }
-          .filters-empty { font-family: 'Source Sans 3', sans-serif; color: #8c7474; font-size: 0.94rem; padding: 10px; }
 
           .feedback-box { text-align: center; padding: 64px 20px; color: #8f7e7e; font-family: 'Source Sans 3', sans-serif; font-weight: 700; }
 
@@ -258,7 +190,6 @@ export default function Home() {
           .book-cover { position: relative; aspect-ratio: 2 / 3; overflow: hidden; background: linear-gradient(180deg, rgba(122, 36, 36, 0.12), rgba(58, 18, 18, 0.18)), #ede5db; }
           .book-cover img { width: 100%; height: 100%; object-fit: cover; }
           .class-badge { position: absolute; left: 10px; top: 10px; min-width: 28px; height: 28px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
-          .filters-toggle.filters-toggle--on { background: #8b1e1e; color: #fff; border-color: #8b1e1e; }
           .book-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #7a3434; }
           .book-status { position: absolute; right: 10px; bottom: 10px; padding: 5px 10px; border-radius: 999px; font-family: 'Source Sans 3', sans-serif; font-size: 0.72rem; font-weight: 800; backdrop-filter: blur(8px); }
           .book-status.available { background: rgba(240, 250, 244, 0.92); color: #166534; }
@@ -289,7 +220,7 @@ export default function Home() {
           .toast-label { font-family: 'Source Sans 3', sans-serif; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #f4c58c; margin-bottom: 2px; }
           .toast-msg { font-family: 'Source Sans 3', sans-serif; font-size: 0.96rem; font-weight: 700; color: #fff7f0; line-height: 1.3; }
           .toast-sub { font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 2px; }
-          .toast-close { background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; flex-shrink: 0; transition: color 0.2s; }
+          .toast-close { background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; padding: 4px; line-height: 1; display: flex; flex-shrink: 0; transition: color 0.2s; }
           .toast-close:hover { color: #fff; }
           .notice-header { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 28px; flex-wrap: wrap; }
           .notice-subtitle { font-family: 'Source Sans 3', sans-serif; font-size: 0.98rem; color: #7a5e5e; max-width: 540px; }
@@ -323,14 +254,6 @@ export default function Home() {
           }
 
           @media (max-width: 860px) {
-            html { scroll-padding-top: 56px; }
-            /* barra fininha, numa linha só (como no computador) */
-            .topbar-inner { padding: 8px 18px; gap: 10px; }
-            .brand { font-size: 1.05rem; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .nav-links { flex-wrap: nowrap; flex-shrink: 0; }
-            .nav-link { font-size: 0.82rem; padding: 6px 11px; }
-            .nav-more-btn { width: 34px; height: 34px; }
-            .hero { margin-top: 52px; }
             /* hero: continua com texto à esquerda e logo à direita, como no computador, só que menor */
             .hero-inner { grid-template-columns: minmax(0, 1fr) 36%; min-height: 200px; padding: 0 14px 0 0; }
             .hero-copy { max-width: none; padding: 22px 0 22px 18px; }
@@ -344,14 +267,6 @@ export default function Home() {
             .about-inner { grid-template-columns: 1fr; gap: 6px; padding: 32px 18px 48px; }
             .about-header { padding: 32px 18px 16px; }
             .about-gallery-track img { width: 220px; height: 190px; }
-            .nav-links { gap: 8px; }
-          }
-
-          /* celular: os links vão para o menu "⋯" para a barra não quebrar em várias linhas */
-          @media (max-width: 640px) {
-            .brand { font-size: 0.95rem; }
-            .nav-link { display: none; }
-            .nav-mobile-only { display: block; }
           }
 
           /* celular: mais livros por linha (3 ou mais), com tudo na mesma proporção do computador */
@@ -363,8 +278,6 @@ export default function Home() {
             .notice-subtitle { font-size: 0.78rem; }
             .catalog-count { font-size: 0.78rem; }
             .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
-            .filters-toggle, .filter-clear { padding: 7px 12px; font-size: 0.8rem; }
-            .filter-chip { padding: 5px 10px; font-size: 0.76rem; }
             .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
             .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
             .book-card:hover { transform: none; }
@@ -380,40 +293,7 @@ export default function Home() {
         `}</style>
 
         <div className="home-shell">
-          <header className="topbar">
-            <div className="topbar-inner">
-              <div className="brand">
-                Biblioteca Escolar <span>Emerson Teixeira</span>
-              </div>
-              <nav className="nav-links">
-                <a href="#catalogo" className="nav-link">Catálogo</a>
-                <a href="#biblionews" className="nav-link">BiblioNews</a>
-                <a href="#sobre" className="nav-link">Sobre a biblioteca</a>
-                <div className="nav-more">
-                  <button
-                    type="button"
-                    className="nav-more-btn"
-                    onClick={() => setMenuAberto((v) => !v)}
-                    aria-label="Mais opções"
-                  >
-                    <span /><span /><span />
-                  </button>
-                  {menuAberto && (
-                    <>
-                      <div className="nav-more-backdrop" onClick={() => setMenuAberto(false)} />
-                      <div className="nav-more-menu">
-                        <a href="#catalogo" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>Catálogo</a>
-                        <a href="#biblionews" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>BiblioNews</a>
-                        <a href="#sobre" className="nav-more-item nav-mobile-only" onClick={() => setMenuAberto(false)}>Sobre a biblioteca</a>
-                        <Link href="/tcc" className="nav-more-item" onClick={() => setMenuAberto(false)}>TCC &amp; Artigos</Link>
-                        <Link href="/admin/login" className="nav-more-item" onClick={() => setMenuAberto(false)}>Área do Admin</Link>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </nav>
-            </div>
-          </header>
+          <PublicNavbar />
 
           <section className="hero">
             <div className="hero-inner">
@@ -448,7 +328,7 @@ export default function Home() {
                 </span>
               </div>
               <div className="search-box">
-                <span className="search-icon">⌕</span>
+                <span className="search-icon"><Icone nome="busca" tamanho="1.15em" /></span>
                 <input
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
@@ -458,69 +338,15 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="filters-panel">
-              <div className="filters-row">
-                <div className="filters-dropdown-wrap">
-                  <button type="button" className="filters-toggle" onClick={() => setFiltrosAbertos((prev) => !prev)}>
-                    {filtrosAbertos ? "Ocultar filtros" : "Mostrar filtros"}
-                  </button>
-                  {filtrosAbertos && (
-                    <>
-                      <div className="filters-backdrop" onClick={() => setFiltrosAbertos(false)} />
-                      <div className="filters-dropdown">
-                        <div className="filters-dropdown-title">Filtrar por assunto</div>
-                        {generos.length > 0 ? (
-                          <div className="filters-options">
-                            <button
-                              type="button"
-                              className={`filters-option${selectedGeneros.length === 0 ? " active" : ""}`}
-                              onClick={() => { setSelectedGeneros([]); setFiltrosAbertos(false) }}
-                            >
-                              Todos os assuntos
-                            </button>
-                            {generos.map((g) => (
-                              <button
-                                key={g}
-                                type="button"
-                                className={`filters-option${selectedGeneros[0] === g ? " active" : ""}`}
-                                onClick={() => { setSelectedGeneros([g]); setFiltrosAbertos(false) }}
-                              >
-                                {g}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="filters-empty">Nenhum assunto encontrado.</div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className={`filters-toggle${soDisponiveis ? " filters-toggle--on" : ""}`}
-                  aria-pressed={soDisponiveis}
-                  onClick={() => setSoDisponiveis((prev) => !prev)}
-                >
-                  {soDisponiveis ? "✓ " : ""}Livros disponíveis
-                </button>
-
-                {selectedGeneros.length > 0 && (
-                  <div className="selected-filters">
-                    {selectedGeneros.map((g) => (
-                      <button key={g} type="button" onClick={() => setSelectedGeneros((prev) => prev.filter((item) => item !== g))} className="filter-chip">
-                        {g} ×
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {(selectedGeneros.length > 0 || busca || soDisponiveis) && (
-                  <button type="button" onClick={clearFiltros} className="filter-clear">Limpar filtros</button>
-                )}
-              </div>
-            </div>
+            <FiltrosCatalogo
+              generos={generos}
+              selectedGeneros={selectedGeneros}
+              onChangeGeneros={setSelectedGeneros}
+              soDisponiveis={soDisponiveis}
+              onChangeSoDisponiveis={setSoDisponiveis}
+              temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
+              onLimpar={clearFiltros}
+            />
 
             {loading && <div className="feedback-box">Carregando acervo...</div>}
             {!loading && filtrados.length === 0 && (
@@ -538,7 +364,7 @@ export default function Home() {
                       {livro.capa ? (
                         <img src={livro.capa} alt={livro.titulo || "Capa do livro"} />
                       ) : (
-                        <div className="book-fallback">📚</div>
+                        <div className="book-fallback"><Icone nome="livros" tamanho="1em" /></div>
                       )}
                       {normalizarClassificacao(livro.classificacaoIndicativa) && (
                         <div
@@ -654,7 +480,7 @@ export default function Home() {
             <div className="toast-msg">Novos livros chegaram ao acervo!</div>
             <div className="toast-sub">Confira os títulos mais recentes</div>
           </div>
-          <button className="toast-close" onClick={fecharToast} aria-label="Fechar">✕</button>
+          <button className="toast-close" onClick={fecharToast} aria-label="Fechar"><Icone nome="x" tamanho={18} /></button>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { Icone } from "@/components/Icone"
 
 type Aviso = {
   chave: string // identificador local, só para o React
@@ -211,10 +212,10 @@ export default function AdminBiblioNews() {
               return (
                 <div key={aviso.chave} className="ab-card">
                   <div className="ab-card-top">
-                    <span className={`ab-badge${indice === 0 ? " destaque" : ""}`}>{indice === 0 ? "★ Destaque" : `Aviso ${indice + 1}`}</span>
+                    <span className={`ab-badge${indice === 0 ? " destaque" : ""}`}>{indice === 0 ? <><Icone nome="estrela" tamanho="1em" /> Destaque</> : `Aviso ${indice + 1}`}</span>
                     <div className="ab-card-actions">
                       <button type="button" className="ab-icon-btn" onClick={() => mover(aviso.chave, -1)} disabled={indice === 0} aria-label="Mover para cima">
-                        ↑
+                        <Icone nome="setaCima" tamanho={17} />
                       </button>
                       <button
                         type="button"
@@ -223,7 +224,7 @@ export default function AdminBiblioNews() {
                         disabled={indice === avisos.length - 1}
                         aria-label="Mover para baixo"
                       >
-                        ↓
+                        <Icone nome="setaBaixo" tamanho={17} />
                       </button>
                       <button type="button" className="ab-delete" onClick={() => remover(aviso.chave)}>
                         Remover aviso
@@ -320,7 +321,7 @@ export default function AdminBiblioNews() {
         .ab-badge { font-size: 0.8rem; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: #f4ede3; color: #7d6a6a; }
         .ab-badge.destaque { background: #f4e4c4; color: #8a5a12; }
         .ab-card-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .ab-icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(139,30,30,0.18); background: #fff; color: #6a2a2a; font-size: 1rem; cursor: pointer; }
+        .ab-icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(139,30,30,0.18); background: #fff; color: #6a2a2a; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
         .ab-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
         .ab-delete { border: none; background: rgba(255,230,226,0.95); color: #8b1e1e; padding: 9px 14px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 0.88rem; }
         .ab-card-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; align-items: start; }
