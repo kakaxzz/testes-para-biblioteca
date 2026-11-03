@@ -298,7 +298,7 @@ export default function Home() {
           <section className="hero">
             <div className="hero-inner">
               <div className="hero-copy">
-                <p className="hero-kicker">Escola João Paulo I</p>
+                <p className="hero-kicker">Colégio João Paulo I</p>
                 <h1 className="hero-title">
                   <span className="hero-title-line">Descubra o seu</span>
                   <span className="hero-title-line">

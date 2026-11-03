@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Biblioteca Escolar Emerson Teixeira",
-  description: "Acervo virtual da Biblioteca Escolar Emerson Teixeira — Escola João Paulo I",
+  description: "Acervo virtual da Biblioteca Escolar Emerson Teixeira — Colégio João Paulo I",
 };
 
 export default function RootLayout({

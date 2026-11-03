@@ -108,6 +108,7 @@ export function PublicNavbar() {
 
         /* menu do celular */
         .pn-mobile { position: relative; display: none; }
+        .pn-desk { position: relative; margin-left: 6px; }
         .pn-menu-btn {
           width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.18); cursor: pointer;
           display: flex; align-items: center; justify-content: center; color: #fff2ea;
@@ -156,7 +157,25 @@ export function PublicNavbar() {
 
           <nav className="pn-links" aria-label="Navegação principal">
             {ITENS.map((item) => renderLink(item, "pn-link"))}
-            {renderLink(ADMIN, "pn-admin")}
+            <div className="pn-desk">
+              <button
+                type="button"
+                className="pn-menu-btn"
+                onClick={() => setMenuAberto((v) => !v)}
+                aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
+                aria-expanded={menuAberto}
+              >
+                <Icone nome={menuAberto ? "x" : "menu"} tamanho={20} />
+              </button>
+              {menuAberto && (
+                <>
+                  <div className="pn-backdrop" onClick={fechar} />
+                  <div className="pn-menu">
+                    {renderLink(ADMIN, "pn-menu-item admin", fechar, 19)}
+                  </div>
+                </>
+              )}
+            </div>
           </nav>
 
           <div className="pn-mobile">
