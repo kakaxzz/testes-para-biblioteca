@@ -6,15 +6,10 @@ import Link from "next/link"
 import { PublicNavbar } from "@/components/PublicNavbar"
 import { Icone } from "@/components/Icone"
 import { CLASSIFICACAO_INFO, normalizarClassificacao, temRestricaoDeIdade } from "@/lib/classificacao"
+import { recomendarLivros, type LivroParaRecomendar, type Recomendacao } from "@/lib/recomendacoes"
 
-type Relacionado = {
-  id: number | string
-  isbn: string
-  titulo: string
-  autor?: string | null
+type Relacionado = LivroParaRecomendar & {
   capa?: string | null
-  assuntos?: string | null
-  quantidadeDisponivel: number
 }
 
 // Cores suaves usadas quando o livro ainda não tem capa cadastrada
@@ -76,37 +71,13 @@ export default function LivroDetalhe() {
       .catch(() => {})
   }, [])
 
-  // "Mais como este": quanto mais assuntos em comum (assunto raro vale mais que um assunto que
-  // quase todo livro tem) e o mesmo autor, mais parecido. Empate não vira "os mais novos".
-  const relacionados = useMemo<Relacionado[]>(() => {
+
+  // Livros mais parecidos (autor, série, assuntos, CDD, sinopse, editora, faixa etária)
+  const relacionados = useMemo<Recomendacao<Relacionado>[]>(() => {
     if (!livro || livro.error) return []
-    const meusAssuntos = new Set(listaAssuntos(livro.assuntos).map((a) => a.toLowerCase()))
-    const meusAutores = listaAutores(livro.autor)
-    if (meusAssuntos.size === 0 && meusAutores.length === 0) return []
-
-    // em quantos livros aparece cada assunto (para dar mais peso aos assuntos raros)
-    const frequencia = new Map<string, number>()
-    todos.forEach((l) => new Set(listaAssuntos(l.assuntos).map((a) => a.toLowerCase())).forEach((a) => frequencia.set(a, (frequencia.get(a) ?? 0) + 1)))
-    const peso = (a: string) => Math.log((todos.length + 1) / (frequencia.get(a) ?? 1)) + 0.1
-
-    return todos
-      .filter((l) => l.isbn !== livro.isbn)
-      .map((l) => {
-        const assuntos = new Set(listaAssuntos(l.assuntos).map((a) => a.toLowerCase()))
-        let comum = 0, uniao = 0
-        new Set([...meusAssuntos, ...assuntos]).forEach((a) => {
-          uniao += peso(a)
-          if (meusAssuntos.has(a) && assuntos.has(a)) comum += peso(a)
-        })
-        const mesmoAutor = listaAutores(l.autor).some((a) => meusAutores.includes(a))
-        const nota = (uniao > 0 ? comum / uniao : 0) + (mesmoAutor ? 0.5 : 0)
-        return { l, nota }
-      })
-      .filter((x) => x.nota > 0)
-      .sort((a, b) => b.nota - a.nota || desempate(livro.isbn, b.l.isbn) - desempate(livro.isbn, a.l.isbn))
-      .slice(0, 3)
-      .map((x) => x.l)
+    return recomendarLivros<Relacionado>(livro, todos, 3)
   }, [livro, todos])
+
 
   if (loading) return (
     <div style={{ minHeight: "100vh", background: "#f3ebe3", fontFamily: "'Source Sans 3', sans-serif" }}>
@@ -332,14 +303,15 @@ export default function LivroDetalhe() {
           <section className="ld-more">
             <h2>Mais como este</h2>
             <div className="ld-more-row">
-              {relacionados.map((r: Relacionado) => (
+              {relacionados.map(({ livro: r, motivos }) => (
                 <Link key={r.id} href={`/livro/${r.isbn}`} className="ld-mini">
                   <span className="ld-mini-cover" style={r.capa ? undefined : { background: corDaCapa(r.titulo ?? "") }}>
                     {r.capa && <img src={r.capa} alt="" />}
                   </span>
                   <span className="ld-mini-info">
                     <strong>{r.titulo}</strong>
-                    <em>{r.quantidadeDisponivel > 0 ? "Disponível" : "Emprestado"}</em>
+                    {motivos.length > 0 && <em>{motivos.slice(0, 2).join(" · ")}</em>}
+                    <em>{(r.quantidadeDisponivel ?? 0) > 0 ? "Disponível" : "Emprestado"}</em>
                   </span>
                 </Link>
               ))}

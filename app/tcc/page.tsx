@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { PublicNavbar } from "@/components/PublicNavbar"
 import { Icone } from "@/components/Icone"
+import Link from "next/link"
 
 type Trabalho = {
   id: number | string
@@ -34,12 +35,17 @@ export default function TccPage() {
   useEffect(() => {
     if (!hasAccess) return
     fetch("/api/tcc")
-      .then((r) => r.json())
-      .then((data) => {
-        setTccs(data)
-        setLoadingTccs(false)
+      .then(async (r) => {
+        // O acesso acabou (passou o prazo do token ou ele foi encerrado): volta para a tela do token
+        if (r.status === 401) {
+          setHasAccess(false)
+          return
+        }
+        const data = await r.json()
+        if (Array.isArray(data)) setTccs(data)
       })
-      .catch(() => setLoadingTccs(false))
+      .catch(() => {})
+      .finally(() => setLoadingTccs(false))
   }, [hasAccess])
 
   async function handleSubmit() {
@@ -52,6 +58,7 @@ export default function TccPage() {
     })
     const data = await res.json()
     if (res.ok) {
+      setLoadingTccs(true)
       setHasAccess(true)
     } else {
       setError(data.error)
@@ -328,9 +335,9 @@ export default function TccPage() {
                     {t.resumo && <p className="work-summary">{t.resumo}</p>}
                   </div>
                   {t.arquivoNome && (
-                    <a href={`/api/tcc/${t.id}/arquivo`} target="_blank" rel="noopener noreferrer" className="pdf-link">
-                      Ver PDF
-                    </a>
+                    <Link href={`/tcc/${t.id}`} className="pdf-link">
+                      Ler trabalho
+                    </Link>
                   )}
                 </div>
               </article>

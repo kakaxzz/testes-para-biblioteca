@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react"
 import GenerateToken from "@/components/GenerateToken"
 
+type Trabalho = {
+  id: number
+  titulo: string
+  autor: string
+  ano: number
+  tipo: string
+  resumo?: string | null
+}
+
 export default function AdminTcc() {
   const [titulo, setTitulo] = useState("")
   const [autor, setAutor] = useState("")
@@ -14,7 +23,9 @@ export default function AdminTcc() {
   const [tipoMensagem, setTipoMensagem] = useState<"ok" | "erro">("ok")
   const [loading, setLoading] = useState(false)
   const [fileKey, setFileKey] = useState(0)
-  const [tccs, setTccs] = useState<any[]>([])
+  const [tccs, setTccs] = useState<Trabalho[]>([])
+  // Quando preenchido, o formulário edita este trabalho em vez de cadastrar um novo
+  const [editandoId, setEditandoId] = useState<number | null>(null)
 
   useEffect(() => {
     carregarTccs()
@@ -25,15 +36,69 @@ export default function AdminTcc() {
     if (res.ok) setTccs(await res.json())
   }
 
+  function limparFormulario() {
+    setTitulo("")
+    setAutor("")
+    setResumo("")
+    setTipo("tcc")
+    setArquivo(null)
+    setFileKey((k) => k + 1)
+    setAno(new Date().getFullYear().toString())
+  }
+
+  function iniciarEdicao(t: Trabalho) {
+    setEditandoId(t.id)
+    setTitulo(t.titulo ?? "")
+    setAutor(t.autor ?? "")
+    setAno(String(t.ano ?? new Date().getFullYear()))
+    setTipo(t.tipo === "artigo" ? "artigo" : "tcc")
+    setResumo(t.resumo ?? "")
+    setArquivo(null)
+    setFileKey((k) => k + 1)
+    setMensagem("")
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function cancelarEdicao() {
+    setEditandoId(null)
+    limparFormulario()
+    setMensagem("")
+  }
+
+  async function excluir(t: Trabalho) {
+    const ok = window.confirm(`Excluir "${t.titulo}"?\n\nO trabalho e o PDF serão apagados e não poderão ser recuperados.`)
+    if (!ok) return
+
+    try {
+      const res = await fetch(`/api/tcc/${t.id}`, { method: "DELETE" })
+      if (res.ok) {
+        if (editandoId === t.id) cancelarEdicao()
+        setMensagem("Trabalho excluído.")
+        setTipoMensagem("ok")
+        carregarTccs()
+      } else {
+        const d = await res.json().catch(() => null)
+        setMensagem(d?.error || "Erro ao excluir.")
+        setTipoMensagem("erro")
+      }
+    } catch {
+      setMensagem("Erro de conexão ao excluir.")
+      setTipoMensagem("erro")
+    }
+  }
+
   async function salvar(e: React.FormEvent) {
     e.preventDefault()
-    if (!arquivo) {
+    const editando = editandoId !== null
+
+    // Ao cadastrar o PDF é obrigatório; ao editar, sem arquivo novo o PDF atual é mantido
+    if (!editando && !arquivo) {
       setMensagem("Selecione um arquivo PDF.")
       setTipoMensagem("erro")
       return
     }
 
-    if (arquivo.size > 4 * 1024 * 1024) {
+    if (arquivo && arquivo.size > 4 * 1024 * 1024) {
       setMensagem("O PDF tem mais de 4 MB. Comprima o arquivo e tente de novo.")
       setTipoMensagem("erro")
       return
@@ -47,24 +112,23 @@ export default function AdminTcc() {
     form.append("ano", ano)
     form.append("tipo", tipo)
     form.append("resumo", resumo)
-    form.append("arquivo", arquivo)
+    if (arquivo) form.append("arquivo", arquivo)
 
     try {
-      const res = await fetch("/api/tcc", { method: "POST", body: form })
+      const res = await fetch(editando ? `/api/tcc/${editandoId}` : "/api/tcc", {
+        method: editando ? "PUT" : "POST",
+        body: form,
+      })
 
       if (res.ok) {
-        setMensagem("Trabalho cadastrado com sucesso!")
+        setMensagem(editando ? "Alterações salvas!" : "Trabalho cadastrado com sucesso!")
         setTipoMensagem("ok")
-        setTitulo("")
-        setAutor("")
-        setResumo("")
-        setArquivo(null)
-        setFileKey((k) => k + 1)
-        setAno(new Date().getFullYear().toString())
+        setEditandoId(null)
+        limparFormulario()
         carregarTccs()
       } else {
         const d = await res.json().catch(() => null)
-        setMensagem(d?.error || "Erro ao cadastrar.")
+        setMensagem(d?.error || (editando ? "Erro ao salvar as alterações." : "Erro ao cadastrar."))
         setTipoMensagem("erro")
       }
     } catch {
@@ -87,7 +151,7 @@ export default function AdminTcc() {
 
       <div className="admin-grid-2">
         <div className="card">
-          <h3 className="section-title">Novo trabalho</h3>
+          <h3 className="section-title">{editandoId !== null ? "Editar trabalho" : "Novo trabalho"}</h3>
           <form onSubmit={salvar}>
             <div className="input-group">
               <label>Tipo</label>
@@ -113,12 +177,24 @@ export default function AdminTcc() {
               <textarea className="input-field" value={resumo} onChange={(e) => setResumo(e.target.value)} placeholder="Breve descrição do trabalho..." />
             </div>
             <div className="input-group">
-              <label>Arquivo PDF</label>
-              <input key={fileKey} type="file" accept=".pdf,application/pdf" onChange={(e) => setArquivo(e.target.files?.[0] || null)} className="input-field" required />
+              <label>{editandoId !== null ? "Novo arquivo PDF (opcional)" : "Arquivo PDF"}</label>
+              <input key={fileKey} type="file" accept=".pdf,application/pdf" onChange={(e) => setArquivo(e.target.files?.[0] || null)} className="input-field" required={editandoId === null} />
+              {editandoId !== null && (
+                <span style={{ fontSize: 12.5, color: "#9c8d8d" }}>Deixe em branco para manter o PDF que já está salvo.</span>
+              )}
             </div>
             <button type="submit" className="btn-primary" style={{ width: "100%" }} disabled={loading}>
-              {loading ? "Enviando..." : "Cadastrar trabalho"}
+              {loading
+                ? "Enviando..."
+                : editandoId !== null
+                  ? "Salvar alterações"
+                  : "Cadastrar trabalho"}
             </button>
+            {editandoId !== null && (
+              <button type="button" className="btn-secondary" style={{ width: "100%", marginTop: 10 }} onClick={cancelarEdicao} disabled={loading}>
+                Cancelar edição
+              </button>
+            )}
           </form>
           {mensagem && <div className={tipoMensagem === "ok" ? "mensagem-ok" : "mensagem-erro"}>{mensagem}</div>}
         </div>
@@ -137,17 +213,18 @@ export default function AdminTcc() {
                   <th>Ano</th>
                   <th>Tipo</th>
                   <th>PDF</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {tccs.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
+                    <td colSpan={6} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
                       Nenhum trabalho cadastrado
                     </td>
                   </tr>
                 )}
-                {tccs.map((t: any) => (
+                {tccs.map((t) => (
                   <tr key={t.id}>
                     <td style={{ fontWeight: 600 }}>{t.titulo}</td>
                     <td style={{ color: "#7f6d6d" }}>{t.autor}</td>
@@ -161,6 +238,22 @@ export default function AdminTcc() {
                       <a href={`/api/tcc/${t.id}/arquivo`} target="_blank" rel="noopener noreferrer" style={{ color: "#8b1e1e", fontSize: 13, fontWeight: 700 }}>
                         Ver PDF
                       </a>
+                    </td>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      <button
+                        type="button"
+                        onClick={() => iniciarEdicao(t)}
+                        style={{ background: "none", border: "none", padding: 0, marginRight: 14, color: "#8b1e1e", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => excluir(t)}
+                        style={{ background: "none", border: "none", padding: 0, color: "#b42318", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        Excluir
+                      </button>
                     </td>
                   </tr>
                 ))}

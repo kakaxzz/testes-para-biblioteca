@@ -13,6 +13,7 @@ const PROTECTED_API_ROUTES: { pattern: RegExp; methods: string[] }[] = [
   { pattern: /^\/api\/usuarios\/[^/]+$/, methods: ["PUT", "DELETE"] },
   { pattern: /^\/api\/biblionews$/, methods: ["PUT"] },
   { pattern: /^\/api\/tcc$/, methods: ["POST"] },
+  { pattern: /^\/api\/tcc\/[^/]+$/, methods: ["PUT", "DELETE"] },
   { pattern: /^\/api\/emprestimos\/renovar$/, methods: ["POST"] },
   { pattern: /^\/api\/emprestimos$/, methods: ["POST"] },
 ]
