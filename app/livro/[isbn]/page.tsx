@@ -12,7 +12,6 @@ type Relacionado = LivroParaRecomendar & {
   capa?: string | null
 }
 
-// Cores suaves usadas quando o livro ainda não tem capa cadastrada
 const CORES_CAPA = ["#e8a9bb", "#a3b8c9", "#c9b48c", "#b5c7a8", "#c9a9d6", "#e0b48f"]
 
 function corDaCapa(texto: string) {
@@ -25,19 +24,16 @@ function listaAssuntos(assuntos?: string | null) {
   return (assuntos ?? "").split(",").map((a) => a.trim()).filter(Boolean)
 }
 
-// Autores em minúsculas, separando "A, B" ou "A; B" em nomes diferentes
 function listaAutores(autor?: string | null) {
   return (autor ?? "").split(/[,;]/).map((a) => a.trim().toLowerCase()).filter(Boolean)
 }
 
-// Número fixo (0 a 1) tirado do par de livros: desempata sem mostrar sempre os mais novos
 function desempate(a: string, b: string) {
   let h = 0
   for (const c of a + "|" + b) h = (h * 31 + c.charCodeAt(0)) >>> 0
   return (h % 1000) / 1000
 }
 
-// Converte a data ISO em "15 de outubro" e avisa se essa data já passou
 function formatarPrevisao(iso?: string | null) {
   if (!iso) return null
   const d = new Date(iso)
@@ -63,7 +59,6 @@ export default function LivroDetalhe() {
       .catch(() => setLoading(false))
   }, [isbn])
 
-  // Lista do acervo, usada só para sugerir "Mais como este"
   useEffect(() => {
     fetch("/api/livros")
       .then((r) => r.json())
@@ -72,7 +67,6 @@ export default function LivroDetalhe() {
   }, [])
 
 
-  // Livros mais parecidos (autor, série, assuntos, CDD, sinopse, editora, faixa etária)
   const relacionados = useMemo<Recomendacao<Relacionado>[]>(() => {
     if (!livro || livro.error) return []
     return recomendarLivros<Relacionado>(livro, todos, 3)
@@ -197,7 +191,6 @@ export default function LivroDetalhe() {
         <Link href="/#catalogo" className="ld-back"><Icone nome="setaEsquerda" tamanho={17} />Voltar ao catálogo</Link>
 
         <div className="ld-grid">
-          {/* Capa */}
           <div className="ld-cover">
             {livro.capa ? (
               <img src={livro.capa} alt={livro.titulo} />
@@ -208,7 +201,6 @@ export default function LivroDetalhe() {
             )}
           </div>
 
-          {/* Detalhes */}
           <div>
             {(classificacao || categoria) && (
               <div className="ld-eyebrow">
@@ -224,7 +216,6 @@ export default function LivroDetalhe() {
             <h1 className="ld-title">{livro.titulo}</h1>
             <p className="ld-author">{livro.autor}</p>
 
-            {/* Disponibilidade */}
             <div className={`ld-status ${disponivel ? "ok" : "off"}`}>
               <span className="ld-status-icon">
                 {disponivel ? (
@@ -258,7 +249,6 @@ export default function LivroDetalhe() {
               </div>
             </div>
 
-            {/* Editora / ISBN / Exemplares */}
             <div className="ld-meta">
               {metas.map((m) => (
                 <div key={m.label} className="ld-meta-item">
@@ -268,7 +258,6 @@ export default function LivroDetalhe() {
               ))}
             </div>
 
-            {/* Sinopse */}
             {livro.sinopse && (
               <div>
                 <div className="ld-section-label">Sinopse</div>
@@ -276,7 +265,6 @@ export default function LivroDetalhe() {
               </div>
             )}
 
-            {/* Demais assuntos (o primeiro já aparece ao lado da classificação) */}
             {outrosAssuntos.length > 0 && (
               <div className="ld-tags">
                 {outrosAssuntos.map((a) => (
@@ -285,7 +273,6 @@ export default function LivroDetalhe() {
               </div>
             )}
 
-            {/* Aviso de idade */}
             {classificacao && temRestricaoDeIdade(classificacao) && (
               <p className="ld-note" role="note">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b7a74" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -298,7 +285,6 @@ export default function LivroDetalhe() {
           </div>
         </div>
 
-        {/* Mais como este */}
         {relacionados.length > 0 && (
           <section className="ld-more">
             <h2>Mais como este</h2>

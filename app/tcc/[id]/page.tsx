@@ -6,11 +6,6 @@ import Link from "next/link"
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist"
 import { CABECALHO_LEITOR } from "@/lib/tcc"
 
-// Leitor de TCC: mostra o PDF página por página em canvas, sem botão de baixar, imprimir
-// ou abrir em outra aba. O arquivo só é entregue pela rota /api/tcc/[id]/arquivo a este
-// leitor (ver CABECALHO_LEITOR). Importante: quem consegue ler um documento na tela sempre
-// consegue, com algum esforço, tirar print dele. Isto impede o download comum, não a cópia.
-
 type Trabalho = {
   titulo: string
   autor: string
@@ -18,7 +13,6 @@ type Trabalho = {
   tipo: string
 }
 
-// Altura / largura de uma folha A4, usada até a página real carregar
 const PROPORCAO_A4 = 297 / 210
 
 function Pagina({ doc, numero, proporcaoInicial }: { doc: PDFDocumentProxy; numero: number; proporcaoInicial: number }) {
@@ -37,7 +31,6 @@ function Pagina({ doc, numero, proporcaoInicial }: { doc: PDFDocumentProxy; nume
     let noVisor = false
     let encerrado = false
 
-    // Só desenha as páginas perto da tela e solta as distantes: um TCC de 80 páginas não pode ficar todo na memória
     async function desenhar() {
       if (desenhada || desenhando || !telaEl || !caixaEl) return
       desenhando = true
@@ -59,11 +52,9 @@ function Pagina({ doc, numero, proporcaoInicial }: { doc: PDFDocumentProxy; nume
         await tarefa.promise
         desenhada = true
       } catch {
-        // renderização cancelada ao sair da tela: normal
       } finally {
         desenhando = false
         tarefa = null
-        // Se saiu da tela enquanto desenhava, limpa agora
         if (!noVisor && !encerrado) soltar()
       }
     }
@@ -124,7 +115,7 @@ export default function LeitorTcc() {
     async function abrir() {
       try {
         const meta = await fetch(`/api/tcc/${id}`)
-        if (meta.status === 401) return router.replace("/tcc") // sem token válido: volta para a tela do token
+        if (meta.status === 401) return router.replace("/tcc")
         if (!meta.ok) return setErro("Trabalho não encontrado.")
         const dados: Trabalho = await meta.json()
         if (cancelado) return
@@ -136,7 +127,6 @@ export default function LeitorTcc() {
         const bytes = new Uint8Array(await resposta.arrayBuffer())
         if (cancelado) return
 
-        // Versão "legacy" do pdf.js: funciona também em celulares e navegadores mais antigos
         const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs")
         pdfjs.GlobalWorkerOptions.workerSrc = new URL(
           "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
@@ -165,7 +155,6 @@ export default function LeitorTcc() {
     }
   }, [id, router])
 
-  // Sem Ctrl+S / Ctrl+P e sem o menu do botão direito (que oferece "salvar imagem como")
   useEffect(() => {
     const bloquearAtalhos = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && ["s", "p"].includes(e.key.toLowerCase())) e.preventDefault()

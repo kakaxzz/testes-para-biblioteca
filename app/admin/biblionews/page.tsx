@@ -4,14 +4,14 @@ import { useEffect, useRef, useState } from "react"
 import { Icone } from "@/components/Icone"
 
 type Aviso = {
-  chave: string // identificador local, só para o React
-  id: number | null // null = aviso novo, ainda não salvo
+  chave: string
+  id: number | null
   titulo: string
   mensagem: string
   tag: string
-  data: string // "AAAA-MM-DD"
-  imagemUrl: string | null // imagem que já está salva no servidor
-  imagemNova: string | null // imagem escolhida agora (ainda não salva), em data URL
+  data: string
+  imagemUrl: string | null
+  imagemNova: string | null
   removerImagem: boolean
 }
 
@@ -27,7 +27,7 @@ type AvisoDaApi = {
 const CATEGORIAS_SUGERIDAS = ["Evento", "Novos livros", "Aviso", "Clube do Livro"]
 
 function hoje() {
-  return new Date().toLocaleDateString("en-CA") // AAAA-MM-DD no fuso do computador
+  return new Date().toLocaleDateString("en-CA")
 }
 
 function doServidor(a: AvisoDaApi): Aviso {
@@ -44,7 +44,6 @@ function doServidor(a: AvisoDaApi): Aviso {
   }
 }
 
-// Reduz a foto antes de enviar (celulares geram arquivos de vários MB) e converte para JPG
 async function comprimirImagem(arquivo: File, ladoMaximo = 1400, qualidade = 0.82): Promise<string> {
   const url = URL.createObjectURL(arquivo)
   try {
@@ -62,7 +61,7 @@ async function comprimirImagem(arquivo: File, ladoMaximo = 1400, qualidade = 0.8
     canvas.height = altura
     const ctx = canvas.getContext("2d")
     if (!ctx) throw new Error("Seu navegador não conseguiu processar a imagem.")
-    ctx.fillStyle = "#ffffff" // PNG com fundo transparente vira fundo branco
+    ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, largura, altura)
     ctx.drawImage(img, 0, 0, largura, altura)
     return canvas.toDataURL("image/jpeg", qualidade)
@@ -98,7 +97,6 @@ export default function AdminBiblioNews() {
     setAvisos((prev) => prev.map((a) => (a.chave === chave ? { ...a, ...campos } : a)))
   }
 
-  // O primeiro aviso da lista é o destaque da página inicial, então o novo entra no topo
   const adicionar = () => {
     contador.current += 1
     setAvisos((prev) => [
@@ -169,7 +167,7 @@ export default function AdminBiblioNews() {
         throw new Error(erro?.message ?? "Falha ao salvar.")
       }
 
-      await carregar() // traz os ids novos e as imagens já salvas
+      await carregar()
       setMessage({ tipo: "ok", texto: "Avisos salvos com sucesso." })
     } catch (erro) {
       setMessage({ tipo: "erro", texto: erro instanceof Error ? erro.message : "Erro ao salvar os avisos. Tente novamente." })
@@ -245,7 +243,7 @@ export default function AdminBiblioNews() {
                           style={{ display: "none" }}
                           onChange={(e) => {
                             escolherImagem(aviso.chave, e.target.files?.[0])
-                            e.target.value = "" // permite escolher o mesmo arquivo de novo
+                            e.target.value = ""
                           }}
                         />
                       </label>

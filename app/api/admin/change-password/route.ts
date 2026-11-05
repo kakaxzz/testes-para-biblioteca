@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma"; // ajusta se o path do teu client for outro
+import { prisma } from "@/lib/prisma";
 import {
   SESSION_COOKIE,
   verifySessionToken,
@@ -10,7 +10,6 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Confirma que tem admin logado, lendo o cookie de sessão
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE)?.value;
 
@@ -25,7 +24,6 @@ export async function POST(request: NextRequest) {
 
     const { currentPassword, newPassword } = await request.json();
 
-    // 2. Validações básicas
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
         { error: "Preencha a senha atual e a nova senha" },
@@ -55,13 +53,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Admin não encontrado" }, { status: 404 });
     }
 
-    // 4. Confere a senha atual
     const senhaValida = await verifyPassword(currentPassword, admin.senha);
     if (!senhaValida) {
       return NextResponse.json({ error: "Senha atual incorreta" }, { status: 401 });
     }
 
-    // 5. Faz o hash da nova senha e salva
     const novoHash = await hashPassword(newPassword);
 
     await prisma.admin.update({

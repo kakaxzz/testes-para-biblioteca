@@ -58,10 +58,9 @@ export default function Home() {
     return livros.filter((l) => l.criadoEm && new Date(l.criadoEm) >= limite)
   }, [livros])
 
-  // Mostra toast se o livro mais recente foi cadastrado há menos de 2 dias
   useEffect(() => {
     if (loading || livros.length === 0) return
-    const maisRecente = livros[0] // já vem ordenado desc
+    const maisRecente = livros[0]
     if (!maisRecente?.criadoEm) return
     const diff = Date.now() - new Date(maisRecente.criadoEm).getTime()
     const doisDiasMs = 2 * 24 * 60 * 60 * 1000
@@ -167,7 +166,7 @@ export default function Home() {
           .hero-text { font-family: 'Source Sans 3', sans-serif; font-size: 0.9rem; line-height: 1.35; color: rgba(255,255,255,0.82); max-width: 250px; }
           .hero-logo-wrap { display: flex; justify-content: center; align-items: center; animation: fadeInSoft 1s ease-out; background: transparent; padding-right: 6px; }
           .hero-logo-card { width: min(100%, 330px); aspect-ratio: 1 / 1; border-radius: 0; background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center; padding: 0; }
-          .hero-logo { width: 100%; height: 100%; object-fit: contain; opacity: 0.23; filter: sepia(0.08) saturate(0.75) brightness(1.08) contrast(0.9); mix-blend-mode: screen; }
+          .hero-logo { width: 100%; height: 100%; object-fit: contain; opacity: 0.12; filter: sepia(0.08) saturate(0.75) brightness(1.08) contrast(0.9); mix-blend-mode: screen; }
 
           .search-box { width: 100%; max-width: 360px; position: relative; flex-shrink: 0; }
           .search-input { width: 100%; border: none; outline: none; border-radius: 999px; padding: 14px 20px 14px 46px; font-size: 0.94rem; font-family: 'Source Sans 3', sans-serif; background: rgba(231, 221, 210, 0.96); color: #321515; box-shadow: 0 10px 30px rgba(68, 27, 27, 0.08); transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease; }
@@ -254,7 +253,6 @@ export default function Home() {
           }
 
           @media (max-width: 860px) {
-            /* hero: continua com texto à esquerda e logo à direita, como no computador, só que menor */
             .hero-inner { grid-template-columns: minmax(0, 1fr) 36%; min-height: 200px; padding: 0 14px 0 0; }
             .hero-copy { max-width: none; padding: 22px 0 22px 18px; }
             .hero-kicker { font-size: 0.64rem; margin-bottom: 8px; }
@@ -269,7 +267,6 @@ export default function Home() {
             .about-gallery-track img { width: 220px; height: 190px; }
           }
 
-          /* celular: mais livros por linha (3 ou mais), com tudo na mesma proporção do computador */
           @media (max-width: 640px) {
             .catalog-section, .notice-section { padding: 24px 14px 40px; }
             .catalog-accent { width: 10px; height: 30px; }
@@ -445,7 +442,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="about-text">
-                  A biblioteca funciona de <strong>segunda a sexta</strong>, das <strong>8h</strong> às{" "}
+                  A biblioteca funciona de <strong>segunda à sexta</strong>, das <strong>8h</strong> às{" "}
                   <strong>17h</strong>, com hora do estudo às <strong>14h</strong>!
                 </p>
                 <a
@@ -466,12 +463,11 @@ export default function Home() {
           </section>
 
           <footer className="footer">
-            Biblioteca Escolar Emerson Teixeira • Escola João Paulo I
+            Biblioteca Escolar Emerson Teixeira • Colégio João Paulo I
           </footer>
         </div>
       </div>
 
-      {/* Toast de novidades */}
       {toastVisivel && (
         <div className={`toast-novidade${toastSaindo ? " saindo" : ""}`}>
           <div className="toast-pulse" />
@@ -484,7 +480,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Papiro fora de tudo — position:fixed funciona corretamente aqui */}
       <Papiro acervo={livros} />
     </>
   )

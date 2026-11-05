@@ -17,7 +17,6 @@ export async function GET(request: Request) {
     orderBy: { dataEmprestimo: "desc" },
   })
 
-  // Normaliza para manter compatibilidade com a página (e.livro.titulo etc.)
   const normalizados = emprestimos.map((e: any) => ({
     ...e,
     livro: e.exemplar.livro,
@@ -31,20 +30,16 @@ export async function POST(request: Request) {
   try {
     const { usuarioId, livroId, idadeConfirmada, autorizacaoResponsavel } = await request.json()
 
-    // Validação: usuário existe
     const usuario = await prisma.usuario.findUnique({ where: { id: Number(usuarioId) } })
     if (!usuario) {
       return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 })
     }
 
-    // Validação: livro existe
     const livro = await prisma.livro.findUnique({ where: { id: Number(livroId) } })
     if (!livro) {
       return NextResponse.json({ error: "Livro não encontrado." }, { status: 404 })
     }
 
-    // Livro com classificação indicativa: para aluno, a bibliotecária precisa confirmar
-    // a idade OU registrar que o responsável autorizou a retirada
     const exigeConfirmacao = usuario.tipo === "ALUNO" && temRestricaoDeIdade(livro.classificacaoIndicativa)
     if (exigeConfirmacao && !idadeConfirmada && !autorizacaoResponsavel) {
       return NextResponse.json(
@@ -55,7 +50,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Busca um exemplar disponível deste livro
     const exemplarDisponivel = await prisma.exemplar.findFirst({
       where: { livroId: Number(livroId), status: "disponivel" },
       orderBy: { tombo: "asc" },
@@ -68,7 +62,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validação: usuário já possui empréstimo em aberto
     const emprestimoEmAberto = await prisma.emprestimo.findFirst({
       where: { usuarioId: Number(usuarioId), dataDevolucao: null },
       include: { exemplar: { include: { livro: true } } },
@@ -83,7 +76,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Cria o empréstimo e marca o exemplar como reservado
     const novoEmprestimo = await prisma.emprestimo.create({
       data: {
         usuarioId: Number(usuarioId),

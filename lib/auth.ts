@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs"
 import { SignJWT, jwtVerify } from "jose"
 
 export const SESSION_COOKIE = "session"
-export const SESSION_DURATION_SECONDS = 60 * 60 * 8 // 8 horas
+export const SESSION_DURATION_SECONDS = 60 * 60 * 8
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET

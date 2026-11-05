@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Este empréstimo já foi devolvido." }, { status: 409 })
     }
 
-    // Registra devolução e libera o exemplar
     await prisma.emprestimo.update({
       where: { id: Number(emprestimoId) },
       data: { dataDevolucao: new Date() },

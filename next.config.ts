@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // as antigas abas "Virada de ano" e "Trocar senha" agora são a página Configurações
   async redirects() {
     return [
       { source: "/admin/virada", destination: "/admin/configuracoes", permanent: true },

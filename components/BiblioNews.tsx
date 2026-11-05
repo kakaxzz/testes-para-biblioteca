@@ -1,9 +1,5 @@
 "use client"
 
-// Seção BiblioNews da página inicial.
-// O cabeçalho reutiliza as classes .notice-header / .catalog-accent / .catalog-title /
-// .notice-subtitle que já existem no CSS da home (app/page.tsx), para ficar igual às outras seções.
-
 import { useEffect, useMemo, useState } from "react"
 import { Icone as IconeUI } from "@/components/Icone"
 
@@ -12,7 +8,7 @@ type Aviso = {
   titulo: string
   mensagem: string
   tag: string
-  data: string // "AAAA-MM-DD"
+  data: string
   imagemUrl: string | null
 }
 
@@ -38,7 +34,6 @@ function normalizar(texto: string) {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
 }
 
-// A categoria define a cor e o ícone. A tag continua sendo texto livre no painel admin.
 function categoriaDaTag(tag: string): Categoria {
   const t = normalizar(tag)
   if (t.includes("clube")) return "clube"
@@ -48,7 +43,6 @@ function categoriaDaTag(tag: string): Categoria {
   return "outro"
 }
 
-// Chave usada nos filtros: categorias conhecidas agrupam variações ("Aviso"/"avisos")
 function chaveDoFiltro(tag: string) {
   const categoria = categoriaDaTag(tag)
   return categoria === "outro" ? `outro:${normalizar(tag)}` : categoria
@@ -139,7 +133,6 @@ export function BiblioNews() {
       .finally(() => setCarregando(false))
   }, [])
 
-  // Fecha o aviso aberto com a tecla Esc e trava a rolagem da página enquanto ele está aberto
   useEffect(() => {
     if (!aberto) return
     const aoTeclar = (e: KeyboardEvent) => {
@@ -234,14 +227,12 @@ export function BiblioNews() {
         .bn-close { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; background: rgba(255,253,250,0.92); color: #6b1a17; font-size: 1.5rem; line-height: 1; box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
         @keyframes bnFade { from { opacity: 0; } to { opacity: 1; } }
 
-        /* tablet: mantém as duas colunas (destaque + lista), só um pouco menores */
         @media (max-width: 900px) {
           .bn-tile { width: 92px; height: 92px; }
           .bn-feature-body { padding: 20px 20px 24px; }
           .bn-modal-body { padding: 20px 20px 26px; }
         }
 
-        /* celular: também fica lado a lado, igual ao computador, com tudo em escala menor */
         @media (max-width: 640px) {
           .bn-grid { gap: 10px; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
           .bn-chip { font-size: 0.78rem; padding: 5px 12px; }

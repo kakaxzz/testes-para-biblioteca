@@ -187,7 +187,6 @@ export default function AdminLivros() {
   const todosSelecionados = filtrados.length > 0 && selecionados.length === filtrados.length
   const corDisponivel = (l: any) => (l.quantidadeDisponivel === 0 ? "text-[#8b1e1e]" : "text-green-800")
 
-  // ações de um livro, iguais na tabela e nos cartões do celular
   const acoes = (l: any) => (
     <Acoes
       onEtiqueta={() => imprimir([l.id])}
@@ -216,7 +215,6 @@ export default function AdminLivros() {
         @media screen { .etiqueta-print { display: none; } }
       `}</style>
 
-      {/* ETIQUETAS PARA IMPRESSÃO */}
       {selecionados.length > 0 && (
         <div className="etiqueta-print">
           {livros.filter((l) => selecionados.includes(l.id)).flatMap((l) =>
@@ -253,7 +251,6 @@ export default function AdminLivros() {
 
         {mensagem && <div className={`${tipoMensagem === "ok" ? "mensagem-ok" : "mensagem-erro"} mb-5`}>{mensagem}</div>}
 
-        {/* ABA CADASTRAR */}
         {aba === "cadastrar" && (
           <div className="card max-w-[700px]">
             <div className="mb-6 flex gap-2.5">
@@ -290,7 +287,6 @@ export default function AdminLivros() {
           </div>
         )}
 
-        {/* ABA ACERVO */}
         {aba === "acervo" && (
           <div className="card">
             <div className="mb-5 flex flex-wrap items-end gap-3">
@@ -312,7 +308,6 @@ export default function AdminLivros() {
               )}
             </div>
 
-            {/* DETALHES (últimos empréstimos, total...) */}
             {detalhes && (
               <LivroDetalhesModal
                 livro={detalhes}
@@ -321,7 +316,6 @@ export default function AdminLivros() {
               />
             )}
 
-            {/* MODAL EDITAR */}
             {editando && (
               <ModalPortal>
                 <div className="modal-overlay">
@@ -342,7 +336,6 @@ export default function AdminLivros() {
               </ModalPortal>
             )}
 
-            {/* CELULAR / TABLET: um cartão por livro */}
             <div className="md:hidden">
               <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm font-semibold text-[#5e4a4a]">
                 <input type="checkbox" checked={todosSelecionados} onChange={toggleTodos} />
@@ -372,7 +365,6 @@ export default function AdminLivros() {
               </div>
             </div>
 
-            {/* COMPUTADOR: tabela, uma linha por exemplar */}
             <div className="table-wrap hidden md:block">
               <table>
                 <thead>

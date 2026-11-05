@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { cpfValido, formatarCpf, variantesDoCpf } from "@/lib/cpf"
 
 export async function GET(
   request: Request,
@@ -35,16 +36,20 @@ export async function PUT(
     if (tipo !== "ALUNO" && !cpf) {
       return NextResponse.json({ error: "CPF é obrigatório para funcionários e responsáveis." }, { status: 400 })
     }
+    if (tipo !== "ALUNO" && !cpfValido(cpf)) {
+      return NextResponse.json({ error: "CPF inválido. Confira os números." }, { status: 400 })
+    }
 
-    // Verifica se a matrícula/cpf já pertence a outro usuário
     if (tipo === "ALUNO") {
       const existe = await prisma.usuario.findUnique({ where: { matricula } })
       if (existe && existe.id !== Number(id)) {
         return NextResponse.json({ error: "Matrícula já cadastrada para outro usuário." }, { status: 400 })
       }
     } else {
-      const existe = await prisma.usuario.findUnique({ where: { cpf } })
-      if (existe && existe.id !== Number(id)) {
+      const existe = await prisma.usuario.findFirst({
+        where: { cpf: { in: variantesDoCpf(cpf) }, NOT: { id: Number(id) } },
+      })
+      if (existe) {
         return NextResponse.json({ error: "CPF já cadastrado para outro usuário." }, { status: 400 })
       }
     }
@@ -55,8 +60,7 @@ export async function PUT(
         nome,
         tipo,
         matricula: tipo === "ALUNO" ? matricula : null,
-        cpf: tipo !== "ALUNO" ? cpf : null,
-        // alunos antigos podem não ter turma ainda, por isso aqui ela não é obrigatória
+        cpf: tipo !== "ALUNO" ? formatarCpf(cpf) : null,
         turma: tipo === "ALUNO" ? turmaLimpa || null : null,
         whatsapp: whatsapp || "",
       },
@@ -90,7 +94,6 @@ export async function DELETE(
       )
     }
 
-    // Remove o histórico de empréstimos (já devolvidos) e então o usuário
     await prisma.emprestimo.deleteMany({ where: { usuarioId: Number(id) } })
     await prisma.usuario.delete({ where: { id: Number(id) } })
 

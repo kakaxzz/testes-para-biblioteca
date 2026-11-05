@@ -21,7 +21,6 @@ export async function GET(
     return NextResponse.json({ error: "Empréstimo não encontrado." }, { status: 404 })
   }
 
-  // Normaliza para manter o mesmo formato usado na listagem (e.livro, e.tomboExemplar)
   const normalizado = {
     ...emprestimo,
     livro: emprestimo.exemplar.livro,

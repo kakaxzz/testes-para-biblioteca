@@ -3,8 +3,6 @@ import { NextResponse } from "next/server"
 
 export const dynamic = "force-dynamic"
 
-// Imagem do aviso (pública, como o próprio BiblioNews). A URL carrega um ?v=
-// que muda quando a imagem é trocada, por isso o cache pode ser longo.
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> }

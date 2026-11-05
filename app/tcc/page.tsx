@@ -36,7 +36,6 @@ export default function TccPage() {
     if (!hasAccess) return
     fetch("/api/tcc")
       .then(async (r) => {
-        // O acesso acabou (passou o prazo do token ou ele foi encerrado): volta para a tela do token
         if (r.status === 401) {
           setHasAccess(false)
           return
@@ -161,7 +160,7 @@ export default function TccPage() {
         }
         .hero-mark-logo {
           width: 100%; height: 100%; object-fit: contain;
-          opacity: 0.23; filter: sepia(0.08) saturate(0.75) brightness(1.4) contrast(0.9); mix-blend-mode: screen;
+          opacity: 0.12; filter: sepia(0.08) saturate(0.75) brightness(1.4) contrast(0.9); mix-blend-mode: screen;
         }
 
         .search-shell {
@@ -264,7 +263,7 @@ export default function TccPage() {
         <section className="hero">
           <div className="hero-inner">
             <div className="hero-copy">
-              <p className="hero-kicker">Escola João Paulo I</p>
+              <p className="hero-kicker">Colégio João Paulo I</p>
               <h1 className="hero-title">TCCs <span>&</span> Artigos</h1>
               <p className="hero-text">
                 Consulte as produções acadêmicas da comunidade escolar em um ambiente visual alinhado ao restante da biblioteca.
@@ -346,7 +345,7 @@ export default function TccPage() {
         </main>
 
         <footer className="footer">
-          Biblioteca Escolar Emerson Teixeira • Escola João Paulo I
+          Biblioteca Escolar Emerson Teixeira • Colégio João Paulo I
         </footer>
       </div>
     </div>

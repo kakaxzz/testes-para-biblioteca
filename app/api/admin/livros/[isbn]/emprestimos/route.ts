@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 
 const ULTIMOS = 10
 
-// Só admin (protegida no middleware). Devolve apenas o necessário: nada de CPF, WhatsApp ou matrícula.
 export async function GET(
   _request: Request,
   context: { params: Promise<{ isbn: string }> }

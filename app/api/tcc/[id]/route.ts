@@ -5,7 +5,6 @@ import { ehFalha, lerDadosTcc, lerId, lerPdf } from "@/lib/tcc"
 
 export const dynamic = "force-dynamic"
 
-// Dados do trabalho sem o PDF (o PDF tem rota própria: /api/tcc/[id]/arquivo)
 const CAMPOS = {
   id: true,
   titulo: true,
@@ -17,7 +16,6 @@ const CAMPOS = {
   criadoEm: true,
 } as const
 
-// Erro do Prisma quando o registro não existe (já foi excluído, por exemplo)
 function naoEncontrado(error: unknown) {
   return (error as { code?: string } | null)?.code === "P2025"
 }
@@ -41,7 +39,6 @@ export async function GET(_request: Request, context: Contexto) {
   return NextResponse.json(tcc)
 }
 
-// Editar: título, autor, ano, tipo e resumo. O PDF só é trocado se um novo arquivo for enviado.
 export async function PUT(request: Request, context: Contexto) {
   if (!(await ehAdmin())) {
     return NextResponse.json({ error: "Não autorizado. Faça login como admin." }, { status: 401 })
@@ -99,7 +96,6 @@ export async function DELETE(_request: Request, context: Contexto) {
   }
 
   try {
-    // O PDF fica na própria linha do trabalho, então sai junto
     await prisma.tcc.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (error) {

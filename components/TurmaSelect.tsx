@@ -12,7 +12,6 @@ interface Props {
   style?: CSSProperties
 }
 
-// "2 afm", "2-AFM" e "2afm" valem o mesmo; ignora acento e maiúscula
 function normalizar(texto: string) {
   return texto
     .normalize("NFD")
@@ -21,7 +20,6 @@ function normalizar(texto: string) {
     .replace(/[^a-z0-9]/g, "")
 }
 
-// Campo de digitar com sugestões: conforme a pessoa escreve, a lista mostra só as turmas que combinam
 export function TurmaSelect({ value, onChange, required, className, style }: Props) {
   const atual = value ?? ""
   const [texto, setTexto] = useState(atual)
@@ -30,12 +28,10 @@ export function TurmaSelect({ value, onChange, required, className, style }: Pro
   const containerRef = useRef<HTMLDivElement>(null)
   const listaRef = useRef<HTMLDivElement>(null)
 
-  // acompanha mudanças de fora (abrir a edição de outro aluno, limpar o formulário depois de salvar)
   useEffect(() => { setTexto(atual) }, [atual])
 
   const opcoes = useMemo(() => {
     const busca = normalizar(texto)
-    // com o campo já preenchido por uma turma válida, mostra a lista inteira para poder trocar
     if (!busca || (TURMAS as readonly string[]).includes(texto)) return [...TURMAS]
     const comecam = TURMAS.filter((t) => normalizar(t).startsWith(busca))
     const contem = TURMAS.filter((t) => !normalizar(t).startsWith(busca) && normalizar(t).includes(busca))
@@ -44,7 +40,6 @@ export function TurmaSelect({ value, onChange, required, className, style }: Pro
 
   useEffect(() => { setDestaque(0) }, [texto])
 
-  // mantém a opção destacada visível quando navega com as setas
   useEffect(() => {
     if (!aberto) return
     const el = listaRef.current?.children[destaque] as HTMLElement | undefined
@@ -57,7 +52,6 @@ export function TurmaSelect({ value, onChange, required, className, style }: Pro
     setAberto(false)
   }
 
-  // ao sair do campo: texto que não é turma da lista volta para o último valor válido
   function confirmar() {
     setAberto(false)
     if (texto.trim() === "") {
@@ -70,7 +64,6 @@ export function TurmaSelect({ value, onChange, required, className, style }: Pro
       setTexto(exata)
       onChange(exata)
     } else {
-      // turma antiga (fora da lista) continua como está até a pessoa trocar
       setTexto(atual)
     }
   }
@@ -131,7 +124,6 @@ export function TurmaSelect({ value, onChange, required, className, style }: Pro
               key={t}
               role="option"
               aria-selected={t === atual}
-              // mousedown (e não click) para o campo não perder o foco antes da escolha
               onMouseDown={(e) => { e.preventDefault(); escolher(t) }}
               onMouseEnter={() => setDestaque(i)}
               style={{

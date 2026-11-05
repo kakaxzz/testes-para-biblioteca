@@ -1,14 +1,3 @@
-// Recomendação de livros parecidos ("Mais como este").
-//
-// Cada candidato recebe uma pontuação de semelhança com o livro aberto, somando:
-//   - mesmo autor e mesma série (mesmo autor + início do título igual)
-//   - assuntos em comum (assunto raro no acervo vale mais que um muito comum)
-//   - CDD em comum (quanto mais dígitos iguais, mais parecido)
-//   - palavras em comum na sinopse e no título (também ponderadas pela raridade)
-//   - mesma editora (peso pequeno, só complementa)
-//   - classificação indicativa próxima (faixas muito distantes nunca se recomendam)
-// Só aparece quem passa da PONTUACAO_MINIMA. O resultado é sempre o mesmo para os
-// mesmos dados: nada aqui é sorteado.
 
 import { CLASSIFICACOES, normalizarClassificacao } from "@/lib/classificacao"
 
@@ -28,29 +17,26 @@ export type LivroParaRecomendar = {
 export type Recomendacao<T extends LivroParaRecomendar> = {
   livro: T
   pontos: number
-  // Por que o livro foi sugerido, do motivo mais forte para o mais fraco
   motivos: string[]
 }
 
-// Abaixo disso o livro não é parecido o bastante para ser sugerido
 export const PONTUACAO_MINIMA = 3
 
 const PESO = {
   autor: 6,
   serie: 3.5,
-  assunto: 6, // multiplicado pela raridade do assunto (0 a 1)
+  assunto: 6,
   assuntoTeto: 10,
   editora: 1.2,
-  cddPorDigitosEmComum: [0, 0.3, 1, 2, 3, 3.5], // índice = dígitos iguais no começo
-  palavra: 0.6, // multiplicado pela raridade da palavra (0 a 1)
+  cddPorDigitosEmComum: [0, 0.3, 1, 2, 3, 3.5],
+  palavra: 0.6,
   palavrasTeto: 4,
   mesmaClassificacao: 1.5,
   classificacaoVizinha: 0.5,
   classificacaoDistante: -1.5,
-  disponivel: 0.4, // só desempata
+  disponivel: 0.4,
 }
 
-// A partir de 3 faixas de diferença (ex.: livre e 14) o livro nem é considerado
 const DISTANCIA_MAXIMA_CLASSIFICACAO = 3
 
 const AUTORES_GENERICOS = new Set([
@@ -71,13 +57,13 @@ const PALAVRAS_COMUNS = new Set([
 ])
 
 type Perfil = {
-  assuntos: Map<string, string> // chave sem acento -> texto como foi cadastrado
+  assuntos: Map<string, string>
   autores: Set<string>
   editora: string
-  cdd: string // só os dígitos
+  cdd: string
   palavras: Set<string>
-  abertura: string // as duas primeiras palavras do título (sem artigos)
-  nivel: number | null // posição da classificação indicativa (L = 0 ... 18 = 5)
+  abertura: string
+  nivel: number | null
 }
 
 type Frequencias = {
@@ -105,7 +91,6 @@ function lerAssuntos(texto?: string | null): Map<string, string> {
   return mapa
 }
 
-// "Rowling, J. K." e "J. K. Rowling" viram a mesma chave
 function lerAutores(texto?: string | null): Set<string> {
   const autores = new Set<string>()
   for (const parte of (texto ?? "").split(/;|\/|&| e /i)) {
@@ -125,7 +110,6 @@ function lerEditora(texto?: string | null): string {
     .trim()
 }
 
-// Tira o plural simples para "dragão"/"dragões" e "livro"/"livros" contarem como a mesma palavra
 function raiz(palavra: string): string {
   return palavra.length > 4 && palavra.endsWith("s") ? palavra.slice(0, -1) : palavra
 }
@@ -171,7 +155,6 @@ function contarFrequencias(perfis: Perfil[]): Frequencias {
   return { total: perfis.length, assuntos, palavras }
 }
 
-// Raridade de 0 a 1: 1 quando só estes dois livros têm o termo, perto de 0 quando quase todo o acervo tem
 function raridade(livrosComOTermo: number, total: number): number {
   if (total <= 1) return 0
   const n = Math.max(1, livrosComOTermo)
@@ -192,7 +175,6 @@ function pontuar(
   let pontos = 0
   const motivos: string[] = []
 
-  // Classificação indicativa: faixas muito distantes eliminam o livro
   if (a.nivel !== null && b.nivel !== null) {
     const distancia = Math.abs(a.nivel - b.nivel)
     if (distancia >= DISTANCIA_MAXIMA_CLASSIFICACAO) return null
@@ -201,7 +183,6 @@ function pontuar(
     else pontos += PESO.classificacaoDistante
   }
 
-  // Autor e série
   const mesmoAutor = [...a.autores].some((autor) => b.autores.has(autor))
   if (mesmoAutor) {
     pontos += PESO.autor
@@ -212,7 +193,6 @@ function pontuar(
     }
   }
 
-  // Assuntos em comum, os mais raros pesam mais
   let pontosAssunto = 0
   let melhorAssunto: { rotulo: string; raridade: number } | null = null
   for (const [chave] of a.assuntos) {
@@ -226,7 +206,6 @@ function pontuar(
   pontos += pontosAssunto
   if (melhorAssunto && pontosAssunto >= 0.5) motivos.push(`Assunto: ${melhorAssunto.rotulo}`)
 
-  // CDD: quantos dígitos do começo são iguais (869 = literatura portuguesa, 869.3 = romance...)
   let pontosCdd = 0
   if (a.cdd && b.cdd) {
     const iguais = digitosEmComum(a.cdd, b.cdd)
@@ -234,13 +213,11 @@ function pontuar(
     pontos += pontosCdd
   }
 
-  // Editora (só complementa)
   if (a.editora && a.editora === b.editora) {
     pontos += PESO.editora
     motivos.push("Mesma editora")
   }
 
-  // Palavras em comum no título e na sinopse
   let pontosPalavras = 0
   for (const palavra of a.palavras) {
     if (!b.palavras.has(palavra)) continue
@@ -249,7 +226,6 @@ function pontuar(
   pontosPalavras = Math.min(pontosPalavras, PESO.palavrasTeto)
   pontos += pontosPalavras
 
-  // Quando nada acima explicou, diz pelo menos o que foi que aproximou os dois
   if (motivos.length === 0) {
     if (pontosPalavras >= 1.5) motivos.push("Tema parecido")
     else if (pontosCdd >= PESO.cddPorDigitosEmComum[3]) motivos.push("Mesma área")
@@ -258,10 +234,6 @@ function pontuar(
   return { pontos, motivos }
 }
 
-/**
- * Livros do acervo mais parecidos com `atual`, do mais ao menos parecido.
- * `todos` pode incluir o próprio livro (ele é ignorado).
- */
 export function recomendarLivros<T extends LivroParaRecomendar>(
   atual: T,
   todos: T[],

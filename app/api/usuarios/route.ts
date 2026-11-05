@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { cpfValido, formatarCpf, variantesDoCpf } from "@/lib/cpf"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   }
 
   if (cpf) {
-    const usuario = await prisma.usuario.findUnique({ where: { cpf } })
+    const usuario = await prisma.usuario.findFirst({ where: { cpf: { in: variantesDoCpf(cpf) } } })
     if (!usuario) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
     return NextResponse.json(usuario)
   }
@@ -48,7 +49,10 @@ export async function POST(request: Request) {
       if (!cpf) {
         return NextResponse.json({ error: "CPF é obrigatório para funcionários e responsáveis." }, { status: 400 })
       }
-      const existe = await prisma.usuario.findUnique({ where: { cpf } })
+      if (!cpfValido(cpf)) {
+        return NextResponse.json({ error: "CPF inválido. Confira os números." }, { status: 400 })
+      }
+      const existe = await prisma.usuario.findFirst({ where: { cpf: { in: variantesDoCpf(cpf) } } })
       if (existe) return NextResponse.json({ error: "CPF já cadastrado." }, { status: 400 })
     }
 
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
         nome,
         tipo,
         matricula: tipo === "ALUNO" ? matricula : null,
-        cpf: tipo !== "ALUNO" ? cpf : null,
+        cpf: tipo !== "ALUNO" ? formatarCpf(cpf) : null,
         turma: tipo === "ALUNO" ? turmaLimpa : null,
         whatsapp: whatsapp || "",
       },

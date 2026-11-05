@@ -1,4 +1,3 @@
-// Turmas da escola (na ordem em que aparecem na caixa de seleção)
 export const TURMAS = [
   "2AFM", "2BFM", "2AFT", "2BFT",
   "3AFM", "3BFM", "3AFT", "3BFT",

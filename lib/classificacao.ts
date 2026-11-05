@@ -1,4 +1,3 @@
-// Classificação indicativa dos livros (mesma lógica da classificação indicativa brasileira)
 
 export const CLASSIFICACOES = ["L", "10", "12", "14", "16", "18"] as const
 export type Classificacao = (typeof CLASSIFICACOES)[number]
@@ -21,7 +20,6 @@ export function normalizarClassificacao(valor: unknown): Classificacao | null {
   return (CLASSIFICACOES as readonly string[]).includes(v) ? (v as Classificacao) : null
 }
 
-// true quando o livro tem restrição de idade (qualquer coisa diferente de livre / não informada)
 export function temRestricaoDeIdade(valor: unknown): boolean {
   const c = normalizarClassificacao(valor)
   return c !== null && c !== "L"

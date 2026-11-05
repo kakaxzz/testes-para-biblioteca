@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Icone } from "@/components/Icone"
 
 export const CATEGORIAS = [
-  "Literatura brasileira", "Literatura estrangeira", "Poesia", "Romance", "Ficcção científica", "Fantasia", "Mistério / Suspense", "Terror", "Aventura", "Infantojuvenil", "Clássicos", "Política", "Economia", "Administração", "Culinária", "HQs / Mangás",
+  "Literatura brasileira", "Literatura estrangeira", "Poesia", "Romance", "Ficção científica", "Fantasia", "Mistério / Suspense", "Terror", "Aventura", "Infantojuvenil", "Clássicos", "Política", "Economia", "Administração", "Culinária", "HQs / Mangás",
   "História do Brasil", "História geral", "Geografia", "Filosofia",
   "Sociologia", "Psicologia", "Educação", "Ciências naturais",
   "Biologia", "Química", "Física", "Matemática", "Astronomia",
@@ -39,7 +39,6 @@ export function CategoriasSelect({ value, onChange }: CategoriasSelectProps) {
     if (aberto) buscaRef.current?.focus()
   }, [aberto])
 
-  // Fecha com Escape
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") { setAberto(false); setBusca("") }

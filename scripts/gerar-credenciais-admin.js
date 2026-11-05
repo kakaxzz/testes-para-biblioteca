@@ -1,10 +1,3 @@
-// Uso: node scripts/gerar-credenciais-admin.js "sua-senha-aqui"
-//
-// Gera:
-// 1) O hash bcrypt da senha, pra colocar em ADMIN_SENHA_HASH na Vercel
-// 2) Um SESSION_SECRET aleatório, pra colocar em SESSION_SECRET na Vercel
-//
-// Depois disso, pode remover a variável antiga ADMIN_SENHA (texto puro).
 
 const bcrypt = require("bcryptjs")
 const crypto = require("crypto")

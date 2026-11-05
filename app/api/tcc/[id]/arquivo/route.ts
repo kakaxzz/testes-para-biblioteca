@@ -9,8 +9,6 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // O admin recebe o PDF normalmente (precisa conferir o que cadastrou e guardar o original).
-  // Quem entrou com token só recebe o PDF dentro do leitor da página, que não tem botão de baixar.
   const admin = await ehAdmin()
 
   if (!admin) {
@@ -18,8 +16,6 @@ export async function GET(
       return NextResponse.json({ error: "Acesso restrito." }, { status: 401 })
     }
 
-    // Sec-Fetch-Dest vem dos navegadores atuais: "empty" é uma chamada fetch() do leitor;
-    // "document", "iframe", "embed" etc. são o PDF aberto direto, o que não é permitido
     const destino = request.headers.get("sec-fetch-dest")
     if (request.headers.get(CABECALHO_LEITOR) !== "1" || (destino && destino !== "empty")) {
       return NextResponse.json(
@@ -49,7 +45,6 @@ export async function GET(
   return new NextResponse(new Uint8Array(registro.arquivoDados), {
     headers: {
       "Content-Type": "application/pdf",
-      // Leitores não recebem nome de arquivo, para o navegador não oferecer "salvar" com o nome do trabalho
       "Content-Disposition": admin ? `inline; filename="${nome}"` : "inline",
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",

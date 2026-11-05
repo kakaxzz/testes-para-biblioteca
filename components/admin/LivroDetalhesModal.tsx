@@ -74,7 +74,6 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
           </div>
 
           <div className="modal-body space-y-5">
-            {/* Identificação */}
             <div className="flex gap-4">
               {livro.capa ? (
                 <img src={livro.capa} alt={livro.titulo} className="h-28 w-20 shrink-0 rounded-lg object-cover shadow-md sm:h-36 sm:w-24" />
@@ -90,14 +89,12 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
               </div>
             </div>
 
-            {/* Números */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <Numero n={hist ? hist.total : "…"} rotulo="empréstimos no total" destaque />
               <Numero n={hist ? hist.emAberto : "…"} rotulo="em aberto agora" />
               <Numero n={`${livro.quantidadeDisponivel ?? 0}/${livro.quantidadeTotal ?? exemplares.length}`} rotulo="exemplares disponíveis" />
             </div>
 
-            {/* Últimos empréstimos */}
             <section>
               <h4 className="mb-2 text-xs font-extrabold uppercase tracking-wider text-[#9d8b8b]">Últimas pessoas que pegaram</h4>
               {erro && <p className="mensagem-erro mt-0!">Não consegui carregar os empréstimos deste livro.</p>}
@@ -128,7 +125,6 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
               )}
             </section>
 
-            {/* Exemplares */}
             <section>
               <h4 className="mb-2 text-xs font-extrabold uppercase tracking-wider text-[#9d8b8b]">Exemplares</h4>
               <div className="flex flex-wrap gap-2">
@@ -140,7 +136,6 @@ export function LivroDetalhesModal({ livro, onClose, onEditar }: Props) {
               </div>
             </section>
 
-            {/* Dados do livro */}
             <section>
               <h4 className="mb-2 text-xs font-extrabold uppercase tracking-wider text-[#9d8b8b]">Informações</h4>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">

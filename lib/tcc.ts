@@ -1,11 +1,6 @@
-// Leitura e validação dos dados de um trabalho (TCC ou artigo).
-// Usado tanto ao cadastrar (POST /api/tcc) quanto ao editar (PUT /api/tcc/[id]).
 
-// A Vercel limita o corpo de uma requisição a ~4,5 MB
 export const TAMANHO_MAXIMO_PDF = 4 * 1024 * 1024
 
-// Cabeçalho que só o leitor da página (app/tcc/[id]/page.tsx) envia ao buscar o PDF.
-// Um endereço digitado no navegador, um link, um <iframe> ou um "Salvar como" não conseguem enviá-lo.
 export const CABECALHO_LEITOR = "x-leitor-tcc"
 
 export type DadosTcc = {
@@ -32,8 +27,6 @@ export function lerDadosTcc(form: FormData): { dados: DadosTcc } | Falha {
   return { dados: { titulo, autor, ano, tipo, resumo } }
 }
 
-// Confere o PDF enviado. Devolve `pdf: null` quando nenhum arquivo foi enviado
-// (na edição, isso significa "manter o PDF que já está salvo").
 export async function lerPdf(
   entrada: FormDataEntryValue | null
 ): Promise<{ pdf: { nome: string; dados: Buffer } | null } | Falha> {
@@ -48,7 +41,6 @@ export async function lerPdf(
 
   const dados = Buffer.from(await entrada.arrayBuffer())
 
-  // Confere se é mesmo um PDF (todo PDF começa com "%PDF")
   if (dados.subarray(0, 4).toString("latin1") !== "%PDF") {
     return { erro: "O arquivo enviado não é um PDF válido.", status: 400 }
   }

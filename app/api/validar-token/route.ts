@@ -21,8 +21,6 @@ export async function POST(req: Request) {
   if (record.expiresAt < new Date())
     return NextResponse.json({ error: "Token expirado." }, { status: 401 });
 
-  // Marca como usado só se ainda não estava: se duas pessoas digitarem o mesmo token
-  // ao mesmo tempo, apenas uma consegue entrar
   const consumido = await prisma.accessToken.updateMany({
     where: { id: record.id, used: false },
     data: { used: true },
@@ -36,9 +34,6 @@ export async function POST(req: Request) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    // Sem maxAge: é um cookie de sessão, some quando o navegador fecha.
-    // O prazo máximo fica dentro do próprio cookie (TCC_ACESSO_SEGUNDOS).
-    // "/" para que as rotas /api/tcc e /api/verificar-acesso também recebam o cookie
     path: "/",
   });
 

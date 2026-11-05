@@ -35,7 +35,7 @@ type Stats = {
 export default function AdminStats() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [ano, setAno] = useState<number | null>(null) // null = ano atual
+  const [ano, setAno] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true)

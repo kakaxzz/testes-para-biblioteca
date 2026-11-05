@@ -12,7 +12,6 @@ export async function GET() {
   try {
     const tccs = await prisma.tcc.findMany({
       orderBy: [{ ano: "desc" }, { id: "desc" }],
-      // não carrega o PDF na listagem
       select: { id: true, titulo: true, autor: true, ano: true, tipo: true, resumo: true, arquivoNome: true, criadoEm: true },
     })
     return NextResponse.json(tccs)

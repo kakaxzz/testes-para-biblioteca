@@ -4,7 +4,6 @@ import { executarVirada, planejarVirada } from "@/lib/virada"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-// Prévia: o que vai acontecer com cada turma (não altera nada)
 export async function GET() {
   try {
     return NextResponse.json(await planejarVirada())
@@ -14,7 +13,6 @@ export async function GET() {
   }
 }
 
-// Execução manual (plano B caso o cron da Vercel falhe). Mesmas travas do cron.
 export async function POST() {
   try {
     const resultado = await executarVirada()

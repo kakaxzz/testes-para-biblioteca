@@ -18,8 +18,6 @@ export async function GET(
 
   const quantidadeDisponivel = livro.exemplares.filter((e: Exemplar) => e.status === "disponivel").length
 
-  // Previsão de devolução (só quando não há exemplar disponível).
-  // Devolve apenas a data (empréstimo + 10 dias, o mesmo prazo do painel admin) — nunca dados do aluno.
   let previsaoDevolucao: string | null = null
   if (quantidadeDisponivel === 0) {
     try {
@@ -95,7 +93,6 @@ export async function DELETE(
 
     if (!livro) return NextResponse.json({ error: "Livro não encontrado." }, { status: 404 })
 
-    // Verifica se algum exemplar tem empréstimo ativo
     const temEmprestimoAtivo = livro.exemplares.some((e: Exemplar & { emprestimos: Emprestimo[] }) => e.emprestimos.length > 0)
     if (temEmprestimoAtivo) {
       return NextResponse.json(
@@ -106,7 +103,6 @@ export async function DELETE(
 
     const exemplarIds = livro.exemplares.map((e: Exemplar) => e.id)
 
-    // Deleta empréstimos históricos dos exemplares, depois os exemplares, depois o livro
     await prisma.emprestimo.deleteMany({ where: { exemplarId: { in: exemplarIds } } })
     await prisma.exemplar.deleteMany({ where: { livroId: livro.id } })
     await prisma.livro.delete({ where: { isbn } })

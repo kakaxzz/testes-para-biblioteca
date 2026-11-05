@@ -33,7 +33,6 @@ export default function ConsultaLivro() {
   };
 
   const alterarStatus = async (novoStatus: string) => {
-    // Atualiza visualmente na hora (otimista)
     setLivro((prev: any) => ({ ...prev, status: novoStatus }));
     setSalvandoStatus(true);
     setMensagemStatus("");
@@ -54,7 +53,6 @@ export default function ConsultaLivro() {
       setMensagemStatus("Erro de conexão.");
     } finally {
       setSalvandoStatus(false);
-      // Limpa a mensagem após 3 segundos
       setTimeout(() => setMensagemStatus(""), 3000);
     }
   };
@@ -86,7 +84,6 @@ export default function ConsultaLivro() {
     }
   };
 
-  // Verifica se o livro está disponível para empréstimo
   const podeEmprestar = livro?.quantidadeDisponivel > 0 && livro?.status === 'disponivel';
 
   return (
@@ -131,7 +128,6 @@ export default function ConsultaLivro() {
 
         {livro && (
           <div style={{ border: "1px solid #eee", borderRadius: "12px", overflow: "hidden" }}>
-            {/* Cabeçalho com info do livro */}
             <div style={{ display: "flex", backgroundColor: "#fafafa", padding: "20px", gap: "20px", borderBottom: "1px solid #eee" }}>
               {livro.capa && (
                 <img src={livro.capa} alt="Capa" style={{ width: "120px", borderRadius: "6px", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
@@ -151,12 +147,10 @@ export default function ConsultaLivro() {
               </div>
             </div>
 
-            {/* Área de ações */}
             <div style={{ padding: "20px" }}>
               <h3 style={{ fontSize: "18px", marginBottom: "15px" }}><Icone nome="config" tamanho="1em" style={{ marginRight: 8 }} />Ações de Balcão</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 
-                {/* Select de status manual - AGORA FUNCIONAL */}
                 <label style={{ fontSize: "14px", fontWeight: "bold", color: "#555" }}>
                   Alterar Status Manualmente
                 </label>
@@ -185,7 +179,6 @@ export default function ConsultaLivro() {
                   </p>
                 )}
 
-                {/* Seção de empréstimo */}
                 {podeEmprestar ? (
                   <div style={{ backgroundColor: "#f0f7ff", padding: "20px", borderRadius: "10px", border: "1px solid #cce3ff" }}>
                     <p style={{ margin: "0 0 10px 0", fontWeight: "bold", color: "#004085" }}>Registrar Saída para Aluno:</p>

@@ -24,7 +24,6 @@ export default function AdminTcc() {
   const [loading, setLoading] = useState(false)
   const [fileKey, setFileKey] = useState(0)
   const [tccs, setTccs] = useState<Trabalho[]>([])
-  // Quando preenchido, o formulário edita este trabalho em vez de cadastrar um novo
   const [editandoId, setEditandoId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -91,7 +90,6 @@ export default function AdminTcc() {
     e.preventDefault()
     const editando = editandoId !== null
 
-    // Ao cadastrar o PDF é obrigatório; ao editar, sem arquivo novo o PDF atual é mantido
     if (!editando && !arquivo) {
       setMensagem("Selecione um arquivo PDF.")
       setTipoMensagem("erro")
@@ -208,7 +206,7 @@ export default function AdminTcc() {
             <table>
               <thead>
                 <tr>
-                  <th>Titulo</th>
+                  <th>Título</th>
                   <th>Autor</th>
                   <th>Ano</th>
                   <th>Tipo</th>

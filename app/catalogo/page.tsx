@@ -275,7 +275,6 @@ export default function Catalogo() {
           .search-wrap { margin-bottom: 16px; }
           .search-input { padding: 11px 16px 11px 40px; font-size: 0.86rem; }
           .search-icon { left: 14px; font-size: 0.86rem; }
-          /* mais livros por linha (3 ou mais), como no computador */
           .books-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
           .book-card { border-radius: 12px; box-shadow: 0 6px 16px rgba(55, 18, 18, 0.07); }
           .book-card:hover { transform: none; }

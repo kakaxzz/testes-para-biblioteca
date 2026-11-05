@@ -57,7 +57,6 @@ export function Papiro({ acervo }: PapiroProps) {
 
   return (
     <>
-      {/* Botão flutuante */}
       <button
         onClick={() => setAberto(v => !v)}
         style={{
@@ -86,7 +85,6 @@ export function Papiro({ acervo }: PapiroProps) {
         />
       </button>
 
-      {/* Janela do chat */}
       {aberto && (
         <div style={{
           position: "fixed", bottom: 104, right: 28, zIndex: 200,
@@ -100,7 +98,6 @@ export function Papiro({ acervo }: PapiroProps) {
           overflow: "hidden",
         }}>
 
-          {/* Header */}
           <div style={{
             background: "linear-gradient(90deg, #8b1e1e 0%, #6d1414 100%)",
             padding: "14px 16px",
@@ -118,7 +115,6 @@ export function Papiro({ acervo }: PapiroProps) {
             ><Icone nome="x" tamanho={20} /></button>
           </div>
 
-          {/* Mensagens */}
           <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 8px", display: "flex", flexDirection: "column", gap: 10 }}>
             {mensagens.map((m, i) => (
               <div key={i} style={{
@@ -153,7 +149,6 @@ export function Papiro({ acervo }: PapiroProps) {
             <div ref={fimRef} />
           </div>
 
-          {/* Input */}
           <div style={{ padding: "10px 12px 14px", borderTop: "1px solid rgba(139,30,30,0.08)", display: "flex", gap: 8 }}>
             <input
               value={input}

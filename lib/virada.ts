@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma"
 import { anoAtual, calcularEstatisticas } from "@/lib/estatisticas"
 import { destinoDaTurma, ORDEM_DA_PROMOCAO } from "@/lib/virada-regras"
 
-// A primeira virada é a de 2026 -> 2027. Antes disso nada roda (evita virar a turma por acidente).
 export const PRIMEIRO_ANO_DA_VIRADA = 2026
 
 export type LinhaDoPlano = {
@@ -14,9 +13,9 @@ export type LinhaDoPlano = {
 }
 
 export type Plano = {
-  ano: number // ano que está acabando (o que será resumido)
+  ano: number
   executavel: boolean
-  motivo: string | null // por que ainda não dá para executar
+  motivo: string | null
   executadaEm: string | null
   totais: { promover: number; remover: number; bloqueados: number; semMudanca: number }
   turmas: LinhaDoPlano[]
@@ -81,8 +80,6 @@ export type ResultadoDaVirada =
   | { ok: true; ano: number; promovidos: number; removidos: number; pendentes: number }
   | { ok: false; motivo: string }
 
-// Executa a virada do ano que acabou. Seguro para rodar mais de uma vez: a linha em "Virada"
-// (chave = ano) é criada dentro da mesma transação, então a segunda tentativa é barrada.
 export async function executarVirada(): Promise<ResultadoDaVirada> {
   const ano = anoAtual() - 1
   if (ano < PRIMEIRO_ANO_DA_VIRADA) {
@@ -92,7 +89,6 @@ export async function executarVirada(): Promise<ResultadoDaVirada> {
     return { ok: false, motivo: `A virada de ${ano} para ${ano + 1} já foi executada.` }
   }
 
-  // 1) guarda o resumo do ano ANTES de apagar qualquer aluno
   const estatisticas = await calcularEstatisticas(ano)
   const alunos = await lerAlunos()
 
@@ -100,7 +96,7 @@ export async function executarVirada(): Promise<ResultadoDaVirada> {
   let pendentes = 0
   for (const a of alunos) {
     if (destinoDaTurma(a.turma).tipo !== "remover") continue
-    if (a.temLivroEmAberto) pendentes++ // com livro na mão: fica, a bibliotecária resolve
+    if (a.temLivroEmAberto) pendentes++
     else idsParaRemover.push(a.id)
   }
 
@@ -109,13 +105,11 @@ export async function executarVirada(): Promise<ResultadoDaVirada> {
       async (tx) => {
         await tx.virada.create({ data: { ano, estatisticas: estatisticas as object } })
 
-        // 2) apaga quem saiu (histórico de empréstimos junto, como na remoção manual de usuário)
         if (idsParaRemover.length > 0) {
           await tx.emprestimo.deleteMany({ where: { usuarioId: { in: idsParaRemover } } })
           await tx.usuario.deleteMany({ where: { id: { in: idsParaRemover } } })
         }
 
-        // 3) promove, da turma mais alta para a mais baixa
         let promovidos = 0
         for (const { de, para } of ORDEM_DA_PROMOCAO) {
           const r = await tx.usuario.updateMany({ where: { tipo: "ALUNO", turma: de }, data: { turma: para } })
@@ -131,7 +125,6 @@ export async function executarVirada(): Promise<ResultadoDaVirada> {
       { timeout: 60_000, maxWait: 10_000 }
     )
   } catch (erro: any) {
-    // P2002 = outra execução criou a linha do ano primeiro
     if (erro?.code === "P2002") return { ok: false, motivo: `A virada de ${ano} para ${ano + 1} já foi executada.` }
     throw erro
   }

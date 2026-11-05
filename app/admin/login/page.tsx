@@ -27,7 +27,7 @@ export default function LoginPage() {
     })
 
     if (res.ok) router.replace("/admin")
-    else setErro("Usuario ou senha incorretos.")
+    else setErro("Usuário ou senha incorretos.")
 
     setLoading(false)
   }
@@ -49,12 +49,12 @@ export default function LoginPage() {
           <Icone nome="livros" tamanho={38} style={{ color: "#8b1e1e" }} />
         </div>
 
-        <h1 className="mb-1.5 font-titulo text-[31px] font-black text-[#8b1e1e]">Area Admin</h1>
+        <h1 className="mb-1.5 font-titulo text-[31px] font-black text-[#8b1e1e]">Área Admin</h1>
         <p className="mb-[30px] text-sm tracking-[0.01em] text-[#9b8f8f]">Biblioteca Escolar Emerson Teixeira</p>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-3.5">
           <input
-            placeholder="Usuario"
+            placeholder="Usuário"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             autoComplete="username"

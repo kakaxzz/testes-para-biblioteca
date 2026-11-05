@@ -2,7 +2,6 @@ export const runtime = "nodejs"
 
 import { NextResponse } from "next/server"
 
-// LOGS DE DEPURAÇÃO
 console.log('🔍 ===== INICIANDO ROTA ISBN =====');
 console.log('📝 Verificando variáveis de ambiente:');
 console.log('GOOGLE_BOOKS_API_KEY existe?', !!process.env.GOOGLE_BOOKS_API_KEY);
@@ -43,10 +42,6 @@ export async function GET(
     let googleData: any = null
     let brasilData: any = null
 
-
-    // =========================
-    // 1️⃣ GOOGLE BOOKS
-    // =========================
 
     try {
 
@@ -96,10 +91,6 @@ export async function GET(
 
 
 
-    // =========================
-    // 2️⃣ BRASIL API
-    // =========================
-
     if (!googleData) {
 
       try {
@@ -131,10 +122,6 @@ export async function GET(
 
 
 
-    // =========================
-    // NADA ENCONTRADO
-    // =========================
-
     if (!googleData && !brasilData) {
 
       return NextResponse.json(
@@ -145,10 +132,6 @@ export async function GET(
     }
 
 
-
-    // =========================
-    // DADOS
-    // =========================
 
     const titulo =
 
@@ -190,10 +173,6 @@ export async function GET(
 
 
 
-    // =========================
-    // CAPA INTELIGENTE
-    // =========================
-
     const capaGoogle =
       googleData?.imageLinks?.thumbnail?.replace("http://", "https://")
 
@@ -205,8 +184,6 @@ export async function GET(
     let capaFinal: string | null =
       capaGoogle || null
 
-
-    // testa OpenLibrary só se não tiver Google
 
     if (!capaFinal) {
 
@@ -238,16 +215,10 @@ export async function GET(
 
 
 
-    // se nenhuma capa existir
-
     const capa =
       capaFinal
 
 
-
-    // =========================
-    // RESULTADO
-    // =========================
 
     const resultado = {
 

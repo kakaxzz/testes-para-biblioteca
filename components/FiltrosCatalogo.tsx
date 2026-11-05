@@ -9,13 +9,10 @@ type Props = {
   onChangeGeneros: (generos: string[]) => void
   soDisponiveis: boolean
   onChangeSoDisponiveis: (valor: boolean) => void
-  /** true quando há busca, assunto ou "disponíveis" ativos (mostra o botão Limpar filtros) */
   temFiltroAtivo: boolean
   onLimpar: () => void
 }
 
-// Os filtros do catálogo ficam aqui para a página inicial e o catálogo completo
-// serem sempre apresentados exatamente do mesmo jeito.
 export function FiltrosCatalogo({
   generos,
   selectedGeneros,

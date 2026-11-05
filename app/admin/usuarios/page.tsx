@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { TurmaSelect } from "@/components/TurmaSelect"
 import { ModalPortal } from "@/components/ModalPortal"
 import { Icone } from "@/components/Icone"
+import { erroDoCpf, formatarCpf } from "@/lib/cpf"
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
 
@@ -39,6 +40,14 @@ export default function AdminUsuarios() {
   async function salvarUsuario(e: React.FormEvent) {
     e.preventDefault()
     setMensagem("")
+    if (tipo !== "ALUNO") {
+      const erro = erroDoCpf(cpf, true)
+      if (erro) {
+        setMensagem(erro)
+        setTipoMensagem("erro")
+        return
+      }
+    }
     const res = await fetch("/api/usuarios", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,6 +79,10 @@ export default function AdminUsuarios() {
 
   async function salvarEdicao() {
     if (!editando) return
+    if (editando.tipo !== "ALUNO" && erroDoCpf(editando.cpf, true)) {
+      setEditando((v: any) => ({ ...v, cpfTentou: true }))
+      return
+    }
     const res = await fetch(`/api/usuarios/${editando.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -183,10 +196,13 @@ export default function AdminUsuarios() {
                 <input
                   className="input-field"
                   value={cpf}
-                  onChange={(e) => setCpf(e.target.value)}
+                  onChange={(e) => setCpf(formatarCpf(e.target.value))}
                   required
+                  inputMode="numeric"
+                  maxLength={14}
                   placeholder="Ex: 000.000.000-00"
                 />
+                {erroDoCpf(cpf) && <span style={{ fontSize: 12.5, color: "#b42318" }}>{erroDoCpf(cpf)}</span>}
               </div>
             )}
 
@@ -251,7 +267,6 @@ export default function AdminUsuarios() {
             </div>
           </div>
 
-          {/* MODAL EDITAR */}
           {editando && (
             <ModalPortal><div
               style={{
@@ -317,9 +332,15 @@ export default function AdminUsuarios() {
                     <label>CPF</label>
                     <input
                       className="input-field"
-                      value={editando.cpf || ""}
-                      onChange={(e) => setEditando((v: any) => ({ ...v, cpf: e.target.value }))}
+                      value={formatarCpf(editando.cpf || "")}
+                      onChange={(e) => setEditando((v: any) => ({ ...v, cpf: formatarCpf(e.target.value), cpfTentou: false }))}
+                      inputMode="numeric"
+                      maxLength={14}
+                      placeholder="Ex: 000.000.000-00"
                     />
+                    {erroDoCpf(editando.cpf, !!editando.cpfTentou) && (
+                      <span style={{ fontSize: 12.5, color: "#b42318" }}>{erroDoCpf(editando.cpf, !!editando.cpfTentou)}</span>
+                    )}
                   </div>
                 )}
 

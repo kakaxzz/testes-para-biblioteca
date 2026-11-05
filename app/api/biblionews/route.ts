@@ -9,12 +9,12 @@ type AvisoInput = {
   titulo?: unknown
   mensagem?: unknown
   tag?: unknown
-  data?: unknown // "AAAA-MM-DD" (vazio = usa a data de criação)
-  imagem?: unknown // data URL de uma imagem nova (substitui a atual)
-  removerImagem?: unknown // true = apaga a imagem atual
+  data?: unknown
+  imagem?: unknown
+  removerImagem?: unknown
 }
 
-const LIMITE_IMAGEM = 3 * 1024 * 1024 // 3 MB (o painel já comprime antes de enviar)
+const LIMITE_IMAGEM = 3 * 1024 * 1024
 const DATA_URL_IMAGEM = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/
 
@@ -33,12 +33,10 @@ function lerImagem(valor: unknown) {
 
 function lerData(valor: unknown): Date | null {
   if (typeof valor !== "string" || !DATA_ISO.test(valor)) return null
-  // meio-dia em UTC: o dia escolhido não "escorrega" por causa do fuso horário
   const data = new Date(`${valor}T12:00:00.000Z`)
   return isNaN(data.getTime()) ? null : data
 }
 
-// Sempre devolvemos a data como "AAAA-MM-DD"
 function dataParaTexto(aviso: { data: Date | null; criadoEm: Date }) {
   if (aviso.data) return aviso.data.toISOString().slice(0, 10)
   return aviso.criadoEm.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })
@@ -55,7 +53,7 @@ export async function GET() {
         tag: true,
         data: true,
         criadoEm: true,
-        imagem: { select: { atualizadoEm: true } }, // só a data: os bytes ficam de fora
+        imagem: { select: { atualizadoEm: true } },
       },
     })
 
@@ -66,7 +64,6 @@ export async function GET() {
         mensagem: a.mensagem,
         tag: a.tag,
         data: dataParaTexto(a),
-        // o ?v= muda quando a imagem é trocada, então o navegador pode guardar em cache
         imagemUrl: a.imagem ? `/api/biblionews/${a.id}/imagem?v=${a.imagem.atualizadoEm.getTime()}` : null,
       }))
     )
@@ -76,9 +73,6 @@ export async function GET() {
   }
 }
 
-// Salva a lista inteira: a ordem do array vira a ordem de exibição (o 1º é o destaque).
-// Avisos com "id" existente são atualizados (e mantêm a imagem, a não ser que venha
-// uma nova ou removerImagem); sem "id" são criados; os que sumiram da lista são apagados.
 export async function PUT(request: NextRequest) {
   try {
     const body = (await request.json()) as AvisoInput[]
@@ -96,7 +90,6 @@ export async function PUT(request: NextRequest) {
         imagem: lerImagem(n.imagem),
         removerImagem: n.removerImagem === true,
       }))
-      // descarta avisos totalmente em branco
       .filter((n) => n.titulo || n.mensagem)
 
     const existentes = new Set((await prisma.aviso.findMany({ select: { id: true } })).map((a) => a.id))
@@ -131,7 +124,6 @@ export async function PUT(request: NextRequest) {
     })
 
     await prisma.$transaction([
-      // apaga os avisos que não estão mais na lista (a imagem vai junto, por cascata)
       prisma.aviso.deleteMany({ where: { id: { notIn: mantidos } } }),
       ...operacoes,
     ])

@@ -21,7 +21,6 @@ model Livro {
   cdd                     String?
   cutter                  String?
   criadoEm                DateTime   @default(now())
-  // "L", "10", "12", "14", "16" ou "18". null = não informada
   classificacaoIndicativa String?
   exemplares              Exemplar[]
 }
@@ -65,7 +64,6 @@ model Admin {
   senha String
 }
 
-// O PDF fica na própria linha do TCC (arquivoDados)
 model Tcc {
   id           Int         @id @default(autoincrement())
   titulo       String
@@ -80,7 +78,6 @@ model Tcc {
   arquivoPdf   TccArquivo?
 }
 
-// Já existe no banco; não é usada pelo código atual
 model TccArquivo {
   id    Int   @id @default(autoincrement())
   tccId Int   @unique
@@ -95,13 +92,10 @@ model Aviso {
   tag      String
   ordem    Int          @default(0)
   criadoEm DateTime     @default(now())
-  // Data mostrada no aviso (se vazia, usa a data de criação)
   data     DateTime?
   imagem   AvisoImagem?
 }
 
-// Imagem do aviso fica em tabela própria (o disco da Vercel é somente leitura
-// e assim a listagem de avisos nunca carrega os bytes da imagem)
 model AvisoImagem {
   id           Int      @id @default(autoincrement())
   avisoId      Int      @unique
@@ -125,8 +119,6 @@ enum TipoUsuario {
   RESPONSAVEL
 }
 
-// Uma linha por virada de ano já feita (impede rodar duas vezes) + o resumo
-// das estatísticas daquele ano, guardado antes de apagar os alunos que saíram
 model Virada {
   ano          Int      @id
   executadoEm  DateTime @default(now())

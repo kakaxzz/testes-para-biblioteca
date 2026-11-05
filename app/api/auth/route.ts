@@ -5,7 +5,7 @@ import { verifyPassword, createSessionToken, SESSION_COOKIE, SESSION_DURATION_SE
 export async function POST(request: Request) {
   const { usuario, senha } = await request.json();
 
-  console.log("🔍 usuario recebido:", JSON.stringify(usuario));
+  console.log("🔍 usuário recebido:", JSON.stringify(usuario));
   console.log("🔍 senha recebida (tamanho):", senha?.length);
 
   if (typeof usuario !== "string" || typeof senha !== "string") {

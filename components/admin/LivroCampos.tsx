@@ -22,7 +22,6 @@ export const CAMPOS_VAZIOS: CamposLivro = {
   classificacaoIndicativa: "", categorias: [], sinopse: "", capa: "",
 }
 
-// Converte o livro que vem da API (campos podem ser null) para os campos do formulário
 export function camposDoLivro(l: any): CamposLivro {
   return {
     titulo: l.titulo ?? "",
@@ -54,7 +53,6 @@ type Props = {
   comTitulo?: boolean
 }
 
-// Formulário do livro, usado tanto no cadastro quanto na edição
 export function LivroCampos({ valores, onChange, comTitulo = false }: Props) {
   const texto = (campo: Exclude<keyof CamposLivro, "categorias">, placeholder?: string) => (
     <input

@@ -1,0 +1,250 @@
+--- a/app/admin/usuarios/page.tsx
++++ b/app/admin/usuarios/page.tsx
+@@ -4,6 +4,7 @@
+ import { TurmaSelect } from "@/components/TurmaSelect"
+ import { ModalPortal } from "@/components/ModalPortal"
+ import { Icone } from "@/components/Icone"
++import { erroDoCpf, formatarCpf } from "@/lib/cpf"
+ 
+ type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
+ 
+@@ -39,6 +40,14 @@
+   async function salvarUsuario(e: React.FormEvent) {
+     e.preventDefault()
+     setMensagem("")
++    if (tipo !== "ALUNO") {
++      const erro = erroDoCpf(cpf, true)
++      if (erro) {
++        setMensagem(erro)
++        setTipoMensagem("erro")
++        return
++      }
++    }
+     const res = await fetch("/api/usuarios", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+@@ -70,6 +79,10 @@
+ 
+   async function salvarEdicao() {
+     if (!editando) return
++    if (editando.tipo !== "ALUNO" && erroDoCpf(editando.cpf, true)) {
++      setEditando((v: any) => ({ ...v, cpfTentou: true }))
++      return
++    }
+     const res = await fetch(`/api/usuarios/${editando.id}`, {
+       method: "PUT",
+       headers: { "Content-Type": "application/json" },
+@@ -183,10 +196,13 @@
+                 <input
+                   className="input-field"
+                   value={cpf}
+-                  onChange={(e) => setCpf(e.target.value)}
++                  onChange={(e) => setCpf(formatarCpf(e.target.value))}
+                   required
++                  inputMode="numeric"
++                  maxLength={14}
+                   placeholder="Ex: 000.000.000-00"
+                 />
++                {erroDoCpf(cpf) && <span style={{ fontSize: 12.5, color: "#b42318" }}>{erroDoCpf(cpf)}</span>}
+               </div>
+             )}
+ 
+@@ -316,9 +332,15 @@
+                     <label>CPF</label>
+                     <input
+                       className="input-field"
+-                      value={editando.cpf || ""}
+-                      onChange={(e) => setEditando((v: any) => ({ ...v, cpf: e.target.value }))}
++                      value={formatarCpf(editando.cpf || "")}
++                      onChange={(e) => setEditando((v: any) => ({ ...v, cpf: formatarCpf(e.target.value), cpfTentou: false }))}
++                      inputMode="numeric"
++                      maxLength={14}
++                      placeholder="Ex: 000.000.000-00"
+                     />
++                    {erroDoCpf(editando.cpf, !!editando.cpfTentou) && (
++                      <span style={{ fontSize: 12.5, color: "#b42318" }}>{erroDoCpf(editando.cpf, !!editando.cpfTentou)}</span>
++                    )}
+                   </div>
+                 )}
+ 
+--- a/app/api/usuarios/[id]/route.ts
++++ b/app/api/usuarios/[id]/route.ts
+@@ -1,5 +1,6 @@
+ import { prisma } from "@/lib/prisma"
+ import { NextResponse } from "next/server"
++import { cpfValido, formatarCpf, variantesDoCpf } from "@/lib/cpf"
+ 
+ export async function GET(
+   request: Request,
+@@ -35,6 +36,9 @@
+     if (tipo !== "ALUNO" && !cpf) {
+       return NextResponse.json({ error: "CPF é obrigatório para funcionários e responsáveis." }, { status: 400 })
+     }
++    if (tipo !== "ALUNO" && !cpfValido(cpf)) {
++      return NextResponse.json({ error: "CPF inválido. Confira os números." }, { status: 400 })
++    }
+ 
+     if (tipo === "ALUNO") {
+       const existe = await prisma.usuario.findUnique({ where: { matricula } })
+@@ -42,8 +46,10 @@
+         return NextResponse.json({ error: "Matrícula já cadastrada para outro usuário." }, { status: 400 })
+       }
+     } else {
+-      const existe = await prisma.usuario.findUnique({ where: { cpf } })
+-      if (existe && existe.id !== Number(id)) {
++      const existe = await prisma.usuario.findFirst({
++        where: { cpf: { in: variantesDoCpf(cpf) }, NOT: { id: Number(id) } },
++      })
++      if (existe) {
+         return NextResponse.json({ error: "CPF já cadastrado para outro usuário." }, { status: 400 })
+       }
+     }
+@@ -54,7 +60,7 @@
+         nome,
+         tipo,
+         matricula: tipo === "ALUNO" ? matricula : null,
+-        cpf: tipo !== "ALUNO" ? cpf : null,
++        cpf: tipo !== "ALUNO" ? formatarCpf(cpf) : null,
+         turma: tipo === "ALUNO" ? turmaLimpa || null : null,
+         whatsapp: whatsapp || "",
+       },
+--- a/app/api/usuarios/route.ts
++++ b/app/api/usuarios/route.ts
+@@ -1,5 +1,6 @@
+ import { prisma } from "@/lib/prisma"
+ import { NextResponse } from "next/server"
++import { cpfValido, formatarCpf, variantesDoCpf } from "@/lib/cpf"
+ 
+ export async function GET(request: Request) {
+   const { searchParams } = new URL(request.url)
+@@ -13,7 +14,7 @@
+   }
+ 
+   if (cpf) {
+-    const usuario = await prisma.usuario.findUnique({ where: { cpf } })
++    const usuario = await prisma.usuario.findFirst({ where: { cpf: { in: variantesDoCpf(cpf) } } })
+     if (!usuario) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
+     return NextResponse.json(usuario)
+   }
+@@ -48,7 +49,10 @@
+       if (!cpf) {
+         return NextResponse.json({ error: "CPF é obrigatório para funcionários e responsáveis." }, { status: 400 })
+       }
+-      const existe = await prisma.usuario.findUnique({ where: { cpf } })
++      if (!cpfValido(cpf)) {
++        return NextResponse.json({ error: "CPF inválido. Confira os números." }, { status: 400 })
++      }
++      const existe = await prisma.usuario.findFirst({ where: { cpf: { in: variantesDoCpf(cpf) } } })
+       if (existe) return NextResponse.json({ error: "CPF já cadastrado." }, { status: 400 })
+     }
+ 
+@@ -57,7 +61,7 @@
+         nome,
+         tipo,
+         matricula: tipo === "ALUNO" ? matricula : null,
+-        cpf: tipo !== "ALUNO" ? cpf : null,
++        cpf: tipo !== "ALUNO" ? formatarCpf(cpf) : null,
+         turma: tipo === "ALUNO" ? turmaLimpa : null,
+         whatsapp: whatsapp || "",
+       },
+--- a/app/cadastrar-aluno/page.tsx
++++ b/app/cadastrar-aluno/page.tsx
+@@ -3,6 +3,7 @@
+ import { useState } from "react";
+ import { TurmaSelect } from "@/components/TurmaSelect";
+ import { Icone } from "@/components/Icone"
++import { erroDoCpf, formatarCpf } from "@/lib/cpf"
+ 
+ type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL";
+ 
+@@ -20,6 +21,15 @@
+     e.preventDefault();
+     setMensagem("");
+ 
++    if (tipo !== "ALUNO") {
++      const erro = erroDoCpf(cpf, true);
++      if (erro) {
++        setMensagem(erro);
++        setMensagemOk(false);
++        return;
++      }
++    }
++
+     try {
+       const res = await fetch("/api/usuarios", {
+         method: "POST",
+@@ -93,13 +103,18 @@
+             />
+           </>
+         ) : (
+-          <input
+-            placeholder="CPF"
+-            value={cpf}
+-            onChange={(e) => setCpf(e.target.value)}
+-            required
+-            style={{ padding: "10px" }}
+-          />
++          <>
++            <input
++              placeholder="CPF"
++              value={cpf}
++              onChange={(e) => setCpf(formatarCpf(e.target.value))}
++              required
++              inputMode="numeric"
++              maxLength={14}
++              style={{ padding: "10px" }}
++            />
++            {erroDoCpf(cpf) && <span style={{ fontSize: 13, color: "#c53030" }}>{erroDoCpf(cpf)}</span>}
++          </>
+         )}
+ 
+         <input
+--- /dev/null
++++ b/lib/cpf.ts
+@@ -0,0 +1,46 @@
++export function somenteDigitos(valor: unknown): string {
++  return typeof valor === "string" ? valor.replace(/\D/g, "") : ""
++}
++
++export function formatarCpf(valor: unknown): string {
++  const d = somenteDigitos(valor).slice(0, 11)
++  if (d.length <= 3) return d
++  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`
++  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`
++  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
++}
++
++function digitoVerificador(base: string): number {
++  let soma = 0
++  for (let i = 0; i < base.length; i++) {
++    soma += Number(base[i]) * (base.length + 1 - i)
++  }
++  const resto = (soma * 10) % 11
++  return resto === 10 ? 0 : resto
++}
++
++export function cpfValido(valor: unknown): boolean {
++  const d = somenteDigitos(valor)
++  if (d.length !== 11) return false
++  if (/^(\d)\1{10}$/.test(d)) return false
++  return (
++    digitoVerificador(d.slice(0, 9)) === Number(d[9]) &&
++    digitoVerificador(d.slice(0, 10)) === Number(d[10])
++  )
++}
++
++export function erroDoCpf(valor: unknown, forcar = false): string | null {
++  const d = somenteDigitos(valor)
++  if (cpfValido(d)) return null
++  if (d.length === 0 && forcar) return "Informe o CPF."
++  if (d.length >= 11 || forcar) return "CPF inválido. Confira os números."
++  return null
++}
++
++export function variantesDoCpf(valor: unknown): string[] {
++  const bruto = typeof valor === "string" ? valor.trim() : ""
++  const digitos = somenteDigitos(bruto)
++  const lista = [bruto]
++  if (digitos.length === 11) lista.push(digitos, formatarCpf(digitos))
++  return [...new Set(lista.filter(Boolean))]
++}

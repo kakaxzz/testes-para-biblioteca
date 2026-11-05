@@ -1,16 +1,10 @@
 import type { CSSProperties, ReactNode } from "react"
 
-// Ícones de traço no mesmo estilo do menu do admin (24x24, traço 1.8, pontas arredondadas).
-// Use <Icone nome="..." /> no lugar de emojis.
 export type NomeIcone =
-  // menu do admin
   | "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "config" | "sair"
-  // ações
   | "livro" | "olho" | "etiqueta" | "editar" | "lixeira" | "salvar" | "lista" | "impressora"
   | "busca" | "enviar" | "menu" | "cadeado"
-  // status / feedback
   | "check" | "checkCirculo" | "xCirculo" | "x" | "alerta" | "info" | "proibido" | "estrela"
-  // direções
   | "setaEsquerda" | "setaDireita" | "setaCima" | "setaBaixo" | "chevronCima" | "chevronBaixo"
 
 const ICONES: Record<NomeIcone, ReactNode> = {
@@ -176,7 +170,6 @@ const ICONES: Record<NomeIcone, ReactNode> = {
 
 type Props = {
   nome: NomeIcone
-  /** px (número) ou qualquer medida CSS, ex.: "1.1em" para acompanhar o texto. Padrão: 22 */
   tamanho?: number | string
   className?: string
   style?: CSSProperties

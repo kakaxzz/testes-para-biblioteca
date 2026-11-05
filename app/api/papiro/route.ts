@@ -4,7 +4,6 @@ export async function POST(request: Request) {
   try {
     const { mensagens, acervo } = await request.json()
  
-    // Monta a lista do acervo para o contexto
     const listaAcervo = acervo
       .map((l: any) => {
         const disp = l.quantidadeDisponivel > 0 ? "disponível" : "emprestado"

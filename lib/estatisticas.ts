@@ -19,19 +19,16 @@ export type EstatisticasDoAno = {
   }[]
 }
 
-// Ano de hoje no horário de Brasília (a virada acontece à meia-noite daqui, não da Vercel)
 export function anoAtual(): number {
   return Number(
     new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date())
   )
 }
 
-// 01/jan 00:00 em Brasília (UTC-3) até 01/jan do ano seguinte
 export function periodoDoAno(ano: number) {
   return { inicio: new Date(Date.UTC(ano, 0, 1, 3)), fim: new Date(Date.UTC(ano + 1, 0, 1, 3)) }
 }
 
-// Empréstimos e tops contam só o ano pedido; livros, usuários e "em aberto" são a situação de agora
 export async function calcularEstatisticas(ano: number): Promise<EstatisticasDoAno> {
   const { inicio, fim } = periodoDoAno(ano)
   const doAno = { dataEmprestimo: { gte: inicio, lt: fim } }
@@ -43,7 +40,6 @@ export async function calcularEstatisticas(ano: number): Promise<EstatisticasDoA
     prisma.emprestimo.count({ where: { dataDevolucao: null } }),
   ])
 
-  // Top livros: soma os empréstimos de todos os exemplares do mesmo livro
   const topLivros = (
     await prisma.$queryRaw<
       { id: number; titulo: string; autor: string; isbn: string; count: number }[]

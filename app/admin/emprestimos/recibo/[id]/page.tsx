@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { Icone } from "@/components/Icone"
 
-// Largura do rolo térmico. Troque para "58mm" se a impressora usar bobina menor.
 const LARGURA_PAPEL = "80mm"
 
 const LABEL_TIPO: Record<string, string> = {
@@ -33,7 +32,6 @@ export default function ReciboEmprestimo() {
     carregar()
   }, [id])
 
-  // Dispara a impressão automaticamente quando vem do fluxo de confirmação
   useEffect(() => {
     if (emprestimo && autoPrint) {
       const t = setTimeout(() => window.print(), 400)
@@ -60,7 +58,6 @@ export default function ReciboEmprestimo() {
 
   return (
     <div className="recibo-page">
-      {/* Ações — somem na impressão */}
       <div className="acoes-tela no-print">
         <button className="btn-primary" onClick={() => window.print()}>
           <Icone nome="impressora" tamanho={18} />Imprimir recibo
@@ -212,7 +209,6 @@ export default function ReciboEmprestimo() {
         }
 
         @media print {
-          /* Esconde a navegação do painel admin ao imprimir */
           .sidebar, .admin-main-hero, .no-print { display: none !important; }
           .admin-main { margin-left: 0 !important; }
           .admin-content { padding: 0 !important; }

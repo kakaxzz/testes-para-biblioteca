@@ -3,7 +3,6 @@
 import { useState } from "react"
 
 type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & {
-  /** Classes do <input> (padrão: mesmo visual do .input-field do painel) */
   inputClassName?: string
 }
 
@@ -21,7 +20,6 @@ const icone = {
   "aria-hidden": true,
 }
 
-// Campo de senha com o "olhinho" que mostra/esconde o que foi digitado
 export function PasswordInput({ inputClassName = PADRAO, className = "", ...props }: Props) {
   const [visivel, setVisivel] = useState(false)
 
@@ -31,7 +29,6 @@ export function PasswordInput({ inputClassName = PADRAO, className = "", ...prop
       <button
         type="button"
         onClick={() => setVisivel((v) => !v)}
-        // evita tirar o foco do campo quando clica no olhinho com o mouse/dedo
         onMouseDown={(e) => e.preventDefault()}
         aria-label={visivel ? "Ocultar senha" : "Mostrar senha"}
         aria-pressed={visivel}

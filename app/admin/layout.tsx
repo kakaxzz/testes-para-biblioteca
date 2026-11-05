@@ -19,7 +19,7 @@ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [menuAberto, setMenuAberto] = useState(false) // só usado no celular (gaveta)
+  const [menuAberto, setMenuAberto] = useState(false)
 
   if (pathname === "/admin/login") return <>{children}</>
 
@@ -30,7 +30,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="admin-shell">
-      {/* Barra lateral: fica recolhida (só ícones) e expande ao passar o mouse, como no site do Claude */}
       <aside className={`sidebar no-print${menuAberto ? " aberto" : ""}`} aria-label="Menu do painel">
         <div className="sb-brand">
           <span className="sb-logo">
@@ -291,7 +290,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           justify-content: center;
           padding: 16px;
         }
-        /* Modal largo: título e botões ficam sempre visíveis, só o miolo rola */
         .modal-surface.modal-surface--wide {
           max-width: 760px;
           max-height: calc(100dvh - 32px);

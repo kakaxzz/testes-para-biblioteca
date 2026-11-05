@@ -9,7 +9,6 @@ type Item = {
   href: string
   label: string
   icone: NomeIcone
-  /** links com # são âncoras da página inicial: usam <a> para manter a rolagem suave */
   ancora?: boolean
   ativo?: (caminho: string) => boolean
 }
@@ -68,12 +67,17 @@ export function PublicNavbar() {
           padding: 12px 38px 12px 42px;
         }
 
-        /* Nome da biblioteca: mesma fonte minimalista da área de admin, igual em todas as páginas */
         .pn-brand {
-          min-width: 0; text-decoration: none; color: #fff7f0;
+          min-width: 0; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff7f0;
           font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.86rem;
           letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.25;
         }
+        .pn-logo {
+          flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; padding: 3px;
+          background: #fff7ef; display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .pn-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .pn-brand-text { min-width: 0; }
         .pn-brand b { font-weight: 700; color: #f4c58c; }
 
         .pn-links { display: flex; align-items: center; gap: 8px; }
@@ -106,7 +110,6 @@ export function PublicNavbar() {
           outline: 2px solid #f4c58c; outline-offset: 3px;
         }
 
-        /* menu do celular */
         .pn-mobile { position: relative; display: none; }
         .pn-desk { position: relative; margin-left: 6px; }
         .pn-menu-btn {
@@ -141,18 +144,22 @@ export function PublicNavbar() {
         }
         @media (max-width: 640px) {
           .pn-inner { padding: 9px 14px; gap: 12px; }
-          .pn-brand { font-size: 0.7rem; letter-spacing: 0.08em; }
+          .pn-brand { font-size: 0.7rem; letter-spacing: 0.08em; gap: 10px; }
+          .pn-logo { width: 38px; height: 38px; padding: 2px; }
           .pn-menu-btn { width: 38px; height: 38px; }
         }
         @media (max-width: 420px) {
-          .pn-brand span, .pn-brand b { display: block; }
+          .pn-brand-text span, .pn-brand-text b { display: block; }
         }
       `}</style>
 
       <header className="pn-bar">
         <div className="pn-inner">
           <Link href="/" className="pn-brand" aria-label="Biblioteca Escolar Emerson Teixeira — ir para o início">
-            <span>Biblioteca Escolar</span> <b>Emerson Teixeira</b>
+            <span className="pn-logo"><img src="/logo-jpi.png" alt="" /></span>
+            <span className="pn-brand-text">
+              <span>Biblioteca Escolar</span> <b>Emerson Teixeira</b>
+            </span>
           </Link>
 
           <nav className="pn-links" aria-label="Navegação principal">

@@ -29,12 +29,10 @@ export async function GET(request: Request) {
       },
     })
 
-    // Adiciona quantidadeTotal e quantidadeDisponivel em cada livro
    const livrosComContagem = livros.map((l: any) => ({
   ...l,
      quantidadeTotal: l.exemplares.length,
   quantidadeDisponivel: l.exemplares.filter((e: any) => e.status === "disponivel").length,
-      // Tombo do primeiro exemplar (para exibir na tabela)
       tombo: l.exemplares[0]?.tombo ?? null,
     }))
 
@@ -48,19 +46,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    // Gera próximo tombo (global, independente do livro)
     const ultimoExemplar = await prisma.exemplar.findFirst({
       orderBy: { tombo: "desc" },
     })
     const proximoTombo = (ultimoExemplar?.tombo ?? 0) + 1
 
-    // Verifica se o livro já existe pelo ISBN
     const livroExistente = await prisma.livro.findUnique({
       where: { isbn: body.isbn },
     })
 
     if (livroExistente) {
-      // Livro já existe — só adiciona um novo exemplar
       const novoExemplar = await prisma.exemplar.create({
         data: {
           livroId: livroExistente.id,
@@ -71,7 +66,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ tombo: novoExemplar.tombo, novoExemplar: true })
     }
 
-    // Livro novo — cria o livro e o primeiro exemplar
     const livro = await prisma.livro.create({
       data: {
         titulo: body.titulo,

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TurmaSelect } from "@/components/TurmaSelect";
 import { Icone } from "@/components/Icone"
+import { erroDoCpf, formatarCpf } from "@/lib/cpf"
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL";
 
@@ -19,6 +20,15 @@ export default function CadastrarUsuario() {
   const salvarUsuario = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensagem("");
+
+    if (tipo !== "ALUNO") {
+      const erro = erroDoCpf(cpf, true);
+      if (erro) {
+        setMensagem(erro);
+        setMensagemOk(false);
+        return;
+      }
+    }
 
     try {
       const res = await fetch("/api/usuarios", {
@@ -93,13 +103,18 @@ export default function CadastrarUsuario() {
             />
           </>
         ) : (
-          <input
-            placeholder="CPF"
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-            required
-            style={{ padding: "10px" }}
-          />
+          <>
+            <input
+              placeholder="CPF"
+              value={cpf}
+              onChange={(e) => setCpf(formatarCpf(e.target.value))}
+              required
+              inputMode="numeric"
+              maxLength={14}
+              style={{ padding: "10px" }}
+            />
+            {erroDoCpf(cpf) && <span style={{ fontSize: 13, color: "#c53030" }}>{erroDoCpf(cpf)}</span>}
+          </>
         )}
 
         <input

@@ -5,20 +5,16 @@ import { CLASSIFICACAO_INFO, normalizarClassificacao, temRestricaoDeIdade } from
 import { Icone } from "@/components/Icone"
 
 export default function AdminEmprestimos() {
-  // ── estados: novo empréstimo ──
   const [identificador, setIdentificador] = useState("")
   const [isbn, setIsbn] = useState("")
   const [usuario, setUsuario] = useState<any>(null)
   const [livro, setLivro] = useState<any>(null)
-  // quando o livro tem classificação e quem pega é aluno: "idade" ou "autorizacao"
   const [confirmacaoIdade, setConfirmacaoIdade] = useState<"" | "idade" | "autorizacao">("")
 
-  // ── estados: lista ──
   const [emprestimos, setEmprestimos] = useState<any[]>([])
   const [busca, setBusca] = useState("")
   const [filtroStatus, setFiltroStatus] = useState<"abertos" | "todos">("abertos")
 
-  // ── estados: feedback ──
   const [mensagem, setMensagem] = useState("")
   const [tipoMensagem, setTipoMensagem] = useState<"ok" | "erro">("ok")
   const [loading, setLoading] = useState(false)
@@ -42,7 +38,6 @@ export default function AdminEmprestimos() {
   async function buscarUsuario() {
     if (!identificador) return
 
-    // Tenta primeiro como matrícula (alunos), depois como CPF (funcionários/responsáveis)
     const porMatricula = await fetch(`/api/usuarios?matricula=${identificador}`)
     if (porMatricula.ok) {
       setUsuario(await porMatricula.json())
@@ -95,7 +90,6 @@ export default function AdminEmprestimos() {
       setIdentificador("")
       setIsbn("")
       carregarEmprestimos()
-      // Abre o recibo em nova aba e já dispara a impressão automaticamente
       window.open(`/admin/emprestimos/recibo/${novoEmprestimo.id}?auto=1`, "_blank")
     } else {
       const d = await res.json()
@@ -191,7 +185,6 @@ export default function AdminEmprestimos() {
         <p>Registre, gerencie e devolva empréstimos em um só lugar</p>
       </div>
 
-      {/* alertas */}
       {(atrasados.length > 0 || vencendoEmBreve.length > 0) && (
         <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
           {atrasados.length > 0 && (
@@ -213,7 +206,6 @@ export default function AdminEmprestimos() {
         </div>
       )}
 
-      {/* novo empréstimo */}
       <div className="card" style={{ marginBottom: 28 }}>
         <h3 className="section-title" style={{ marginBottom: 20 }}>Novo empréstimo</h3>
         <div className="admin-grid-2">
@@ -303,7 +295,6 @@ export default function AdminEmprestimos() {
         )}
       </div>
 
-      {/* lista de empréstimos */}
       <div className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 20 }}>
           <h3 className="section-title">Empréstimos</h3>
