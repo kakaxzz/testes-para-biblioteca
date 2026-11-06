@@ -5,6 +5,7 @@ import { TurmaSelect } from "@/components/TurmaSelect"
 import { ModalPortal } from "@/components/ModalPortal"
 import { Icone } from "@/components/Icone"
 import { erroDoCpf, formatarCpf } from "@/lib/cpf"
+import { mascararCpf, mascararWhatsapp } from "@/lib/mascara"
 
 type Tipo = "ALUNO" | "FUNCIONARIO" | "RESPONSAVEL"
 
@@ -27,6 +28,16 @@ export default function AdminUsuarios() {
   const [busca, setBusca] = useState("")
   const [filtroTipo, setFiltroTipo] = useState<Tipo | "TODOS">("TODOS")
   const [editando, setEditando] = useState<any>(null)
+  const [reveladosIds, setReveladosIds] = useState<Set<number>>(new Set())
+
+  function alternarDados(id: number) {
+    setReveladosIds((atual) => {
+      const novo = new Set(atual)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      return novo
+    })
+  }
 
   useEffect(() => {
     carregarUsuarios()
@@ -388,11 +399,26 @@ export default function AdminUsuarios() {
                     <td>
                       <span className="badge badge-green">{TIPO_LABEL[u.tipo as Tipo] ?? u.tipo}</span>
                     </td>
-                    <td style={{ color: "#7f6d6d" }}>{u.matricula || u.cpf || "-"}</td>
+                    <td style={{ color: "#7f6d6d" }}>
+                      {u.matricula || (u.cpf ? (reveladosIds.has(u.id) ? formatarCpf(u.cpf) : mascararCpf(u.cpf)) : "-")}
+                    </td>
                     <td style={{ color: "#7f6d6d" }}>{u.turma || "-"}</td>
-                    <td style={{ color: "#7f6d6d" }}>{u.whatsapp || "-"}</td>
+                    <td style={{ color: "#7f6d6d" }}>
+                      {u.whatsapp ? (reveladosIds.has(u.id) ? u.whatsapp : mascararWhatsapp(u.whatsapp)) : "-"}
+                    </td>
                     <td>
                       <div style={{ display: "flex", gap: 6 }}>
+                        {(u.cpf || u.whatsapp) && (
+                          <button
+                            onClick={() => alternarDados(u.id)}
+                            style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#f7f6f4", border: "1px solid #e0e0e0", borderRadius: 6, cursor: "pointer", color: "#555" }}
+                            title={reveladosIds.has(u.id) ? "Ocultar dados" : "Mostrar dados"}
+                            aria-label={reveladosIds.has(u.id) ? "Ocultar CPF e WhatsApp" : "Mostrar CPF e WhatsApp"}
+                            aria-pressed={reveladosIds.has(u.id)}
+                          >
+                            <Icone nome={reveladosIds.has(u.id) ? "olhoFechado" : "olho"} tamanho={17} />
+                          </button>
+                        )}
                         <button
                           onClick={() => setEditando({ ...u })}
                           style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}

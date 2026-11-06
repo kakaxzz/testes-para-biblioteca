@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react"
 
 export type NomeIcone =
   | "home" | "livros" | "emprestimos" | "usuarios" | "tcc" | "stats" | "news" | "config" | "sair"
-  | "livro" | "olho" | "etiqueta" | "editar" | "lixeira" | "salvar" | "lista" | "impressora"
+  | "livro" | "olho" | "olhoFechado" | "etiqueta" | "editar" | "lixeira" | "salvar" | "lista" | "impressora"
   | "busca" | "enviar" | "menu" | "cadeado"
   | "check" | "checkCirculo" | "xCirculo" | "x" | "alerta" | "info" | "proibido" | "estrela"
   | "setaEsquerda" | "setaDireita" | "setaCima" | "setaBaixo" | "chevronCima" | "chevronBaixo"
@@ -71,6 +71,13 @@ const ICONES: Record<NomeIcone, ReactNode> = {
     <>
       <path d="M2.5 12s3.6-6.5 9.5-6.5S21.5 12 21.5 12 17.9 18.5 12 18.5 2.5 12 2.5 12z" />
       <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  olhoFechado: (
+    <>
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.6A9.6 9.6 0 0112 5.5C17.9 5.5 21.5 12 21.5 12a17 17 0 01-3.1 4M6.7 7C4 8.8 2.5 12 2.5 12s3.6 6.5 9.5 6.5c1.6 0 3-.4 4.2-1" />
+      <path d="M9.9 9.9a3 3 0 004.2 4.2" />
     </>
   ),
   etiqueta: (
