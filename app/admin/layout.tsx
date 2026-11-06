@@ -9,7 +9,7 @@ const navItems: { href: string; label: string; icone: NomeIcone; exact?: boolean
   { href: "/admin", label: "Dashboard", icone: "home", exact: true },
   { href: "/admin/livros", label: "Livros", icone: "livros" },
   { href: "/admin/emprestimos", label: "Empréstimos", icone: "emprestimos" },
-  { href: "/admin/usuarios", label: "Usuários", icone: "usuarios" },
+  { href: "/admin/usuarios", label: "Leitores", icone: "usuarios" },
   { href: "/admin/tcc", label: "TCCs & Artigos", icone: "tcc" },
   { href: "/admin/stats", label: "Estatísticas", icone: "stats" },
   { href: "/admin/biblionews", label: "BiblioNews", icone: "news" },

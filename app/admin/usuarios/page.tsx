@@ -135,13 +135,13 @@ export default function AdminUsuarios() {
   return (
     <div>
       <div className="page-header">
-        <h1>Usuários</h1>
+        <h1>Leitores</h1>
         <p>Cadastre e gerencie alunos, funcionários e responsáveis</p>
       </div>
 
       <div className="admin-grid-2">
         <div className="card">
-          <h3 className="section-title">Novo usuário</h3>
+          <h3 className="section-title">Novo leitor</h3>
 
           <form onSubmit={salvarUsuario}>
             <div className="input-group">
