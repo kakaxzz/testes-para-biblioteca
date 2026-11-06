@@ -1,0 +1,538 @@
+diff --git a/app/admin/tcc/page.tsx b/app/admin/tcc/page.tsx
+index 30eb343..70f5ecd 100644
+--- a/app/admin/tcc/page.tsx
++++ b/app/admin/tcc/page.tsx
+@@ -2,6 +2,9 @@
+ 
+ import { useEffect, useState } from "react"
+ import GenerateToken from "@/components/GenerateToken"
++import { Icone } from "@/components/Icone"
++import { ModalPortal } from "@/components/ModalPortal"
++import { CURSOS_TCC, rotuloCurso } from "@/lib/tcc"
+ 
+ type Trabalho = {
+   id: number
+@@ -9,22 +12,96 @@ type Trabalho = {
+   autor: string
+   ano: number
+   tipo: string
++  curso?: string | null
+   resumo?: string | null
+ }
+ 
++type Valores = {
++  titulo: string
++  autor: string
++  ano: string
++  tipo: string
++  curso: string
++  resumo: string
++}
++
++const anoAtual = () => new Date().getFullYear().toString()
++
++const valoresVazios = (): Valores => ({
++  titulo: "",
++  autor: "",
++  ano: anoAtual(),
++  tipo: "tcc",
++  curso: "",
++  resumo: "",
++})
++
++function CamposTcc({ valores, onChange }: { valores: Valores; onChange: (p: Partial<Valores>) => void }) {
++  return (
++    <>
++      <div className="input-group">
++        <label>Tipo</label>
++        <select className="input-field" value={valores.tipo} onChange={(e) => onChange({ tipo: e.target.value })}>
++          <option value="tcc">TCC</option>
++          <option value="artigo">Artigo</option>
++        </select>
++      </div>
++      <div className="input-group">
++        <label>Curso</label>
++        <select className="input-field" value={valores.curso} onChange={(e) => onChange({ curso: e.target.value })} required>
++          <option value="" disabled>Selecione o curso</option>
++          {CURSOS_TCC.map((c) => (
++            <option key={c.valor} value={c.valor}>{c.rotulo}</option>
++          ))}
++        </select>
++      </div>
++      <div className="input-group">
++        <label>Título</label>
++        <input className="input-field" value={valores.titulo} onChange={(e) => onChange({ titulo: e.target.value })} required placeholder="Título do trabalho" />
++      </div>
++      <div className="input-group">
++        <label>Autor</label>
++        <input className="input-field" value={valores.autor} onChange={(e) => onChange({ autor: e.target.value })} required placeholder="Nome do autor" />
++      </div>
++      <div className="input-group">
++        <label>Ano</label>
++        <input className="input-field" type="number" value={valores.ano} onChange={(e) => onChange({ ano: e.target.value })} required min="2000" max="2099" />
++      </div>
++      <div className="input-group">
++        <label>Resumo (opcional)</label>
++        <textarea className="input-field" value={valores.resumo} onChange={(e) => onChange({ resumo: e.target.value })} placeholder="Breve descrição do trabalho..." />
++      </div>
++    </>
++  )
++}
++
++function montarForm(valores: Valores, arquivo: File | null) {
++  const form = new FormData()
++  form.append("titulo", valores.titulo)
++  form.append("autor", valores.autor)
++  form.append("ano", valores.ano)
++  form.append("tipo", valores.tipo)
++  form.append("curso", valores.curso)
++  form.append("resumo", valores.resumo)
++  if (arquivo) form.append("arquivo", arquivo)
++  return form
++}
++
+ export default function AdminTcc() {
+-  const [titulo, setTitulo] = useState("")
+-  const [autor, setAutor] = useState("")
+-  const [ano, setAno] = useState(new Date().getFullYear().toString())
+-  const [tipo, setTipo] = useState("tcc")
+-  const [resumo, setResumo] = useState("")
++  const [novo, setNovo] = useState<Valores>(valoresVazios)
+   const [arquivo, setArquivo] = useState<File | null>(null)
++  const [fileKey, setFileKey] = useState(0)
+   const [mensagem, setMensagem] = useState("")
+   const [tipoMensagem, setTipoMensagem] = useState<"ok" | "erro">("ok")
+   const [loading, setLoading] = useState(false)
+-  const [fileKey, setFileKey] = useState(0)
+   const [tccs, setTccs] = useState<Trabalho[]>([])
++
+   const [editandoId, setEditandoId] = useState<number | null>(null)
++  const [edicao, setEdicao] = useState<Valores>(valoresVazios)
++  const [arquivoEdicao, setArquivoEdicao] = useState<File | null>(null)
++  const [fileKeyEdicao, setFileKeyEdicao] = useState(0)
++  const [erroEdicao, setErroEdicao] = useState("")
++  const [salvandoEdicao, setSalvandoEdicao] = useState(false)
+ 
+   useEffect(() => {
+     carregarTccs()
+@@ -35,33 +112,24 @@ export default function AdminTcc() {
+     if (res.ok) setTccs(await res.json())
+   }
+ 
+-  function limparFormulario() {
+-    setTitulo("")
+-    setAutor("")
+-    setResumo("")
+-    setTipo("tcc")
+-    setArquivo(null)
+-    setFileKey((k) => k + 1)
+-    setAno(new Date().getFullYear().toString())
+-  }
+-
+   function iniciarEdicao(t: Trabalho) {
+     setEditandoId(t.id)
+-    setTitulo(t.titulo ?? "")
+-    setAutor(t.autor ?? "")
+-    setAno(String(t.ano ?? new Date().getFullYear()))
+-    setTipo(t.tipo === "artigo" ? "artigo" : "tcc")
+-    setResumo(t.resumo ?? "")
+-    setArquivo(null)
+-    setFileKey((k) => k + 1)
+-    setMensagem("")
+-    window.scrollTo({ top: 0, behavior: "smooth" })
++    setEdicao({
++      titulo: t.titulo ?? "",
++      autor: t.autor ?? "",
++      ano: String(t.ano ?? anoAtual()),
++      tipo: t.tipo === "artigo" ? "artigo" : "tcc",
++      curso: CURSOS_TCC.some((c) => c.valor === t.curso) ? (t.curso as string) : "",
++      resumo: t.resumo ?? "",
++    })
++    setArquivoEdicao(null)
++    setFileKeyEdicao((k) => k + 1)
++    setErroEdicao("")
+   }
+ 
+-  function cancelarEdicao() {
++  function fecharEdicao() {
+     setEditandoId(null)
+-    limparFormulario()
+-    setMensagem("")
++    setErroEdicao("")
+   }
+ 
+   async function excluir(t: Trabalho) {
+@@ -71,7 +139,7 @@ export default function AdminTcc() {
+     try {
+       const res = await fetch(`/api/tcc/${t.id}`, { method: "DELETE" })
+       if (res.ok) {
+-        if (editandoId === t.id) cancelarEdicao()
++        if (editandoId === t.id) fecharEdicao()
+         setMensagem("Trabalho excluído.")
+         setTipoMensagem("ok")
+         carregarTccs()
+@@ -86,17 +154,16 @@ export default function AdminTcc() {
+     }
+   }
+ 
+-  async function salvar(e: React.FormEvent) {
++  async function cadastrar(e: React.FormEvent) {
+     e.preventDefault()
+-    const editando = editandoId !== null
+ 
+-    if (!editando && !arquivo) {
++    if (!arquivo) {
+       setMensagem("Selecione um arquivo PDF.")
+       setTipoMensagem("erro")
+       return
+     }
+ 
+-    if (arquivo && arquivo.size > 4 * 1024 * 1024) {
++    if (arquivo.size > 4 * 1024 * 1024) {
+       setMensagem("O PDF tem mais de 4 MB. Comprima o arquivo e tente de novo.")
+       setTipoMensagem("erro")
+       return
+@@ -104,29 +171,20 @@ export default function AdminTcc() {
+ 
+     setLoading(true)
+     setMensagem("")
+-    const form = new FormData()
+-    form.append("titulo", titulo)
+-    form.append("autor", autor)
+-    form.append("ano", ano)
+-    form.append("tipo", tipo)
+-    form.append("resumo", resumo)
+-    if (arquivo) form.append("arquivo", arquivo)
+ 
+     try {
+-      const res = await fetch(editando ? `/api/tcc/${editandoId}` : "/api/tcc", {
+-        method: editando ? "PUT" : "POST",
+-        body: form,
+-      })
++      const res = await fetch("/api/tcc", { method: "POST", body: montarForm(novo, arquivo) })
+ 
+       if (res.ok) {
+-        setMensagem(editando ? "Alterações salvas!" : "Trabalho cadastrado com sucesso!")
++        setMensagem("Trabalho cadastrado com sucesso!")
+         setTipoMensagem("ok")
+-        setEditandoId(null)
+-        limparFormulario()
++        setNovo(valoresVazios())
++        setArquivo(null)
++        setFileKey((k) => k + 1)
+         carregarTccs()
+       } else {
+         const d = await res.json().catch(() => null)
+-        setMensagem(d?.error || (editando ? "Erro ao salvar as alterações." : "Erro ao cadastrar."))
++        setMensagem(d?.error || "Erro ao cadastrar.")
+         setTipoMensagem("erro")
+       }
+     } catch {
+@@ -136,6 +194,36 @@ export default function AdminTcc() {
+     setLoading(false)
+   }
+ 
++  async function salvarEdicao(e: React.FormEvent) {
++    e.preventDefault()
++    if (editandoId === null) return
++
++    if (arquivoEdicao && arquivoEdicao.size > 4 * 1024 * 1024) {
++      setErroEdicao("O PDF tem mais de 4 MB. Comprima o arquivo e tente de novo.")
++      return
++    }
++
++    setSalvandoEdicao(true)
++    setErroEdicao("")
++
++    try {
++      const res = await fetch(`/api/tcc/${editandoId}`, { method: "PUT", body: montarForm(edicao, arquivoEdicao) })
++
++      if (res.ok) {
++        fecharEdicao()
++        setMensagem("Alterações salvas!")
++        setTipoMensagem("ok")
++        carregarTccs()
++      } else {
++        const d = await res.json().catch(() => null)
++        setErroEdicao(d?.error || "Erro ao salvar as alterações.")
++      }
++    } catch {
++      setErroEdicao("Erro de conexão ao enviar o PDF.")
++    }
++    setSalvandoEdicao(false)
++  }
++
+   return (
+     <div>
+       <div className="page-header">
+@@ -149,50 +237,16 @@ export default function AdminTcc() {
+ 
+       <div className="admin-grid-2">
+         <div className="card">
+-          <h3 className="section-title">{editandoId !== null ? "Editar trabalho" : "Novo trabalho"}</h3>
+-          <form onSubmit={salvar}>
++          <h3 className="section-title">Novo trabalho</h3>
++          <form onSubmit={cadastrar}>
++            <CamposTcc valores={novo} onChange={(p) => setNovo((v) => ({ ...v, ...p }))} />
+             <div className="input-group">
+-              <label>Tipo</label>
+-              <select className="input-field" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+-                <option value="tcc">TCC</option>
+-                <option value="artigo">Artigo</option>
+-              </select>
+-            </div>
+-            <div className="input-group">
+-              <label>Título</label>
+-              <input className="input-field" value={titulo} onChange={(e) => setTitulo(e.target.value)} required placeholder="Título do trabalho" />
+-            </div>
+-            <div className="input-group">
+-              <label>Autor</label>
+-              <input className="input-field" value={autor} onChange={(e) => setAutor(e.target.value)} required placeholder="Nome do autor" />
+-            </div>
+-            <div className="input-group">
+-              <label>Ano</label>
+-              <input className="input-field" type="number" value={ano} onChange={(e) => setAno(e.target.value)} required min="2000" max="2099" />
+-            </div>
+-            <div className="input-group">
+-              <label>Resumo (opcional)</label>
+-              <textarea className="input-field" value={resumo} onChange={(e) => setResumo(e.target.value)} placeholder="Breve descrição do trabalho..." />
+-            </div>
+-            <div className="input-group">
+-              <label>{editandoId !== null ? "Novo arquivo PDF (opcional)" : "Arquivo PDF"}</label>
+-              <input key={fileKey} type="file" accept=".pdf,application/pdf" onChange={(e) => setArquivo(e.target.files?.[0] || null)} className="input-field" required={editandoId === null} />
+-              {editandoId !== null && (
+-                <span style={{ fontSize: 12.5, color: "#9c8d8d" }}>Deixe em branco para manter o PDF que já está salvo.</span>
+-              )}
++              <label>Arquivo PDF</label>
++              <input key={fileKey} type="file" accept=".pdf,application/pdf" onChange={(e) => setArquivo(e.target.files?.[0] || null)} className="input-field" required />
+             </div>
+             <button type="submit" className="btn-primary" style={{ width: "100%" }} disabled={loading}>
+-              {loading
+-                ? "Enviando..."
+-                : editandoId !== null
+-                  ? "Salvar alterações"
+-                  : "Cadastrar trabalho"}
++              {loading ? "Enviando..." : "Cadastrar trabalho"}
+             </button>
+-            {editandoId !== null && (
+-              <button type="button" className="btn-secondary" style={{ width: "100%", marginTop: 10 }} onClick={cancelarEdicao} disabled={loading}>
+-                Cancelar edição
+-              </button>
+-            )}
+           </form>
+           {mensagem && <div className={tipoMensagem === "ok" ? "mensagem-ok" : "mensagem-erro"}>{mensagem}</div>}
+         </div>
+@@ -202,6 +256,37 @@ export default function AdminTcc() {
+             Trabalhos cadastrados
+             <span className="section-meta">{tccs.length} no total</span>
+           </h3>
++
++          {editandoId !== null && (
++            <ModalPortal>
++              <div className="modal-overlay">
++                <div className="modal-surface modal-surface--wide">
++                  <div className="modal-head">
++                    <h2 className="font-titulo text-xl">Editar trabalho</h2>
++                    <button onClick={fecharEdicao} aria-label="Fechar" className="flex cursor-pointer text-neutral-400 hover:text-neutral-600"><Icone nome="x" tamanho={22} /></button>
++                  </div>
++                  <div className="modal-body">
++                    <form id="form-editar-tcc" onSubmit={salvarEdicao}>
++                      <CamposTcc valores={edicao} onChange={(p) => setEdicao((v) => ({ ...v, ...p }))} />
++                      <div className="input-group">
++                        <label>Novo arquivo PDF (opcional)</label>
++                        <input key={fileKeyEdicao} type="file" accept=".pdf,application/pdf" onChange={(e) => setArquivoEdicao(e.target.files?.[0] || null)} className="input-field" />
++                        <span style={{ fontSize: 12.5, color: "#9c8d8d" }}>Deixe em branco para manter o PDF que já está salvo.</span>
++                      </div>
++                      {erroEdicao && <div className="mensagem-erro">{erroEdicao}</div>}
++                    </form>
++                  </div>
++                  <div className="modal-foot">
++                    <button type="submit" form="form-editar-tcc" className="btn-primary" disabled={salvandoEdicao}>
++                      <Icone nome="salvar" tamanho={18} />{salvandoEdicao ? "Salvando..." : "Salvar alterações"}
++                    </button>
++                    <button type="button" className="btn-secondary" onClick={fecharEdicao} disabled={salvandoEdicao}>Cancelar</button>
++                  </div>
++                </div>
++              </div>
++            </ModalPortal>
++          )}
++
+           <div className="table-wrap">
+             <table>
+               <thead>
+@@ -209,6 +294,7 @@ export default function AdminTcc() {
+                   <th>Título</th>
+                   <th>Autor</th>
+                   <th>Ano</th>
++                  <th>Curso</th>
+                   <th>Tipo</th>
+                   <th>PDF</th>
+                   <th>Ações</th>
+@@ -217,7 +303,7 @@ export default function AdminTcc() {
+               <tbody>
+                 {tccs.length === 0 && (
+                   <tr>
+-                    <td colSpan={6} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
++                    <td colSpan={7} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
+                       Nenhum trabalho cadastrado
+                     </td>
+                   </tr>
+@@ -227,6 +313,7 @@ export default function AdminTcc() {
+                     <td style={{ fontWeight: 600 }}>{t.titulo}</td>
+                     <td style={{ color: "#7f6d6d" }}>{t.autor}</td>
+                     <td style={{ color: "#7f6d6d" }}>{t.ano}</td>
++                    <td style={{ color: "#7f6d6d" }}>{rotuloCurso(t.curso)}</td>
+                     <td>
+                       <span className={`badge ${t.tipo === "tcc" ? "badge-red" : "badge-yellow"}`}>
+                         {t.tipo.toUpperCase()}
+@@ -237,21 +324,25 @@ export default function AdminTcc() {
+                         Ver PDF
+                       </a>
+                     </td>
+-                    <td style={{ whiteSpace: "nowrap" }}>
+-                      <button
+-                        type="button"
+-                        onClick={() => iniciarEdicao(t)}
+-                        style={{ background: "none", border: "none", padding: 0, marginRight: 14, color: "#8b1e1e", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+-                      >
+-                        Editar
+-                      </button>
+-                      <button
+-                        type="button"
+-                        onClick={() => excluir(t)}
+-                        style={{ background: "none", border: "none", padding: 0, color: "#b42318", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+-                      >
+-                        Excluir
+-                      </button>
++                    <td>
++                      <div style={{ display: "flex", gap: 6 }}>
++                        <button
++                          onClick={() => iniciarEdicao(t)}
++                          style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#1d4ed8" }}
++                          title="Editar"
++                          aria-label="Editar"
++                        >
++                          <Icone nome="editar" tamanho={17} />
++                        </button>
++                        <button
++                          onClick={() => excluir(t)}
++                          style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", background: "#fdf2f2", border: "1px solid rgba(139,30,30,0.2)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#8b1e1e" }}
++                          title="Excluir"
++                          aria-label="Excluir"
++                        >
++                          <Icone nome="lixeira" tamanho={17} />
++                        </button>
++                      </div>
+                     </td>
+                   </tr>
+                 ))}
+@@ -262,4 +353,4 @@ export default function AdminTcc() {
+       </div>
+     </div>
+   )
+-}
+\ No newline at end of file
++}
+diff --git a/app/api/tcc/[id]/route.ts b/app/api/tcc/[id]/route.ts
+index 6d0e673..59db013 100644
+--- a/app/api/tcc/[id]/route.ts
++++ b/app/api/tcc/[id]/route.ts
+@@ -11,6 +11,7 @@ const CAMPOS = {
+   autor: true,
+   ano: true,
+   tipo: true,
++  curso: true,
+   resumo: true,
+   arquivoNome: true,
+   criadoEm: true,
+diff --git a/app/api/tcc/route.ts b/app/api/tcc/route.ts
+index e0303f0..617fa9c 100644
+--- a/app/api/tcc/route.ts
++++ b/app/api/tcc/route.ts
+@@ -12,7 +12,7 @@ export async function GET() {
+   try {
+     const tccs = await prisma.tcc.findMany({
+       orderBy: [{ ano: "desc" }, { id: "desc" }],
+-      select: { id: true, titulo: true, autor: true, ano: true, tipo: true, resumo: true, arquivoNome: true, criadoEm: true },
++      select: { id: true, titulo: true, autor: true, ano: true, tipo: true, curso: true, resumo: true, arquivoNome: true, criadoEm: true },
+     })
+     return NextResponse.json(tccs)
+   } catch (error) {
+@@ -45,7 +45,7 @@ export async function POST(request: Request) {
+         arquivoTipo: "application/pdf",
+         arquivoDados: arquivo.pdf.dados,
+       },
+-      select: { id: true, titulo: true, autor: true, ano: true, tipo: true },
++      select: { id: true, titulo: true, autor: true, ano: true, tipo: true, curso: true },
+     })
+ 
+     return NextResponse.json(tcc)
+diff --git a/lib/tcc.ts b/lib/tcc.ts
+index b3d2dba..fa95c65 100644
+--- a/lib/tcc.ts
++++ b/lib/tcc.ts
+@@ -3,11 +3,24 @@ export const TAMANHO_MAXIMO_PDF = 4 * 1024 * 1024
+ 
+ export const CABECALHO_LEITOR = "x-leitor-tcc"
+ 
++export const CURSOS_TCC = [
++  { valor: "informatica", rotulo: "Informática" },
++  { valor: "enfermagem", rotulo: "Enfermagem" },
++  { valor: "administracao", rotulo: "Administração" },
++] as const
++
++export type CursoTcc = (typeof CURSOS_TCC)[number]["valor"]
++
++export function rotuloCurso(valor?: string | null): string {
++  return CURSOS_TCC.find((c) => c.valor === valor)?.rotulo ?? "-"
++}
++
+ export type DadosTcc = {
+   titulo: string
+   autor: string
+   ano: number
+   tipo: "tcc" | "artigo"
++  curso: CursoTcc
+   resumo: string
+ }
+ 
+@@ -19,12 +32,18 @@ export function lerDadosTcc(form: FormData): { dados: DadosTcc } | Falha {
+   const ano = parseInt(String(form.get("ano") ?? ""), 10)
+   const tipo = String(form.get("tipo") ?? "tcc") === "artigo" ? "artigo" : "tcc"
+   const resumo = String(form.get("resumo") ?? "").trim()
++  const cursoInformado = String(form.get("curso") ?? "")
++  const curso = CURSOS_TCC.find((c) => c.valor === cursoInformado)?.valor
+ 
+   if (!titulo || !autor || Number.isNaN(ano)) {
+     return { erro: "Título, autor e ano são obrigatórios.", status: 400 }
+   }
+ 
+-  return { dados: { titulo, autor, ano, tipo, resumo } }
++  if (!curso) {
++    return { erro: "Selecione o curso do trabalho.", status: 400 }
++  }
++
++  return { dados: { titulo, autor, ano, tipo, curso, resumo } }
+ }
+ 
+ export async function lerPdf(
+diff --git a/prisma/migrations/20261106120000_tcc_curso/migration.sql b/prisma/migrations/20261106120000_tcc_curso/migration.sql
+new file mode 100644
+index 0000000..0f4985f
+--- /dev/null
++++ b/prisma/migrations/20261106120000_tcc_curso/migration.sql
+@@ -0,0 +1,2 @@
++-- AlterTable
++ALTER TABLE "Tcc" ADD COLUMN IF NOT EXISTS "curso" TEXT;
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 7c68d23..b7b1cee 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -70,6 +70,7 @@ model Tcc {
+   autor        String
+   ano          Int
+   tipo         String      @default("tcc")
++  curso        String?
+   resumo       String?
+   criadoEm     DateTime    @default(now())
+   arquivoDados Bytes

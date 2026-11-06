@@ -52,7 +52,7 @@ export default function AdminStats() {
     <div>
       <div className="page-header">
         <h1>Estatísticas</h1>
-        <p>Visão geral dos livros mais emprestados e dos usuários que mais leem em cada ano.</p>
+        <p>Visão geral dos livros mais emprestados e dos leitores que mais leem em cada ano.</p>
         {stats?.anos && stats.anos.length > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
             <label htmlFor="ano-stats" style={{ fontWeight: 700, color: "#5e4a4a" }}>Ano</label>
@@ -81,7 +81,7 @@ export default function AdminStats() {
       >
         {[
           { label: "Livros cadastrados", value: stats?.livros ?? 0, color: "#8b1e1e" },
-          { label: "Usuários cadastrados", value: stats?.usuarios ?? 0, color: "#6d1414" },
+          { label: "Leitores cadastrados", value: stats?.usuarios ?? 0, color: "#6d1414" },
           { label: stats?.ano ? `Empréstimos em ${stats.ano}` : "Empréstimos no ano", value: stats?.emprestimos ?? 0, color: "#7a1c1c" },
           { label: "Empréstimos abertos", value: stats?.emaberto ?? 0, color: "#5d1111" },
         ].map((card) => (
@@ -162,7 +162,7 @@ export default function AdminStats() {
               }}
             />
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, color: "#2d1414", lineHeight: 1 }}>
-              Usuários que mais leem (top 5)
+              Leitores que mais leem (top 5)
             </h2>
           </div>
 

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Tcc" ADD COLUMN IF NOT EXISTS "curso" TEXT;

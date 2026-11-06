@@ -11,7 +11,7 @@ type Stats = {
   emaberto: number
 }
 
-type NomeIcone = "emprestimos" | "alunos" | "livros"
+type NomeIcone = "emprestimos" | "leitores" | "livros"
 
 function Icone({ nome, tamanho = 22 }: { nome: NomeIcone; tamanho?: number }) {
   const comum = {
@@ -33,7 +33,7 @@ function Icone({ nome, tamanho = 22 }: { nome: NomeIcone; tamanho?: number }) {
           <path d="M20 16H7l3 3" />
         </svg>
       )
-    case "alunos":
+    case "leitores":
       return (
         <svg {...comum}>
           <path d="M2.5 9.5L12 5l9.5 4.5L12 14z" />
@@ -65,13 +65,13 @@ export default function AdminDashboard() {
 
   const atalhos: { label: string; href: string; icone: NomeIcone }[] = [
     { label: "Empréstimos", href: "/admin/emprestimos", icone: "emprestimos" },
-    { label: "Cadastrar alunos", href: "/admin/usuarios", icone: "alunos" },
+    { label: "Cadastrar Leitores", href: "/admin/usuarios", icone: "leitores" },
     { label: "Cadastrar livros", href: "/admin/livros", icone: "livros" },
   ]
 
   const resumo: { label: string; valor: number | undefined; icone: NomeIcone }[] = [
     { label: "empréstimos", valor: stats?.emaberto, icone: "emprestimos" },
-    { label: "alunos", valor: stats?.usuarios, icone: "alunos" },
+    { label: "leitores", valor: stats?.usuarios, icone: "leitores" },
     { label: "livros", valor: stats?.livros, icone: "livros" },
   ]
 

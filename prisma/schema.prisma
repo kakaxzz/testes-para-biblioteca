@@ -70,6 +70,7 @@ model Tcc {
   autor        String
   ano          Int
   tipo         String      @default("tcc")
+  curso        String?
   resumo       String?
   criadoEm     DateTime    @default(now())
   arquivoDados Bytes

@@ -62,7 +62,7 @@ export default function AdminUsuarios() {
     })
 
     if (res.ok) {
-      setMensagem(`${TIPO_LABEL[tipo]} "${nome}" cadastrado com sucesso!`)
+      setMensagem(`${TIPO_LABEL[tipo]} "${nome}" leitor cadastrado com sucesso!`)
       setTipoMensagem("ok")
       setNome("")
       setMatricula("")
@@ -72,7 +72,7 @@ export default function AdminUsuarios() {
       carregarUsuarios()
     } else {
       const d = await res.json()
-      setMensagem(d.error || "Erro ao cadastrar usuário.")
+      setMensagem(d.error || "Erro ao cadastrar leitor.")
       setTipoMensagem("erro")
     }
   }
@@ -97,13 +97,13 @@ export default function AdminUsuarios() {
     })
 
     if (res.ok) {
-      setMensagem("Usuário atualizado com sucesso!")
+      setMensagem("Leitor atualizado com sucesso!")
       setTipoMensagem("ok")
       setEditando(null)
       carregarUsuarios()
     } else {
       const d = await res.json()
-      setMensagem(d.error || "Erro ao atualizar usuário.")
+      setMensagem(d.error || "Erro ao atualizar leitor.")
       setTipoMensagem("erro")
     }
   }
@@ -117,7 +117,7 @@ export default function AdminUsuarios() {
       carregarUsuarios()
     } else {
       const d = await res.json()
-      setMensagem(d.error || "Erro ao remover usuário.")
+      setMensagem(d.error || "Erro ao remover leitor.")
       setTipoMensagem("erro")
     }
   }
@@ -240,7 +240,7 @@ export default function AdminUsuarios() {
             }}
           >
             <h3 className="section-title" style={{ marginBottom: 0 }}>
-              Usuários cadastrados
+              Leitores cadastrados
               <span className="section-meta">{filtrados.length} encontrados</span>
             </h3>
 
@@ -377,7 +377,7 @@ export default function AdminUsuarios() {
                 {filtrados.length === 0 && (
                   <tr>
                     <td colSpan={6} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
-                      {busca ? "Nenhum usuário encontrado" : "Nenhum usuário cadastrado ainda"}
+                      {busca ? "Nenhum leitor encontrado" : "Nenhum leitor cadastrado ainda"}
                     </td>
                   </tr>
                 )}

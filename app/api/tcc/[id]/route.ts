@@ -11,6 +11,7 @@ const CAMPOS = {
   autor: true,
   ano: true,
   tipo: true,
+  curso: true,
   resumo: true,
   arquivoNome: true,
   criadoEm: true,

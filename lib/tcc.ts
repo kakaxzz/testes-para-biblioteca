@@ -3,11 +3,24 @@ export const TAMANHO_MAXIMO_PDF = 4 * 1024 * 1024
 
 export const CABECALHO_LEITOR = "x-leitor-tcc"
 
+export const CURSOS_TCC = [
+  { valor: "informatica", rotulo: "Informática" },
+  { valor: "enfermagem", rotulo: "Enfermagem" },
+  { valor: "administracao", rotulo: "Administração" },
+] as const
+
+export type CursoTcc = (typeof CURSOS_TCC)[number]["valor"]
+
+export function rotuloCurso(valor?: string | null): string {
+  return CURSOS_TCC.find((c) => c.valor === valor)?.rotulo ?? "-"
+}
+
 export type DadosTcc = {
   titulo: string
   autor: string
   ano: number
   tipo: "tcc" | "artigo"
+  curso: CursoTcc
   resumo: string
 }
 
@@ -19,12 +32,18 @@ export function lerDadosTcc(form: FormData): { dados: DadosTcc } | Falha {
   const ano = parseInt(String(form.get("ano") ?? ""), 10)
   const tipo = String(form.get("tipo") ?? "tcc") === "artigo" ? "artigo" : "tcc"
   const resumo = String(form.get("resumo") ?? "").trim()
+  const cursoInformado = String(form.get("curso") ?? "")
+  const curso = CURSOS_TCC.find((c) => c.valor === cursoInformado)?.valor
 
   if (!titulo || !autor || Number.isNaN(ano)) {
     return { erro: "Título, autor e ano são obrigatórios.", status: 400 }
   }
 
-  return { dados: { titulo, autor, ano, tipo, resumo } }
+  if (!curso) {
+    return { erro: "Selecione o curso do trabalho.", status: 400 }
+  }
+
+  return { dados: { titulo, autor, ano, tipo, curso, resumo } }
 }
 
 export async function lerPdf(

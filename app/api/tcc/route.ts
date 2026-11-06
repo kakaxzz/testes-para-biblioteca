@@ -12,7 +12,7 @@ export async function GET() {
   try {
     const tccs = await prisma.tcc.findMany({
       orderBy: [{ ano: "desc" }, { id: "desc" }],
-      select: { id: true, titulo: true, autor: true, ano: true, tipo: true, resumo: true, arquivoNome: true, criadoEm: true },
+      select: { id: true, titulo: true, autor: true, ano: true, tipo: true, curso: true, resumo: true, arquivoNome: true, criadoEm: true },
     })
     return NextResponse.json(tccs)
   } catch (error) {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         arquivoTipo: "application/pdf",
         arquivoDados: arquivo.pdf.dados,
       },
-      select: { id: true, titulo: true, autor: true, ano: true, tipo: true },
+      select: { id: true, titulo: true, autor: true, ano: true, tipo: true, curso: true },
     })
 
     return NextResponse.json(tcc)
