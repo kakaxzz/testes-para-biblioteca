@@ -1,0 +1,400 @@
+diff --git a/app/admin/stats/page.tsx b/app/admin/stats/page.tsx
+index f375030..1c4618c 100644
+--- a/app/admin/stats/page.tsx
++++ b/app/admin/stats/page.tsx
+@@ -32,11 +32,25 @@ type Stats = {
+   topUsuarios: TopUsuario[]
+ }
+ 
++const hojeBR = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date())
++
++function somarDias(iso: string, dias: number) {
++  const [a, m, d] = iso.split("-").map(Number)
++  return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10)
++}
++
+ export default function AdminStats() {
+   const [stats, setStats] = useState<Stats | null>(null)
+   const [loading, setLoading] = useState(true)
+   const [ano, setAno] = useState<number | null>(null)
+ 
++  // Relatório CSV
++  const [inicio, setInicio] = useState("")
++  const [fim, setFim] = useState("")
++  const [gerando, setGerando] = useState(false)
++  const [msgRelatorio, setMsgRelatorio] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null)
++  const [avisoRelatorio, setAvisoRelatorio] = useState<string | null>(null)
++
+   useEffect(() => {
+     setLoading(true)
+     fetch(ano ? `/api/stats?ano=${ano}` : "/api/stats")
+@@ -48,6 +62,75 @@ export default function AdminStats() {
+       .catch(() => setLoading(false))
+   }, [ano])
+ 
++  // Período padrão do relatório = ano selecionado (até hoje, se for o ano corrente)
++  useEffect(() => {
++    if (!stats?.ano) return
++    const hoje = hojeBR()
++    setInicio(`${stats.ano}-01-01`)
++    setFim(stats.ano === Number(hoje.slice(0, 4)) ? hoje : `${stats.ano}-12-31`)
++  }, [stats?.ano])
++
++  function usarPeriodo(tipo: "ano" | "mes" | "30dias") {
++    const hoje = hojeBR()
++    if (tipo === "30dias") {
++      setInicio(somarDias(hoje, -29))
++      setFim(hoje)
++    } else if (tipo === "mes") {
++      setInicio(`${hoje.slice(0, 7)}-01`)
++      setFim(hoje)
++    } else if (stats?.ano) {
++      setInicio(`${stats.ano}-01-01`)
++      setFim(stats.ano === Number(hoje.slice(0, 4)) ? hoje : `${stats.ano}-12-31`)
++    }
++  }
++
++  async function baixarRelatorio() {
++    setMsgRelatorio(null)
++    setAvisoRelatorio(null)
++    if (!inicio || !fim) {
++      setMsgRelatorio({ tipo: "erro", texto: "Escolha a data inicial e a data final." })
++      return
++    }
++    if (inicio > fim) {
++      setMsgRelatorio({ tipo: "erro", texto: "A data inicial não pode ser depois da data final." })
++      return
++    }
++
++    setGerando(true)
++    try {
++      const res = await fetch(`/api/admin/relatorio?inicio=${inicio}&fim=${fim}`)
++      if (!res.ok) {
++        const erro = await res.json().catch(() => null)
++        throw new Error(erro?.error || "Não foi possível gerar o relatório.")
++      }
++
++      const total = Number(res.headers.get("X-Relatorio-Linhas") ?? 0)
++      const aviso = res.headers.get("X-Relatorio-Aviso")
++      if (aviso) setAvisoRelatorio(decodeURIComponent(aviso))
++
++      if (total === 0) {
++        setMsgRelatorio({ tipo: "erro", texto: "Nenhum empréstimo registrado nesse período." })
++        return
++      }
++
++      const blob = await res.blob()
++      const url = URL.createObjectURL(blob)
++      const link = document.createElement("a")
++      link.href = url
++      link.download = `relatorio-emprestimos_${inicio}_a_${fim}.csv`
++      document.body.appendChild(link)
++      link.click()
++      link.remove()
++      URL.revokeObjectURL(url)
++
++      setMsgRelatorio({ tipo: "ok", texto: `Relatório gerado com ${total} empréstimo${total === 1 ? "" : "s"}.` })
++    } catch (e) {
++      setMsgRelatorio({ tipo: "erro", texto: e instanceof Error ? e.message : "Não foi possível gerar o relatório." })
++    } finally {
++      setGerando(false)
++    }
++  }
++
+   return (
+     <div>
+       <div className="page-header">
+@@ -113,6 +196,55 @@ export default function AdminStats() {
+         ))}
+       </div>
+ 
++      <section className="card relatorio-card">
++        <h2 className="relatorio-titulo">Relatório de empréstimos (CSV)</h2>
++        <p className="relatorio-desc">
++          Baixe a lista de todos os empréstimos feitos no período escolhido, pronta para abrir no Excel.
++        </p>
++
++        <div className="relatorio-form">
++          <div className="input-group">
++            <label htmlFor="relatorio-inicio">De</label>
++            <input
++              id="relatorio-inicio"
++              type="date"
++              className="input-field"
++              min="2000-01-01"
++              value={inicio}
++              onChange={(e) => setInicio(e.target.value)}
++            />
++          </div>
++          <div className="input-group">
++            <label htmlFor="relatorio-fim">Até</label>
++            <input
++              id="relatorio-fim"
++              type="date"
++              className="input-field"
++              min={inicio || "2000-01-01"}
++              value={fim}
++              onChange={(e) => setFim(e.target.value)}
++            />
++          </div>
++          <button type="button" className="btn-primary" onClick={baixarRelatorio} disabled={gerando || !inicio || !fim}>
++            {gerando ? "Gerando..." : "Baixar relatório (CSV)"}
++          </button>
++        </div>
++
++        <div className="relatorio-atalhos">
++          <span>Atalhos:</span>
++          <button type="button" className="btn-secondary" onClick={() => usarPeriodo("ano")}>Ano selecionado</button>
++          <button type="button" className="btn-secondary" onClick={() => usarPeriodo("mes")}>Mês atual</button>
++          <button type="button" className="btn-secondary" onClick={() => usarPeriodo("30dias")}>Últimos 30 dias</button>
++        </div>
++
++        {msgRelatorio && (
++          <div className={msgRelatorio.tipo === "ok" ? "mensagem-ok" : "mensagem-erro"} style={{ marginTop: 16 }}>
++            {msgRelatorio.texto}
++          </div>
++        )}
++        {avisoRelatorio && <div className="relatorio-aviso">{avisoRelatorio}</div>}
++      </section>
++
+       <div style={{ display: "grid", gap: 22 }}>
+         <section className="card" style={{ padding: 24, background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,248,243,0.92) 100%)" }}>
+           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
+@@ -188,6 +320,15 @@ export default function AdminStats() {
+       </div>
+ 
+       <style>{`
++        .relatorio-card { padding: 24px; margin-bottom: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,248,243,0.92) 100%); }
++        .relatorio-titulo { font-family: 'Playfair Display', serif; font-size: 26px; color: #2d1414; line-height: 1.1; margin-bottom: 6px; }
++        .relatorio-desc { margin: 0 0 18px; color: #6f5f5f; font-size: 0.95rem; }
++        .relatorio-form { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
++        .relatorio-form .input-group { display: flex; flex-direction: column; gap: 6px; }
++        .relatorio-form .input-field { width: 180px; }
++        .relatorio-atalhos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; color: #7b5d5d; font-weight: 700; font-size: 0.9rem; }
++        .relatorio-atalhos .btn-secondary { padding: 6px 14px; font-size: 0.85rem; }
++        .relatorio-aviso { margin-top: 12px; padding: 12px 16px; border-radius: 14px; background: #fff4df; border: 1px solid rgba(180,120,20,0.3); color: #6b4a0f; font-size: 0.9rem; font-weight: 600; }
+         .page-header { margin-bottom: 28px; }
+         .page-header h1 { font-family: 'Playfair Display', serif; font-size: 3rem; color: #2d1414; margin-bottom: 8px; }
+         .page-header p { font-size: 1rem; color: #6f5f5f; max-width: 680px; }
+diff --git a/app/api/admin/relatorio/route.ts b/app/api/admin/relatorio/route.ts
+new file mode 100644
+index 0000000..87a56f1
+--- /dev/null
++++ b/app/api/admin/relatorio/route.ts
+@@ -0,0 +1,34 @@
++import { NextResponse } from "next/server"
++import { gerarRelatorioEmprestimos, interpretarPeriodo } from "@/lib/relatorio"
++
++export const dynamic = "force-dynamic"
++export const maxDuration = 60
++
++// GET /api/admin/relatorio?inicio=AAAA-MM-DD&fim=AAAA-MM-DD
++// Protegida pelo middleware (exige sessão de admin): o arquivo traz dados pessoais dos leitores.
++export async function GET(request: Request) {
++  const { searchParams } = new URL(request.url)
++  const periodo = interpretarPeriodo(searchParams.get("inicio"), searchParams.get("fim"))
++  if (!periodo.ok) {
++    return NextResponse.json({ error: periodo.erro }, { status: 400 })
++  }
++
++  try {
++    const { csv, total, aviso } = await gerarRelatorioEmprestimos(periodo)
++    const nome = `relatorio-emprestimos_${periodo.inicioISO}_a_${periodo.fimISO}.csv`
++
++    const headers: Record<string, string> = {
++      // BOM no início para o Excel reconhecer os acentos (UTF-8).
++      "Content-Type": "text/csv; charset=utf-8",
++      "Content-Disposition": `attachment; filename="${nome}"`,
++      "Cache-Control": "no-store",
++      "X-Relatorio-Linhas": String(total),
++    }
++    if (aviso) headers["X-Relatorio-Aviso"] = encodeURIComponent(aviso)
++
++    return new NextResponse("\uFEFF" + csv, { headers })
++  } catch (error) {
++    console.error("Erro ao gerar o relatório:", error)
++    return NextResponse.json({ error: "Erro ao gerar o relatório." }, { status: 500 })
++  }
++}
+diff --git a/lib/relatorio.ts b/lib/relatorio.ts
+new file mode 100644
+index 0000000..2268fb4
+--- /dev/null
++++ b/lib/relatorio.ts
+@@ -0,0 +1,164 @@
++import { prisma } from "@/lib/prisma"
++import { mascararCpf } from "@/lib/mascara"
++
++// Prazo de devolução usado em /admin/emprestimos (10 dias).
++const PRAZO_DIAS = 10
++const ANO_MINIMO = 2000
++
++export type Periodo = {
++  inicioISO: string // "2026-01-01" (como o admin escolheu)
++  fimISO: string // "2026-11-10" (inclusivo)
++  inicio: Date // 00:00 de Brasília do dia inicial
++  fim: Date // 00:00 de Brasília do dia seguinte ao final (exclusivo)
++}
++
++export type PeriodoInterpretado = ({ ok: true } & Periodo) | { ok: false; erro: string }
++
++// Brasília é UTC-3 o ano todo (sem horário de verão), a mesma convenção de lib/estatisticas.ts.
++function meiaNoiteDeBrasilia(ano: number, mes: number, dia: number): Date {
++  return new Date(Date.UTC(ano, mes - 1, dia, 3))
++}
++
++function lerData(texto: string | null): { ano: number; mes: number; dia: number } | null {
++  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(texto ?? "")
++  if (!m) return null
++  const ano = Number(m[1])
++  const mes = Number(m[2])
++  const dia = Number(m[3])
++  const teste = new Date(Date.UTC(ano, mes - 1, dia))
++  // Rejeita datas que não existem (ex.: 31/02).
++  if (teste.getUTCFullYear() !== ano || teste.getUTCMonth() !== mes - 1 || teste.getUTCDate() !== dia) return null
++  return { ano, mes, dia }
++}
++
++export function interpretarPeriodo(inicioTexto: string | null, fimTexto: string | null): PeriodoInterpretado {
++  const ini = lerData(inicioTexto)
++  const fim = lerData(fimTexto)
++  if (!ini || !fim) return { ok: false, erro: "Informe a data inicial e a data final (formato AAAA-MM-DD)." }
++  if (ini.ano < ANO_MINIMO || fim.ano < ANO_MINIMO) return { ok: false, erro: `As datas devem ser a partir de ${ANO_MINIMO}.` }
++  if (inicioTexto! > fimTexto!) return { ok: false, erro: "A data inicial não pode ser depois da data final." }
++
++  return {
++    ok: true,
++    inicioISO: inicioTexto!,
++    fimISO: fimTexto!,
++    inicio: meiaNoiteDeBrasilia(ini.ano, ini.mes, ini.dia),
++    fim: meiaNoiteDeBrasilia(fim.ano, fim.mes, fim.dia + 1),
++  }
++}
++
++// ---------- CSV ----------
++
++const SEPARADOR = ";" // o Excel em português espera ponto e vírgula
++const QUEBRA = "\r\n"
++
++// Escapa aspas/separadores e neutraliza "injeção de fórmula": nomes e títulos digitados
++// por usuários que começam com = + - @ seriam executados como fórmula ao abrir no Excel.
++export function celulaCsv(valor: unknown): string {
++  let texto = valor === null || valor === undefined ? "" : String(valor)
++  if (/^[=+\-@\t\r]/.test(texto)) texto = `'${texto}`
++  if (/[;"\r\n]/.test(texto)) texto = `"${texto.replace(/"/g, '""')}"`
++  return texto
++}
++
++const formatadorDataHora = new Intl.DateTimeFormat("pt-BR", {
++  timeZone: "America/Sao_Paulo",
++  day: "2-digit",
++  month: "2-digit",
++  year: "numeric",
++  hour: "2-digit",
++  minute: "2-digit",
++  hourCycle: "h23",
++})
++
++export function dataHoraBR(data: Date): string {
++  const p = Object.fromEntries(formatadorDataHora.formatToParts(data).map((x) => [x.type, x.value]))
++  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`
++}
++
++const TIPO_USUARIO: Record<string, string> = {
++  ALUNO: "Aluno",
++  FUNCIONARIO: "Funcionário",
++  RESPONSAVEL: "Responsável",
++}
++
++const CABECALHO = [
++  "Data do empréstimo",
++  "Data da devolução",
++  "Situação",
++  "Tombo",
++  "Título",
++  "Autor",
++  "ISBN",
++  "Leitor",
++  "Tipo de leitor",
++  "Matrícula / CPF",
++  "Turma",
++]
++
++type LinhaEmprestimo = {
++  dataEmprestimo: Date
++  dataDevolucao: Date | null
++  exemplar: { tombo: number; livro: { titulo: string; autor: string; isbn: string } }
++  usuario: { nome: string; tipo: string; matricula: string | null; cpf: string | null; turma: string | null }
++}
++
++export function montarCsv(emprestimos: LinhaEmprestimo[], agora: Date = new Date()): string {
++  const linhas: unknown[][] = [CABECALHO]
++
++  for (const e of emprestimos) {
++    let situacao = "Devolvido"
++    if (!e.dataDevolucao) {
++      const dias = Math.floor((agora.getTime() - e.dataEmprestimo.getTime()) / 86400000)
++      situacao = dias > PRAZO_DIAS ? "Em atraso" : "Em aberto"
++    }
++    linhas.push([
++      dataHoraBR(e.dataEmprestimo),
++      e.dataDevolucao ? dataHoraBR(e.dataDevolucao) : "",
++      situacao,
++      e.exemplar.tombo,
++      e.exemplar.livro.titulo,
++      e.exemplar.livro.autor,
++      e.exemplar.livro.isbn,
++      e.usuario.nome,
++      TIPO_USUARIO[e.usuario.tipo] ?? e.usuario.tipo,
++      // Mesma regra da tela de usuários: matrícula aparece, CPF fica mascarado.
++      e.usuario.matricula || (e.usuario.cpf ? mascararCpf(e.usuario.cpf) : ""),
++      e.usuario.turma ?? "",
++    ])
++  }
++
++  return linhas.map((l) => l.map(celulaCsv).join(SEPARADOR)).join(QUEBRA) + QUEBRA
++}
++
++// ---------- Consulta ----------
++
++export type RelatorioGerado = {
++  csv: string
++  total: number
++  aviso: string | null
++}
++
++export async function gerarRelatorioEmprestimos(periodo: Periodo): Promise<RelatorioGerado> {
++  const emprestimos = await prisma.emprestimo.findMany({
++    where: { dataEmprestimo: { gte: periodo.inicio, lt: periodo.fim } },
++    include: { usuario: true, exemplar: { include: { livro: true } } },
++    orderBy: [{ dataEmprestimo: "asc" }, { id: "asc" }],
++  })
++
++  // A virada de ano apaga os empréstimos (de todos os anos) dos alunos que saem da escola.
++  // Se houve virada depois do início do período, o relatório pode estar incompleto.
++  const viradas = await prisma.virada
++    .findMany({
++      where: { removidos: { gt: 0 }, executadoEm: { gte: periodo.inicio } },
++      select: { ano: true },
++      orderBy: { ano: "asc" },
++    })
++    .catch(() => [] as { ano: number }[])
++
++  const aviso = viradas.length
++    ? `Os empréstimos dos alunos removidos na virada de ano (${viradas.map((v) => v.ano).join(", ")}) foram apagados do sistema e não aparecem neste relatório.`
++    : null
++
++  return { csv: montarCsv(emprestimos), total: emprestimos.length, aviso }
++}
+diff --git a/middleware.ts b/middleware.ts
+index 0bd749a..29a9762 100644
+--- a/middleware.ts
++++ b/middleware.ts
+@@ -6,6 +6,7 @@ const SESSION_COOKIE = "session"
+ const PROTECTED_API_ROUTES: { pattern: RegExp; methods: string[] }[] = [
+   { pattern: /^\/api\/admin\/gerar-token$/, methods: ["POST"] },
+   { pattern: /^\/api\/admin\/virada$/, methods: ["GET", "POST"] },
++  { pattern: /^\/api\/admin\/relatorio$/, methods: ["GET"] },
+   { pattern: /^\/api\/admin\/livros\/[^/]+\/emprestimos$/, methods: ["GET"] },
+   { pattern: /^\/api\/livros$/, methods: ["POST"] },
+   { pattern: /^\/api\/livros\/[^/]+$/, methods: ["PUT", "DELETE"] },
