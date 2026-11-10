@@ -13,6 +13,8 @@ export default function LoginPage() {
   const [senha, setSenha] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
+  const [enviandoRec, setEnviandoRec] = useState(false)
+  const [recMsg, setRecMsg] = useState<{ ok: boolean; texto: string } | null>(null)
   const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
@@ -30,6 +32,28 @@ export default function LoginPage() {
     else setErro("Usuário ou senha incorretos.")
 
     setLoading(false)
+  }
+
+  async function handleEsqueciSenha() {
+    setErro("")
+    setRecMsg(null)
+    setEnviandoRec(true)
+    try {
+      const res = await fetch("/api/auth/esqueci-senha", { method: "POST" })
+      const data = await res.json()
+      if (res.ok) {
+        setRecMsg({
+          ok: true,
+          texto: `Enviamos um link para ${data.email}. Confira a caixa de entrada (e o spam). Ele vale por 30 minutos.`,
+        })
+      } else {
+        setRecMsg({ ok: false, texto: data.error || "Não foi possível enviar o e-mail." })
+      }
+    } catch {
+      setRecMsg({ ok: false, texto: "Erro de conexão. Tente de novo." })
+    } finally {
+      setEnviandoRec(false)
+    }
   }
 
   return (
@@ -84,6 +108,27 @@ export default function LoginPage() {
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={handleEsqueciSenha}
+          disabled={enviandoRec}
+          className="mt-4 cursor-pointer text-[13px] font-semibold text-[#8b1e1e] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {enviandoRec ? "Enviando e-mail..." : "Esqueci a senha"}
+        </button>
+
+        {recMsg && (
+          <div
+            className={`mt-3 rounded-xl border px-3.5 py-2.5 text-left text-[13px] ${
+              recMsg.ok
+                ? "border-[#86efac] bg-[#f0faf4] text-[#166534]"
+                : "border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]"
+            }`}
+          >
+            {recMsg.texto}
+          </div>
+        )}
       </div>
     </div>
   )

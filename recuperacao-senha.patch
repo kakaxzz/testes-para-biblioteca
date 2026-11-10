@@ -1,0 +1,772 @@
+diff --git a/app/admin/configuracoes/page.tsx b/app/admin/configuracoes/page.tsx
+index 14b8f8a..92d42b8 100644
+--- a/app/admin/configuracoes/page.tsx
++++ b/app/admin/configuracoes/page.tsx
+@@ -1,4 +1,5 @@
+ import { TrocarSenhaForm } from "@/components/admin/TrocarSenhaForm"
++import { EmailRecuperacaoForm } from "@/components/admin/EmailRecuperacaoForm"
+ import { TrocarUsuarioForm } from "@/components/admin/TrocarUsuarioForm"
+ import { ViradaAno } from "@/components/admin/ViradaAno"
+ 
+@@ -7,13 +8,14 @@ export default function AdminConfiguracoes() {
+     <>
+       <div className="page-header">
+         <h1>Configurações</h1>
+-        <p>Usuário e senha de acesso ao painel e virada de ano das turmas</p>
++        <p>Usuário, senha e e-mail de recuperação do painel, e virada de ano das turmas</p>
+       </div>
+ 
+       <div className="grid items-start gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+         <div className="grid gap-6">
+           <TrocarUsuarioForm />
+           <TrocarSenhaForm />
++          <EmailRecuperacaoForm />
+         </div>
+         <ViradaAno />
+       </div>
+diff --git a/app/admin/layout.tsx b/app/admin/layout.tsx
+index 2ce1a18..0d1b5d5 100644
+--- a/app/admin/layout.tsx
++++ b/app/admin/layout.tsx
+@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+   const router = useRouter()
+   const [menuAberto, setMenuAberto] = useState(false)
+ 
+-  if (pathname === "/admin/login") return <>{children}</>
++  if (pathname === "/admin/login" || pathname === "/admin/redefinir-senha") return <>{children}</>
+ 
+   async function handleLogout() {
+     await fetch("/api/auth/logout", { method: "POST" })
+diff --git a/app/admin/login/page.tsx b/app/admin/login/page.tsx
+index 17aff99..714a79e 100644
+--- a/app/admin/login/page.tsx
++++ b/app/admin/login/page.tsx
+@@ -13,6 +13,8 @@ export default function LoginPage() {
+   const [senha, setSenha] = useState("")
+   const [erro, setErro] = useState("")
+   const [loading, setLoading] = useState(false)
++  const [enviandoRec, setEnviandoRec] = useState(false)
++  const [recMsg, setRecMsg] = useState<{ ok: boolean; texto: string } | null>(null)
+   const router = useRouter()
+ 
+   async function handleLogin(e: React.FormEvent) {
+@@ -32,6 +34,28 @@ export default function LoginPage() {
+     setLoading(false)
+   }
+ 
++  async function handleEsqueciSenha() {
++    setErro("")
++    setRecMsg(null)
++    setEnviandoRec(true)
++    try {
++      const res = await fetch("/api/auth/esqueci-senha", { method: "POST" })
++      const data = await res.json()
++      if (res.ok) {
++        setRecMsg({
++          ok: true,
++          texto: `Enviamos um link para ${data.email}. Confira a caixa de entrada (e o spam). Ele vale por 30 minutos.`,
++        })
++      } else {
++        setRecMsg({ ok: false, texto: data.error || "Não foi possível enviar o e-mail." })
++      }
++    } catch {
++      setRecMsg({ ok: false, texto: "Erro de conexão. Tente de novo." })
++    } finally {
++      setEnviandoRec(false)
++    }
++  }
++
+   return (
+     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#561010_0%,#791818_44%,#962020_100%)] p-4 font-texto">
+       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&display=swap');`}</style>
+@@ -84,6 +108,27 @@ export default function LoginPage() {
+             {loading ? "Entrando..." : "Entrar"}
+           </button>
+         </form>
++
++        <button
++          type="button"
++          onClick={handleEsqueciSenha}
++          disabled={enviandoRec}
++          className="mt-4 cursor-pointer text-[13px] font-semibold text-[#8b1e1e] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
++        >
++          {enviandoRec ? "Enviando e-mail..." : "Esqueci a senha"}
++        </button>
++
++        {recMsg && (
++          <div
++            className={`mt-3 rounded-xl border px-3.5 py-2.5 text-left text-[13px] ${
++              recMsg.ok
++                ? "border-[#86efac] bg-[#f0faf4] text-[#166534]"
++                : "border-[#8b1e1e]/20 bg-[#fdf2f2] text-[#8b1e1e]"
++            }`}
++          >
++            {recMsg.texto}
++          </div>
++        )}
+       </div>
+     </div>
+   )
+diff --git a/app/admin/redefinir-senha/page.tsx b/app/admin/redefinir-senha/page.tsx
+new file mode 100644
+index 0000000..19489b3
+--- /dev/null
++++ b/app/admin/redefinir-senha/page.tsx
+@@ -0,0 +1,158 @@
++"use client"
++
++import { Suspense, useEffect, useState } from "react"
++import { useRouter, useSearchParams } from "next/navigation"
++import Link from "next/link"
++import { PasswordInput } from "@/components/PasswordInput"
++import { Icone } from "@/components/Icone"
++
++const CAMPO =
++  "rounded-xl border border-[#8b1e1e]/15 bg-white/70 px-4 py-3.5 text-sm text-[#1a0f0f] shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none transition focus:border-[#8b1e1e] focus:ring-4 focus:ring-[#8b1e1e]/10"
++
++function RedefinirSenhaForm() {
++  const token = useSearchParams().get("token") ?? ""
++  const router = useRouter()
++  const [status, setStatus] = useState<"verificando" | "valido" | "invalido" | "concluido">("verificando")
++  const [nova, setNova] = useState("")
++  const [confirma, setConfirma] = useState("")
++  const [erro, setErro] = useState("")
++  const [loading, setLoading] = useState(false)
++
++  useEffect(() => {
++    if (!token) {
++      setStatus("invalido")
++      return
++    }
++    fetch(`/api/auth/redefinir-senha?token=${encodeURIComponent(token)}`)
++      .then((r) => r.json())
++      .then((d) => setStatus(d.valido ? "valido" : "invalido"))
++      .catch(() => setStatus("invalido"))
++  }, [token])
++
++  useEffect(() => {
++    if (status !== "concluido") return
++    const t = setTimeout(() => router.replace("/admin/login"), 3000)
++    return () => clearTimeout(t)
++  }, [status, router])
++
++  async function handleSubmit(e: React.FormEvent) {
++    e.preventDefault()
++    setErro("")
++
++    if (nova !== confirma) {
++      setErro("A confirmação não bate com a nova senha.")
++      return
++    }
++
++    setLoading(true)
++    try {
++      const res = await fetch("/api/auth/redefinir-senha", {
++        method: "POST",
++        headers: { "Content-Type": "application/json" },
++        body: JSON.stringify({ token, novaSenha: nova }),
++      })
++      const data = await res.json()
++      if (res.ok) setStatus("concluido")
++      else setErro(data.error || "Erro ao redefinir a senha.")
++    } catch {
++      setErro("Erro de conexão. Tente de novo.")
++    } finally {
++      setLoading(false)
++    }
++  }
++
++  return (
++    <>
++      <h1 className="mb-1.5 font-titulo text-[28px] font-black text-[#8b1e1e]">Nova senha</h1>
++      <p className="mb-[26px] text-sm tracking-[0.01em] text-[#9b8f8f]">Biblioteca Escolar Emerson Teixeira</p>
++
++      {status === "verificando" && <p className="text-sm text-[#6b5757]">Verificando link...</p>}
++
++      {status === "invalido" && (
++        <div className="flex flex-col gap-4">
++          <div className="rounded-xl border border-[#8b1e1e]/20 bg-[#fdf2f2] px-3.5 py-3 text-[13px] text-[#8b1e1e]">
++            Este link é inválido ou já expirou. Volte ao login e clique em “Esqueci a senha” para receber um novo.
++          </div>
++          <Link href="/admin/login" className="text-[13px] font-semibold text-[#8b1e1e] hover:underline">
++            Voltar ao login
++          </Link>
++        </div>
++      )}
++
++      {status === "concluido" && (
++        <div className="flex flex-col gap-4">
++          <div className="rounded-xl border border-[#86efac] bg-[#f0faf4] px-3.5 py-3 text-[13px] text-[#166534]">
++            Senha redefinida com sucesso! Você será levado ao login em instantes.
++          </div>
++          <Link href="/admin/login" className="text-[13px] font-semibold text-[#8b1e1e] hover:underline">
++            Ir para o login agora
++          </Link>
++        </div>
++      )}
++
++      {status === "valido" && (
++        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
++          <PasswordInput
++            placeholder="Nova senha (mín. 8 caracteres)"
++            value={nova}
++            onChange={(e) => setNova(e.target.value)}
++            autoComplete="new-password"
++            minLength={8}
++            required
++            autoFocus
++            inputClassName={`w-full ${CAMPO}`}
++          />
++          <PasswordInput
++            placeholder="Confirmar nova senha"
++            value={confirma}
++            onChange={(e) => setConfirma(e.target.value)}
++            autoComplete="new-password"
++            minLength={8}
++            required
++            inputClassName={`w-full ${CAMPO}`}
++          />
++
++          {erro && (
++            <div className="rounded-xl border border-[#8b1e1e]/20 bg-[#fdf2f2] px-3.5 py-2.5 text-left text-[13px] text-[#8b1e1e]">
++              {erro}
++            </div>
++          )}
++
++          <button
++            type="submit"
++            disabled={loading}
++            className="mt-1.5 cursor-pointer rounded-xl bg-[linear-gradient(180deg,#992323_0%,#7e1717_100%)] p-3.5 text-[15px] font-bold text-white shadow-[0_12px_22px_rgba(126,23,23,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
++          >
++            {loading ? "Salvando..." : "Redefinir senha"}
++          </button>
++        </form>
++      )}
++    </>
++  )
++}
++
++export default function RedefinirSenhaPage() {
++  return (
++    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#561010_0%,#791818_44%,#962020_100%)] p-4 font-texto">
++      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&display=swap');`}</style>
++
++      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_44%)]" />
++
++      <img
++        src="/logo-jpi.png"
++        alt=""
++        className="pointer-events-none absolute w-[min(70vw,780px)] max-w-[780px] select-none object-contain opacity-[0.12] [filter:sepia(0.08)_saturate(0.8)_brightness(1.08)]"
++      />
++
++      <div className="relative z-10 w-full max-w-[402px] rounded-3xl border border-white/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(252,248,246,0.94)_100%)] px-6 py-10 text-center shadow-[0_30px_70px_rgba(39,8,8,0.26)] backdrop-blur-sm sm:px-[42px] sm:py-[46px]">
++        <div className="mx-auto mb-[18px] flex size-[76px] items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(139,30,30,0.08),rgba(139,30,30,0.14))] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
++          <Icone nome="livros" tamanho={38} style={{ color: "#8b1e1e" }} />
++        </div>
++
++        <Suspense fallback={<p className="text-sm text-[#6b5757]">Carregando...</p>}>
++          <RedefinirSenhaForm />
++        </Suspense>
++      </div>
++    </div>
++  )
++}
+diff --git a/app/api/admin/recovery-email/route.ts b/app/api/admin/recovery-email/route.ts
+new file mode 100644
+index 0000000..820ba51
+--- /dev/null
++++ b/app/api/admin/recovery-email/route.ts
+@@ -0,0 +1,53 @@
++import { NextRequest, NextResponse } from "next/server"
++import { prisma } from "@/lib/prisma"
++import { verifyPassword } from "@/lib/auth"
++import { adminDaSessao, emailValido, mascararEmail } from "@/lib/recuperacao"
++
++// Devolve o e-mail de recuperação cadastrado (mascarado).
++export async function GET() {
++  const admin = await adminDaSessao()
++  if (!admin) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
++
++  return NextResponse.json({
++    email: admin.emailRecuperacao ? mascararEmail(admin.emailRecuperacao) : null,
++  })
++}
++
++// Cadastra ou troca o e-mail de recuperação. Exige a senha atual do admin.
++export async function POST(request: NextRequest) {
++  try {
++    const admin = await adminDaSessao()
++    if (!admin) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
++
++    const { email, currentPassword } = await request.json()
++
++    if (typeof email !== "string" || typeof currentPassword !== "string" || !currentPassword) {
++      return NextResponse.json({ error: "Preencha o e-mail e a senha de admin" }, { status: 400 })
++    }
++
++    const novoEmail = email.trim().toLowerCase()
++    if (!emailValido(novoEmail)) {
++      return NextResponse.json({ error: "Digite um e-mail válido" }, { status: 400 })
++    }
++
++    const senhaValida = await verifyPassword(currentPassword, admin.senha)
++    if (!senhaValida) {
++      return NextResponse.json({ error: "Senha de admin incorreta" }, { status: 401 })
++    }
++
++    await prisma.$transaction([
++      prisma.admin.update({ where: { id: admin.id }, data: { emailRecuperacao: novoEmail } }),
++      // Links pendentes enviados para o e-mail antigo deixam de valer.
++      prisma.senhaResetToken.deleteMany({ where: { adminId: admin.id } }),
++    ])
++
++    return NextResponse.json({
++      success: true,
++      message: "E-mail de recuperação salvo com sucesso",
++      email: mascararEmail(novoEmail),
++    })
++  } catch (error) {
++    console.error("Erro ao salvar e-mail de recuperação:", error)
++    return NextResponse.json({ error: "Erro interno ao salvar o e-mail" }, { status: 500 })
++  }
++}
+diff --git a/app/api/auth/esqueci-senha/route.ts b/app/api/auth/esqueci-senha/route.ts
+new file mode 100644
+index 0000000..1195ab6
+--- /dev/null
++++ b/app/api/auth/esqueci-senha/route.ts
+@@ -0,0 +1,75 @@
++import { NextRequest, NextResponse } from "next/server"
++import { prisma } from "@/lib/prisma"
++import { enviarEmailRecuperacao } from "@/lib/email"
++import {
++  RESET_INTERVALO_SEGUNDOS,
++  RESET_VALIDADE_MINUTOS,
++  gerarToken,
++  hashToken,
++  mascararEmail,
++} from "@/lib/recuperacao"
++
++// Rota pública: envia o link de redefinição para o e-mail de recuperação cadastrado.
++export async function POST(request: NextRequest) {
++  try {
++    const admin = await prisma.admin.findFirst({
++      where: { emailRecuperacao: { not: null } },
++      orderBy: { id: "asc" },
++    })
++
++    if (!admin?.emailRecuperacao) {
++      return NextResponse.json(
++        {
++          error:
++            "Nenhum e-mail de recuperação cadastrado. Entre com a sua senha e cadastre um em Configurações.",
++        },
++        { status: 400 }
++      )
++    }
++
++    // Evita que a tela de login seja usada para disparar e-mails em sequência.
++    const recente = await prisma.senhaResetToken.findFirst({
++      where: {
++        adminId: admin.id,
++        createdAt: { gt: new Date(Date.now() - RESET_INTERVALO_SEGUNDOS * 1000) },
++      },
++    })
++    if (recente) {
++      return NextResponse.json(
++        { error: "Um e-mail já foi enviado agora há pouco. Aguarde 2 minutos para pedir outro." },
++        { status: 429 }
++      )
++    }
++
++    const token = gerarToken()
++    await prisma.$transaction([
++      prisma.senhaResetToken.deleteMany({ where: { adminId: admin.id } }),
++      prisma.senhaResetToken.create({
++        data: {
++          adminId: admin.id,
++          tokenHash: hashToken(token),
++          expiresAt: new Date(Date.now() + RESET_VALIDADE_MINUTOS * 60 * 1000),
++        },
++      }),
++    ])
++
++    const base = (process.env.APP_URL || request.nextUrl.origin).replace(/\/$/, "")
++    const link = `${base}/admin/redefinir-senha?token=${token}`
++
++    try {
++      await enviarEmailRecuperacao(admin.emailRecuperacao, link, RESET_VALIDADE_MINUTOS)
++    } catch (erroEnvio) {
++      console.error("Erro ao enviar e-mail de recuperação:", erroEnvio)
++      await prisma.senhaResetToken.deleteMany({ where: { adminId: admin.id } })
++      return NextResponse.json(
++        { error: "Não foi possível enviar o e-mail agora. Tente novamente em instantes." },
++        { status: 500 }
++      )
++    }
++
++    return NextResponse.json({ ok: true, email: mascararEmail(admin.emailRecuperacao) })
++  } catch (error) {
++    console.error("Erro em esqueci-senha:", error)
++    return NextResponse.json({ error: "Erro interno. Tente novamente." }, { status: 500 })
++  }
++}
+diff --git a/app/api/auth/redefinir-senha/route.ts b/app/api/auth/redefinir-senha/route.ts
+new file mode 100644
+index 0000000..559376e
+--- /dev/null
++++ b/app/api/auth/redefinir-senha/route.ts
+@@ -0,0 +1,53 @@
++import { NextRequest, NextResponse } from "next/server"
++import { prisma } from "@/lib/prisma"
++import { hashPassword } from "@/lib/auth"
++import { hashToken } from "@/lib/recuperacao"
++
++async function buscarTokenValido(token: unknown) {
++  if (typeof token !== "string" || token.length < 20) return null
++  const registro = await prisma.senhaResetToken.findUnique({
++    where: { tokenHash: hashToken(token) },
++  })
++  if (!registro || registro.expiresAt.getTime() < Date.now()) return null
++  return registro
++}
++
++// Usado pela tela para saber, antes de mostrar o formulário, se o link ainda vale.
++export async function GET(request: NextRequest) {
++  const registro = await buscarTokenValido(request.nextUrl.searchParams.get("token"))
++  return NextResponse.json({ valido: !!registro })
++}
++
++export async function POST(request: NextRequest) {
++  try {
++    const { token, novaSenha } = await request.json()
++
++    if (typeof novaSenha !== "string" || novaSenha.length < 8) {
++      return NextResponse.json(
++        { error: "A nova senha precisa ter pelo menos 8 caracteres" },
++        { status: 400 }
++      )
++    }
++
++    const registro = await buscarTokenValido(token)
++    if (!registro) {
++      return NextResponse.json(
++        { error: "Link inválido ou expirado. Peça um novo em “Esqueci a senha”." },
++        { status: 400 }
++      )
++    }
++
++    const novoHash = await hashPassword(novaSenha)
++
++    await prisma.$transaction([
++      prisma.admin.update({ where: { id: registro.adminId }, data: { senha: novoHash } }),
++      // Uso único: apaga este e qualquer outro link pendente do admin.
++      prisma.senhaResetToken.deleteMany({ where: { adminId: registro.adminId } }),
++    ])
++
++    return NextResponse.json({ success: true, message: "Senha redefinida com sucesso" })
++  } catch (error) {
++    console.error("Erro ao redefinir senha:", error)
++    return NextResponse.json({ error: "Erro interno ao redefinir a senha" }, { status: 500 })
++  }
++}
+diff --git a/components/admin/EmailRecuperacaoForm.tsx b/components/admin/EmailRecuperacaoForm.tsx
+new file mode 100644
+index 0000000..3fedb7c
+--- /dev/null
++++ b/components/admin/EmailRecuperacaoForm.tsx
+@@ -0,0 +1,97 @@
++"use client"
++
++import { useEffect, useState } from "react"
++import { PasswordInput } from "@/components/PasswordInput"
++
++const VAZIO = { email: "", senha: "" }
++
++export function EmailRecuperacaoForm() {
++  const [form, setForm] = useState(VAZIO)
++  const [cadastrado, setCadastrado] = useState<string | null>(null)
++  const [carregando, setCarregando] = useState(true)
++  const [loading, setLoading] = useState(false)
++  const [msg, setMsg] = useState<{ ok: boolean; texto: string } | null>(null)
++
++  useEffect(() => {
++    fetch("/api/admin/recovery-email")
++      .then((r) => (r.ok ? r.json() : null))
++      .then((d) => setCadastrado(d?.email ?? null))
++      .catch(() => {})
++      .finally(() => setCarregando(false))
++  }, [])
++
++  async function enviar(e: React.FormEvent) {
++    e.preventDefault()
++    setMsg(null)
++    setLoading(true)
++    try {
++      const res = await fetch("/api/admin/recovery-email", {
++        method: "POST",
++        headers: { "Content-Type": "application/json" },
++        body: JSON.stringify({ email: form.email, currentPassword: form.senha }),
++      })
++      const data = await res.json()
++      if (res.ok) {
++        setMsg({ ok: true, texto: data.message || "E-mail de recuperação salvo com sucesso" })
++        setCadastrado(data.email ?? null)
++        setForm(VAZIO)
++      } else {
++        setMsg({ ok: false, texto: data.error || "Erro ao salvar o e-mail" })
++      }
++    } catch {
++      setMsg({ ok: false, texto: "Erro de conexão. Tenta de novo." })
++    } finally {
++      setLoading(false)
++    }
++  }
++
++  return (
++    <section className="card">
++      <h2 className="section-title">E-mail de recuperação de senha</h2>
++      <p className="-mt-2 mb-5 text-sm text-[#7b5d5d]">
++        Se você esquecer a senha, o link para criar uma nova será enviado para este e-mail.
++      </p>
++
++      <div className={`surface-note ${cadastrado ? "ok" : "warn"} mb-5`}>
++        {carregando
++          ? "Carregando..."
++          : cadastrado
++            ? <>E-mail cadastrado: <strong>{cadastrado}</strong></>
++            : "Nenhum e-mail cadastrado ainda."}
++      </div>
++
++      <form onSubmit={enviar}>
++        <div className="input-group">
++          <label htmlFor="email-recuperacao">{cadastrado ? "Novo e-mail" : "E-mail"}</label>
++          <input
++            id="email-recuperacao"
++            type="email"
++            className="input-field"
++            value={form.email}
++            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
++            autoComplete="email"
++            placeholder="exemplo@gmail.com"
++            required
++          />
++        </div>
++
++        <div className="input-group">
++          <label htmlFor="email-recuperacao-senha">Senha de admin (para confirmar)</label>
++          <PasswordInput
++            id="email-recuperacao-senha"
++            value={form.senha}
++            onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
++            autoComplete="current-password"
++            required
++          />
++        </div>
++
++        {msg && <div className={msg.ok ? "mensagem-ok" : "mensagem-erro"}>{msg.texto}</div>}
++
++        <button type="submit" className="btn-primary mt-5 w-full sm:w-auto" disabled={loading}>
++          {loading ? "Salvando..." : cadastrado ? "Trocar e-mail" : "Salvar e-mail"}
++        </button>
++      </form>
++    </section>
++  )
++}
+diff --git a/lib/email.ts b/lib/email.ts
+new file mode 100644
+index 0000000..3d1bff7
+--- /dev/null
++++ b/lib/email.ts
+@@ -0,0 +1,57 @@
++import nodemailer from "nodemailer"
++
++const REMETENTE = process.env.GMAIL_USER || "lightyearsystemscontato@gmail.com"
++
++function criarTransporte() {
++  const pass = process.env.GMAIL_APP_PASSWORD
++  if (!pass) {
++    throw new Error(
++      "GMAIL_APP_PASSWORD não configurado. Gere uma 'Senha de app' na conta do Gmail e defina essa variável."
++    )
++  }
++  return nodemailer.createTransport({
++    host: "smtp.gmail.com",
++    port: 465,
++    secure: true,
++    auth: { user: REMETENTE, pass: pass.replace(/\s/g, "") },
++  })
++}
++
++export async function enviarEmailRecuperacao(para: string, link: string, validadeMinutos: number) {
++  const transporte = criarTransporte()
++
++  const texto = [
++    "Olá!",
++    "",
++    "Recebemos um pedido para redefinir a senha da Área Admin da Biblioteca Escolar Emerson Teixeira.",
++    `Use o link abaixo para criar uma nova senha (válido por ${validadeMinutos} minutos e de uso único):`,
++    "",
++    link,
++    "",
++    "Se você não fez esse pedido, ignore este e-mail: sua senha atual continua a mesma.",
++  ].join("\n")
++
++  const html = `
++  <div style="font-family:Arial,Helvetica,sans-serif;background:#f4ede3;padding:32px 16px;">
++    <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:32px;color:#261111;">
++      <h1 style="font-family:Georgia,serif;font-size:24px;color:#8b1e1e;margin:0 0 4px;">Redefinição de senha</h1>
++      <p style="font-size:13px;color:#9b8f8f;margin:0 0 24px;">Biblioteca Escolar Emerson Teixeira</p>
++      <p style="font-size:15px;line-height:1.5;">Recebemos um pedido para redefinir a senha da <strong>Área Admin</strong>.</p>
++      <p style="text-align:center;margin:28px 0;">
++        <a href="${link}" style="background:#8b1e1e;color:#ffffff;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:12px;display:inline-block;">Criar nova senha</a>
++      </p>
++      <p style="font-size:13px;line-height:1.5;color:#6b5757;">O link vale por ${validadeMinutos} minutos e só pode ser usado uma vez. Se o botão não funcionar, copie e cole este endereço no navegador:</p>
++      <p style="font-size:12px;word-break:break-all;color:#6b5757;">${link}</p>
++      <hr style="border:none;border-top:1px solid #efe2df;margin:24px 0;" />
++      <p style="font-size:12px;color:#9b8f8f;">Se você não fez esse pedido, ignore este e-mail: sua senha atual continua a mesma.</p>
++    </div>
++  </div>`
++
++  await transporte.sendMail({
++    from: `"Biblioteca Escolar Emerson Teixeira" <${REMETENTE}>`,
++    to: para,
++    subject: "Redefinição de senha – Área Admin da Biblioteca",
++    text: texto,
++    html,
++  })
++}
+diff --git a/lib/recuperacao.ts b/lib/recuperacao.ts
+new file mode 100644
+index 0000000..2f007d9
+--- /dev/null
++++ b/lib/recuperacao.ts
+@@ -0,0 +1,35 @@
++import crypto from "crypto"
++import { cookies } from "next/headers"
++import { prisma } from "@/lib/prisma"
++import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth"
++
++export const RESET_VALIDADE_MINUTOS = 30
++export const RESET_INTERVALO_SEGUNDOS = 120
++
++export function gerarToken(): string {
++  return crypto.randomBytes(32).toString("hex")
++}
++
++// Só o hash do token vai para o banco; o token real existe apenas no link do e-mail.
++export function hashToken(token: string): string {
++  return crypto.createHash("sha256").update(token).digest("hex")
++}
++
++export function emailValido(email: string): boolean {
++  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
++}
++
++export function mascararEmail(email: string): string {
++  const [user, dominio] = email.split("@")
++  if (!user || !dominio) return email
++  return `${user.slice(0, 1)}${"*".repeat(Math.max(user.length - 1, 3))}@${dominio}`
++}
++
++export async function adminDaSessao() {
++  const cookieStore = await cookies()
++  const token = cookieStore.get(SESSION_COOKIE)?.value
++  if (!token) return null
++  const payload = await verifySessionToken(token)
++  if (!payload) return null
++  return prisma.admin.findUnique({ where: { email: payload.usuario } })
++}
+diff --git a/middleware.ts b/middleware.ts
+index e6f9488..0bd749a 100644
+--- a/middleware.ts
++++ b/middleware.ts
+@@ -36,7 +36,9 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
+ export async function middleware(request: NextRequest) {
+   const { pathname } = request.nextUrl
+ 
+-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
++  const rotaPublicaAdmin = pathname === "/admin/login" || pathname === "/admin/redefinir-senha"
++
++  if (pathname.startsWith("/admin") && !rotaPublicaAdmin) {
+     const valid = await hasValidSession(request)
+     if (!valid) {
+       const loginUrl = new URL("/admin/login", request.url)
+diff --git a/package.json b/package.json
+index 0ff3f04..f452689 100644
+--- a/package.json
++++ b/package.json
+@@ -13,6 +13,7 @@
+     "bcryptjs": "^3.0.3",
+     "jose": "^6.2.8",
+     "next": "16.1.6",
++    "nodemailer": "^6.9.16",
+     "pdfjs-dist": "^4.10.38",
+     "prisma": "^5.22.0",
+     "react": "^18.3.1",
+@@ -22,6 +23,7 @@
+     "@tailwindcss/postcss": "^4",
+     "@types/bcryptjs": "^2.4.6",
+     "@types/node": "^20",
++    "@types/nodemailer": "^6.4.17",
+     "@types/react": "^19",
+     "@types/react-dom": "^19",
+     "cross-env": "^10.1.0",
+diff --git a/prisma/migrations/20261110120000_recuperacao_senha/migration.sql b/prisma/migrations/20261110120000_recuperacao_senha/migration.sql
+new file mode 100644
+index 0000000..9704501
+--- /dev/null
++++ b/prisma/migrations/20261110120000_recuperacao_senha/migration.sql
+@@ -0,0 +1,22 @@
++-- AlterTable
++ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "emailRecuperacao" TEXT;
++
++-- CreateTable
++CREATE TABLE IF NOT EXISTS "SenhaResetToken" (
++    "id" SERIAL NOT NULL,
++    "adminId" INTEGER NOT NULL,
++    "tokenHash" TEXT NOT NULL,
++    "expiresAt" TIMESTAMP(3) NOT NULL,
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "SenhaResetToken_pkey" PRIMARY KEY ("id")
++);
++
++-- CreateIndex
++CREATE UNIQUE INDEX IF NOT EXISTS "SenhaResetToken_tokenHash_key" ON "SenhaResetToken"("tokenHash");
++
++-- CreateIndex
++CREATE INDEX IF NOT EXISTS "SenhaResetToken_adminId_idx" ON "SenhaResetToken"("adminId");
++
++-- AddForeignKey
++ALTER TABLE "SenhaResetToken" ADD CONSTRAINT "SenhaResetToken_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index b7b1cee..a926184 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -59,9 +59,22 @@ model Emprestimo {
+ }
+ 
+ model Admin {
+-  id    Int    @id @default(autoincrement())
+-  email String @unique
+-  senha String
++  id               Int               @id @default(autoincrement())
++  email            String            @unique
++  senha            String
++  emailRecuperacao String?
++  resetTokens      SenhaResetToken[]
++}
++
++model SenhaResetToken {
++  id        Int       @id @default(autoincrement())
++  adminId   Int
++  tokenHash String    @unique
++  expiresAt DateTime
++  createdAt DateTime  @default(now())
++  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
++
++  @@index([adminId])
+ }
+ 
+ model Tcc {

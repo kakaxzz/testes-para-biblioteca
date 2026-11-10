@@ -36,7 +36,9 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+  const rotaPublicaAdmin = pathname === "/admin/login" || pathname === "/admin/redefinir-senha"
+
+  if (pathname.startsWith("/admin") && !rotaPublicaAdmin) {
     const valid = await hasValidSession(request)
     if (!valid) {
       const loginUrl = new URL("/admin/login", request.url)

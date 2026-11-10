@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const [menuAberto, setMenuAberto] = useState(false)
 
-  if (pathname === "/admin/login") return <>{children}</>
+  if (pathname === "/admin/login" || pathname === "/admin/redefinir-senha") return <>{children}</>
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })

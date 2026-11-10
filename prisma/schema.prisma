@@ -59,9 +59,22 @@ model Emprestimo {
 }
 
 model Admin {
-  id    Int    @id @default(autoincrement())
-  email String @unique
-  senha String
+  id               Int               @id @default(autoincrement())
+  email            String            @unique
+  senha            String
+  emailRecuperacao String?
+  resetTokens      SenhaResetToken[]
+}
+
+model SenhaResetToken {
+  id        Int       @id @default(autoincrement())
+  adminId   Int
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
 }
 
 model Tcc {
