@@ -1,0 +1,210 @@
+diff --git a/app/api/livros/route.ts b/app/api/livros/route.ts
+index 46bdc8c..5da6bd1 100644
+--- a/app/api/livros/route.ts
++++ b/app/api/livros/route.ts
+@@ -25,6 +25,7 @@ export async function GET(request: Request) {
+       include: {
+         exemplares: {
+           orderBy: { tombo: "asc" },
++          include: { _count: { select: { emprestimos: true } } },
+         },
+       },
+     })
+@@ -34,6 +35,7 @@ export async function GET(request: Request) {
+      quantidadeTotal: l.exemplares.length,
+   quantidadeDisponivel: l.exemplares.filter((e: any) => e.status === "disponivel").length,
+       tombo: l.exemplares[0]?.tombo ?? null,
++      totalEmprestimos: l.exemplares.reduce((soma: number, e: any) => soma + (e._count?.emprestimos ?? 0), 0),
+     }))
+ 
+     return NextResponse.json(livrosComContagem)
+diff --git a/app/catalogo/page.tsx b/app/catalogo/page.tsx
+index d3871c0..a9209bc 100644
+--- a/app/catalogo/page.tsx
++++ b/app/catalogo/page.tsx
+@@ -19,6 +19,7 @@ type Livro = {
+   quantidadeTotal?: number
+   quantidadeDisponivel?: number
+   classificacaoIndicativa?: string | null
++  totalEmprestimos?: number
+ }
+ 
+ export default function Catalogo() {
+@@ -26,6 +27,7 @@ export default function Catalogo() {
+   const [busca, setBusca] = useState("")
+   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
+   const [soDisponiveis, setSoDisponiveis] = useState(false)
++  const [maisLidos, setMaisLidos] = useState(false)
+   const [loading, setLoading] = useState(true)
+ 
+   useEffect(() => {
+@@ -54,6 +56,7 @@ export default function Catalogo() {
+   const clearFiltros = () => {
+     setSelectedGeneros([])
+     setSoDisponiveis(false)
++    setMaisLidos(false)
+     setBusca("")
+   }
+ 
+@@ -69,8 +72,12 @@ export default function Catalogo() {
+         l.assuntos?.toLowerCase().includes(g.toLowerCase())
+       )
+     const matchDisponivel = !soDisponiveis || (l.quantidadeDisponivel ?? 0) > 0
+-    return matchBusca && matchGenero && matchDisponivel
++    const matchMaisLido = !maisLidos || (l.totalEmprestimos ?? 0) > 0
++    return matchBusca && matchGenero && matchDisponivel && matchMaisLido
+   })
++  if (maisLidos) {
++    filtrados.sort((a, b) => (b.totalEmprestimos ?? 0) - (a.totalEmprestimos ?? 0))
++  }
+ 
+   return (
+     <div>
+@@ -319,7 +326,9 @@ export default function Catalogo() {
+             onChangeGeneros={setSelectedGeneros}
+             soDisponiveis={soDisponiveis}
+             onChangeSoDisponiveis={setSoDisponiveis}
+-            temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
++            maisLidos={maisLidos}
++            onChangeMaisLidos={setMaisLidos}
++            temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis || maisLidos}
+             onLimpar={clearFiltros}
+           />
+ 
+@@ -327,7 +336,7 @@ export default function Catalogo() {
+ 
+           {!loading && filtrados.length === 0 && (
+             <div className="feedback-box">
+-              {busca || selectedGeneros.length > 0 || soDisponiveis
++              {busca || selectedGeneros.length > 0 || soDisponiveis || maisLidos
+                 ? "Nenhum livro encontrado para esse filtro."
+                 : "Nenhum livro cadastrado ainda."}
+             </div>
+diff --git a/app/page.tsx b/app/page.tsx
+index 55d0773..e32a8dc 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -21,6 +21,7 @@ type Livro = {
+   quantidadeDisponivel?: number
+   classificacaoIndicativa?: string | null
+   criadoEm?: string
++  totalEmprestimos?: number
+ }
+ 
+ export default function Home() {
+@@ -28,6 +29,7 @@ export default function Home() {
+   const [busca, setBusca] = useState("")
+   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
+   const [soDisponiveis, setSoDisponiveis] = useState(false)
++  const [maisLidos, setMaisLidos] = useState(false)
+   const [loading, setLoading] = useState(true)
+   const [toastVisivel, setToastVisivel] = useState(false)
+   const [toastSaindo, setToastSaindo] = useState(false)
+@@ -73,6 +75,7 @@ export default function Home() {
+   const clearFiltros = () => {
+     setSelectedGeneros([])
+     setSoDisponiveis(false)
++    setMaisLidos(false)
+     setBusca("")
+   }
+ 
+@@ -91,8 +94,12 @@ export default function Home() {
+       selectedGeneros.length === 0 ||
+       selectedGeneros.some((g) => l.assuntos?.toLowerCase().includes(g.toLowerCase()))
+     const matchDisponivel = !soDisponiveis || (l.quantidadeDisponivel ?? 0) > 0
+-    return matchBusca && matchGenero && matchDisponivel
++    const matchMaisLido = !maisLidos || (l.totalEmprestimos ?? 0) > 0
++    return matchBusca && matchGenero && matchDisponivel && matchMaisLido
+   })
++  if (maisLidos) {
++    filtrados.sort((a, b) => (b.totalEmprestimos ?? 0) - (a.totalEmprestimos ?? 0))
++  }
+ 
+   useEffect(() => {
+     const elements = document.querySelectorAll("[data-reveal]")
+@@ -341,14 +348,16 @@ export default function Home() {
+               onChangeGeneros={setSelectedGeneros}
+               soDisponiveis={soDisponiveis}
+               onChangeSoDisponiveis={setSoDisponiveis}
+-              temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
++            maisLidos={maisLidos}
++            onChangeMaisLidos={setMaisLidos}
++              temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis || maisLidos}
+               onLimpar={clearFiltros}
+             />
+ 
+             {loading && <div className="feedback-box">Carregando acervo...</div>}
+             {!loading && filtrados.length === 0 && (
+               <div className="feedback-box">
+-                {busca || selectedGeneros.length > 0 || soDisponiveis ? "Nenhum livro encontrado para esse filtro." : "Nenhum livro cadastrado ainda."}
++                {busca || selectedGeneros.length > 0 || soDisponiveis || maisLidos ? "Nenhum livro encontrado para esse filtro." : "Nenhum livro cadastrado ainda."}
+               </div>
+             )}
+ 
+diff --git a/components/FiltrosCatalogo.tsx b/components/FiltrosCatalogo.tsx
+index c335ec9..b18c9a8 100644
+--- a/components/FiltrosCatalogo.tsx
++++ b/components/FiltrosCatalogo.tsx
+@@ -9,6 +9,8 @@ type Props = {
+   onChangeGeneros: (generos: string[]) => void
+   soDisponiveis: boolean
+   onChangeSoDisponiveis: (valor: boolean) => void
++  maisLidos?: boolean
++  onChangeMaisLidos?: (valor: boolean) => void
+   temFiltroAtivo: boolean
+   onLimpar: () => void
+ }
+@@ -19,6 +21,8 @@ export function FiltrosCatalogo({
+   onChangeGeneros,
+   soDisponiveis,
+   onChangeSoDisponiveis,
++  maisLidos = false,
++  onChangeMaisLidos,
+   temFiltroAtivo,
+   onLimpar,
+ }: Props) {
+@@ -102,6 +106,18 @@ export function FiltrosCatalogo({
+           Livros disponíveis
+         </button>
+ 
++        {onChangeMaisLidos && (
++          <button
++            type="button"
++            className={`filters-toggle${maisLidos ? " filters-toggle--on" : ""}`}
++            aria-pressed={maisLidos}
++            onClick={() => onChangeMaisLidos(!maisLidos)}
++          >
++            {maisLidos && <Icone nome="check" tamanho="1.05em" />}
++            Mais lidos
++          </button>
++        )}
++
+         {selectedGeneros.length > 0 && (
+           <div className="selected-filters">
+             {selectedGeneros.map((g) => (
+diff --git a/scripts/atrasar-emprestimo.ts b/scripts/atrasar-emprestimo.ts
+new file mode 100644
+index 0000000..9ef3556
+--- /dev/null
++++ b/scripts/atrasar-emprestimo.ts
+@@ -0,0 +1,20 @@
++import "dotenv/config"
++import { PrismaClient } from "@prisma/client"
++
++const prisma = new PrismaClient()
++
++// Uso: npx tsx scripts/atrasar-emprestimo.ts <idDoEmprestimo> [diasAtras=15]
++// Para voltar ao normal:  npx tsx scripts/atrasar-emprestimo.ts <id> 0
++async function main() {
++  const id = Number(process.argv[2])
++  const diasAtras = process.argv[3] !== undefined ? Number(process.argv[3]) : 15
++  if (!id) throw new Error("Informe o id do empréstimo. Ex.: npx tsx scripts/atrasar-emprestimo.ts 12")
++
++  const data = new Date()
++  data.setDate(data.getDate() - diasAtras)
++
++  const e = await prisma.emprestimo.update({ where: { id }, data: { dataEmprestimo: data } })
++  console.log(`Empréstimo ${e.id}: dataEmprestimo agora é ${e.dataEmprestimo.toLocaleDateString("pt-BR")}`)
++}
++
++main().catch((e) => { console.error(e); process.exit(1) }).finally(() => prisma.$disconnect())

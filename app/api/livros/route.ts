@@ -25,6 +25,7 @@ export async function GET(request: Request) {
       include: {
         exemplares: {
           orderBy: { tombo: "asc" },
+          include: { _count: { select: { emprestimos: true } } },
         },
       },
     })
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
      quantidadeTotal: l.exemplares.length,
   quantidadeDisponivel: l.exemplares.filter((e: any) => e.status === "disponivel").length,
       tombo: l.exemplares[0]?.tombo ?? null,
+      totalEmprestimos: l.exemplares.reduce((soma: number, e: any) => soma + (e._count?.emprestimos ?? 0), 0),
     }))
 
     return NextResponse.json(livrosComContagem)

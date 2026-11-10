@@ -21,6 +21,7 @@ type Livro = {
   quantidadeDisponivel?: number
   classificacaoIndicativa?: string | null
   criadoEm?: string
+  totalEmprestimos?: number
 }
 
 export default function Home() {
@@ -28,6 +29,7 @@ export default function Home() {
   const [busca, setBusca] = useState("")
   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
   const [soDisponiveis, setSoDisponiveis] = useState(false)
+  const [maisLidos, setMaisLidos] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toastVisivel, setToastVisivel] = useState(false)
   const [toastSaindo, setToastSaindo] = useState(false)
@@ -73,6 +75,7 @@ export default function Home() {
   const clearFiltros = () => {
     setSelectedGeneros([])
     setSoDisponiveis(false)
+    setMaisLidos(false)
     setBusca("")
   }
 
@@ -91,8 +94,12 @@ export default function Home() {
       selectedGeneros.length === 0 ||
       selectedGeneros.some((g) => l.assuntos?.toLowerCase().includes(g.toLowerCase()))
     const matchDisponivel = !soDisponiveis || (l.quantidadeDisponivel ?? 0) > 0
-    return matchBusca && matchGenero && matchDisponivel
+    const matchMaisLido = !maisLidos || (l.totalEmprestimos ?? 0) > 0
+    return matchBusca && matchGenero && matchDisponivel && matchMaisLido
   })
+  if (maisLidos) {
+    filtrados.sort((a, b) => (b.totalEmprestimos ?? 0) - (a.totalEmprestimos ?? 0))
+  }
 
   useEffect(() => {
     const elements = document.querySelectorAll("[data-reveal]")
@@ -341,14 +348,16 @@ export default function Home() {
               onChangeGeneros={setSelectedGeneros}
               soDisponiveis={soDisponiveis}
               onChangeSoDisponiveis={setSoDisponiveis}
-              temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
+            maisLidos={maisLidos}
+            onChangeMaisLidos={setMaisLidos}
+              temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis || maisLidos}
               onLimpar={clearFiltros}
             />
 
             {loading && <div className="feedback-box">Carregando acervo...</div>}
             {!loading && filtrados.length === 0 && (
               <div className="feedback-box">
-                {busca || selectedGeneros.length > 0 || soDisponiveis ? "Nenhum livro encontrado para esse filtro." : "Nenhum livro cadastrado ainda."}
+                {busca || selectedGeneros.length > 0 || soDisponiveis || maisLidos ? "Nenhum livro encontrado para esse filtro." : "Nenhum livro cadastrado ainda."}
               </div>
             )}
 

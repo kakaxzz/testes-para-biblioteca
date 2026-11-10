@@ -9,6 +9,8 @@ type Props = {
   onChangeGeneros: (generos: string[]) => void
   soDisponiveis: boolean
   onChangeSoDisponiveis: (valor: boolean) => void
+  maisLidos?: boolean
+  onChangeMaisLidos?: (valor: boolean) => void
   temFiltroAtivo: boolean
   onLimpar: () => void
 }
@@ -19,6 +21,8 @@ export function FiltrosCatalogo({
   onChangeGeneros,
   soDisponiveis,
   onChangeSoDisponiveis,
+  maisLidos = false,
+  onChangeMaisLidos,
   temFiltroAtivo,
   onLimpar,
 }: Props) {
@@ -101,6 +105,18 @@ export function FiltrosCatalogo({
           {soDisponiveis && <Icone nome="check" tamanho="1.05em" />}
           Livros disponíveis
         </button>
+
+        {onChangeMaisLidos && (
+          <button
+            type="button"
+            className={`filters-toggle${maisLidos ? " filters-toggle--on" : ""}`}
+            aria-pressed={maisLidos}
+            onClick={() => onChangeMaisLidos(!maisLidos)}
+          >
+            {maisLidos && <Icone nome="check" tamanho="1.05em" />}
+            Mais lidos
+          </button>
+        )}
 
         {selectedGeneros.length > 0 && (
           <div className="selected-filters">

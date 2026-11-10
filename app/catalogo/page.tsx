@@ -19,6 +19,7 @@ type Livro = {
   quantidadeTotal?: number
   quantidadeDisponivel?: number
   classificacaoIndicativa?: string | null
+  totalEmprestimos?: number
 }
 
 export default function Catalogo() {
@@ -26,6 +27,7 @@ export default function Catalogo() {
   const [busca, setBusca] = useState("")
   const [selectedGeneros, setSelectedGeneros] = useState<string[]>([])
   const [soDisponiveis, setSoDisponiveis] = useState(false)
+  const [maisLidos, setMaisLidos] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export default function Catalogo() {
   const clearFiltros = () => {
     setSelectedGeneros([])
     setSoDisponiveis(false)
+    setMaisLidos(false)
     setBusca("")
   }
 
@@ -69,8 +72,12 @@ export default function Catalogo() {
         l.assuntos?.toLowerCase().includes(g.toLowerCase())
       )
     const matchDisponivel = !soDisponiveis || (l.quantidadeDisponivel ?? 0) > 0
-    return matchBusca && matchGenero && matchDisponivel
+    const matchMaisLido = !maisLidos || (l.totalEmprestimos ?? 0) > 0
+    return matchBusca && matchGenero && matchDisponivel && matchMaisLido
   })
+  if (maisLidos) {
+    filtrados.sort((a, b) => (b.totalEmprestimos ?? 0) - (a.totalEmprestimos ?? 0))
+  }
 
   return (
     <div>
@@ -319,7 +326,9 @@ export default function Catalogo() {
             onChangeGeneros={setSelectedGeneros}
             soDisponiveis={soDisponiveis}
             onChangeSoDisponiveis={setSoDisponiveis}
-            temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis}
+            maisLidos={maisLidos}
+            onChangeMaisLidos={setMaisLidos}
+            temFiltroAtivo={selectedGeneros.length > 0 || !!busca || soDisponiveis || maisLidos}
             onLimpar={clearFiltros}
           />
 
@@ -327,7 +336,7 @@ export default function Catalogo() {
 
           {!loading && filtrados.length === 0 && (
             <div className="feedback-box">
-              {busca || selectedGeneros.length > 0 || soDisponiveis
+              {busca || selectedGeneros.length > 0 || soDisponiveis || maisLidos
                 ? "Nenhum livro encontrado para esse filtro."
                 : "Nenhum livro cadastrado ainda."}
             </div>
