@@ -141,3 +141,11 @@ model Virada {
   pendentes    Int      @default(0)
   estatisticas Json
 }
+
+model LoginTentativa {
+  id           Int       @id @default(autoincrement())
+  chave        String    @unique
+  falhas       Int       @default(0)
+  bloqueadoAte DateTime?
+  atualizadoEm DateTime  @default(now())
+}

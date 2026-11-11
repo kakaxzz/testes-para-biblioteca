@@ -14,6 +14,9 @@ export default function AdminEmprestimos() {
   const [emprestimos, setEmprestimos] = useState<any[]>([])
   const [busca, setBusca] = useState("")
   const [filtroStatus, setFiltroStatus] = useState<"abertos" | "todos">("abertos")
+  const [filtroDE, setFiltroDE] = useState("")
+  const [filtroATE, setFiltroATE] = useState("")
+  const [ordenacao, setOrdenacao] = useState<"mais" | "menos">("menos")
 
   const [mensagem, setMensagem] = useState("")
   const [tipoMensagem, setTipoMensagem] = useState<"ok" | "erro">("ok")
@@ -120,7 +123,7 @@ export default function AdminEmprestimos() {
       body: JSON.stringify({ emprestimoId: id }),
     })
     if (res.ok) {
-      exibirMensagem(`Empréstimo de "${titulo}" renovado por mais 10 dias!`, "ok")
+      exibirMensagem(`Empréstimo de "${titulo}" renovado! O prazo voltou para 10 dias.`, "ok")
       carregarEmprestimos()
     } else {
       const d = await res.json()
@@ -149,6 +152,17 @@ export default function AdminEmprestimos() {
     return Math.floor((Date.now() - new Date(data).getTime()) / 86400000)
   }
 
+  function dataVencimento(data: string) {
+    const d = new Date(data)
+    d.setDate(d.getDate() + 10)
+    return d
+  }
+
+  function formatarDataHora(data: string) {
+    const d = new Date(data)
+    return `${d.toLocaleDateString("pt-BR")} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+  }
+
   function statusPrazo(dias: number) {
     const restante = 10 - dias
     if (restante < 0) return { label: `${Math.abs(restante)}d atrasado`, cor: "#8b1e1e", bg: "#fdf2f2", urgente: true }
@@ -168,15 +182,31 @@ export default function AdminEmprestimos() {
     return r >= 0 && r <= 2
   })
 
-  const filtrados = emprestimos.filter((e) => {
-    const termo = busca.toLowerCase()
-    return (
-      e.usuario?.nome?.toLowerCase().includes(termo) ||
-      e.livro?.titulo?.toLowerCase().includes(termo) ||
-      e.usuario?.matricula?.includes(termo) ||
-      e.usuario?.cpf?.includes(termo)
-    )
-  })
+  const filtrados = emprestimos
+    .filter((e) => {
+      const termo = busca.toLowerCase()
+      const bateBusca =
+        e.usuario?.nome?.toLowerCase().includes(termo) ||
+        e.livro?.titulo?.toLowerCase().includes(termo) ||
+        e.usuario?.matricula?.includes(termo) ||
+        e.usuario?.cpf?.includes(termo)
+      if (!bateBusca) return false
+
+      const dataEmp = new Date(e.dataEmprestimo).getTime()
+      if (filtroDE && dataEmp < new Date(`${filtroDE}T00:00:00`).getTime()) return false
+      if (filtroATE && dataEmp > new Date(`${filtroATE}T23:59:59.999`).getTime()) return false
+      return true
+    })
+    .sort((a, b) => {
+      // devolvidos não têm prazo: ficam sempre no final da lista
+      if (a.dataDevolucao && b.dataDevolucao) return 0
+      if (a.dataDevolucao) return 1
+      if (b.dataDevolucao) return -1
+      const vencA = dataVencimento(a.dataEmprestimo).getTime()
+      const vencB = dataVencimento(b.dataEmprestimo).getTime()
+      // mais dias restantes = vencimento mais distante; menos dias = vencimento mais próximo (ou atrasado)
+      return ordenacao === "mais" ? vencB - vencA : vencA - vencB
+    })
 
   return (
     <div>
@@ -330,22 +360,49 @@ export default function AdminEmprestimos() {
           </div>
         </div>
 
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 20 }}>
+          <label style={{ display: "grid", gap: 4, fontSize: 11, fontWeight: 600, color: "#737373" }}>
+            Emprestado de
+            <input type="date" className="input-field" value={filtroDE} onChange={(e) => setFiltroDE(e.target.value)} />
+          </label>
+          <label style={{ display: "grid", gap: 4, fontSize: 11, fontWeight: 600, color: "#737373" }}>
+            até
+            <input type="date" className="input-field" value={filtroATE} onChange={(e) => setFiltroATE(e.target.value)} />
+          </label>
+          {(filtroDE || filtroATE) && (
+            <button className="btn-secondary" onClick={() => { setFiltroDE(""); setFiltroATE("") }}>
+              Limpar
+            </button>
+          )}
+        </div>
+
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Usuário</th>
                 <th>Livro</th>
-                <th>Empréstimo</th>
-                <th>Prazo</th>
+                <th>Emprestado em</th>
+                <th>Devolver até</th>
+                <th>
+                  <button
+                    onClick={() => setOrdenacao((o) => (o === "menos" ? "mais" : "menos"))}
+                    title={ordenacao === "menos" ? "Perto de vencer primeiro (clique para inverter)" : "Mais prazo primeiro (clique para inverter)"}
+                    aria-label="Inverter ordem do prazo"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", color: "inherit", fontWeight: "inherit" }}
+                  >
+                    Prazo
+                    <span style={{ fontSize: 14, lineHeight: 1 }}>{ordenacao === "menos" ? "↑" : "↓"}</span>
+                  </button>
+                </th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
-                    {busca ? "Nenhum resultado" : "Nenhum empréstimo encontrado"}
+                  <td colSpan={6} style={{ textAlign: "center", color: "#b3a6a6", padding: 32 }}>
+                    {busca || filtroDE || filtroATE ? "Nenhum resultado" : "Nenhum empréstimo encontrado"}
                   </td>
                 </tr>
               )}
@@ -364,8 +421,13 @@ export default function AdminEmprestimos() {
                       <div style={{ fontWeight: 600 }}>{e.livro?.titulo}</div>
                       <div style={{ fontSize: 12, color: "#a09191" }}>{e.livro?.autor}</div>
                     </td>
-                    <td style={{ color: "#7f6d6d" }}>
-                      {new Date(e.dataEmprestimo).toLocaleDateString("pt-BR")}
+                    <td style={{ color: "#7f6d6d", whiteSpace: "nowrap" }}>
+                      {formatarDataHora(e.dataEmprestimo)}
+                    </td>
+                    <td style={{ color: "#7f6d6d", whiteSpace: "nowrap" }}>
+                      {devolvido
+                        ? `Devolvido em ${new Date(e.dataDevolucao).toLocaleDateString("pt-BR")}`
+                        : dataVencimento(e.dataEmprestimo).toLocaleDateString("pt-BR")}
                     </td>
                     <td>
                       {devolvido ? (

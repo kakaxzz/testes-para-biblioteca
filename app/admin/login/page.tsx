@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PasswordInput } from "@/components/PasswordInput"
 import { Icone } from "@/components/Icone"
@@ -12,26 +12,60 @@ export default function LoginPage() {
   const [usuario, setUsuario] = useState("")
   const [senha, setSenha] = useState("")
   const [erro, setErro] = useState("")
+  const [bloqueio, setBloqueio] = useState(0) // segundos restantes de bloqueio
   const [loading, setLoading] = useState(false)
   const [enviandoRec, setEnviandoRec] = useState(false)
   const [recMsg, setRecMsg] = useState<{ ok: boolean; texto: string } | null>(null)
   const router = useRouter()
 
+  // Contagem regressiva do bloqueio
+  useEffect(() => {
+    if (bloqueio <= 0) return
+    const timer = setInterval(() => {
+      setBloqueio((s) => {
+        if (s <= 1) {
+          setErro("")
+          return 0
+        }
+        return s - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [bloqueio > 0])
+
+  const tempoBloqueio = `${Math.floor(bloqueio / 60)}:${String(bloqueio % 60).padStart(2, "0")}`
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
+    if (bloqueio > 0) return
     setErro("")
     setLoading(true)
 
-    const res = await fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usuario, senha }),
-    })
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, senha }),
+      })
 
-    if (res.ok) router.replace("/admin")
-    else setErro("Usuário ou senha incorretos.")
+      if (res.ok) {
+        router.replace("/admin")
+        return
+      }
 
-    setLoading(false)
+      const data = await res.json().catch(() => ({}))
+      if (data.bloqueadoSegundos) {
+        setBloqueio(data.bloqueadoSegundos)
+        setErro(data.error || "Muitas tentativas incorretas.")
+      } else {
+        setErro(data.error || "Usuário ou senha incorretos.")
+      }
+      setSenha("")
+    } catch {
+      setErro("Erro de conexão. Tente de novo.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleEsqueciSenha() {
@@ -97,15 +131,17 @@ export default function LoginPage() {
           />
 
           {erro && (
-            <div className="rounded-xl border border-[#8b1e1e]/20 bg-[#fdf2f2] px-3.5 py-2.5 text-[13px] text-[#8b1e1e]">{erro}</div>
+            <div className="rounded-xl border border-[#8b1e1e]/20 bg-[#fdf2f2] px-3.5 py-2.5 text-[13px] text-[#8b1e1e]">
+              {bloqueio > 0 ? `Muitas tentativas incorretas. Tente novamente em ${tempoBloqueio}.` : erro}
+            </div>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || bloqueio > 0}
             className="mt-1.5 cursor-pointer rounded-xl bg-[linear-gradient(180deg,#992323_0%,#7e1717_100%)] p-3.5 text-[15px] font-bold text-white shadow-[0_12px_22px_rgba(126,23,23,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {bloqueio > 0 ? `Aguarde ${tempoBloqueio}` : loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 

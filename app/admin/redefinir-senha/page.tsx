@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { PasswordInput } from "@/components/PasswordInput"
 import { Icone } from "@/components/Icone"
+import { SenhaChecklist } from "@/components/SenhaChecklist"
+import { avaliarSenha } from "@/lib/senha-forte"
 
 const CAMPO =
   "rounded-xl border border-[#8b1e1e]/15 bg-white/70 px-4 py-3.5 text-sm text-[#1a0f0f] shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] outline-none transition focus:border-[#8b1e1e] focus:ring-4 focus:ring-[#8b1e1e]/10"
@@ -38,6 +40,11 @@ function RedefinirSenhaForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErro("")
+
+    if (!avaliarSenha(nova).forte) {
+      setErro("A nova senha ainda não atende a todos os requisitos.")
+      return
+    }
 
     if (nova !== confirma) {
       setErro("A confirmação não bate com a nova senha.")
@@ -93,24 +100,28 @@ function RedefinirSenhaForm() {
       {status === "valido" && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
           <PasswordInput
-            placeholder="Nova senha (mín. 8 caracteres)"
+            placeholder="Nova senha"
             value={nova}
             onChange={(e) => setNova(e.target.value)}
             autoComplete="new-password"
-            minLength={8}
             required
             autoFocus
             inputClassName={`w-full ${CAMPO}`}
           />
+          <SenhaChecklist senha={nova} />
           <PasswordInput
             placeholder="Confirmar nova senha"
             value={confirma}
             onChange={(e) => setConfirma(e.target.value)}
             autoComplete="new-password"
-            minLength={8}
             required
             inputClassName={`w-full ${CAMPO}`}
           />
+          {confirma && (
+            <p className="-mt-1.5 text-left text-[13px] font-semibold" style={{ color: confirma === nova ? "#166534" : "#8b1e1e" }}>
+              {confirma === nova ? "✓ As senhas coincidem" : "As senhas ainda não coincidem"}
+            </p>
+          )}
 
           {erro && (
             <div className="rounded-xl border border-[#8b1e1e]/20 bg-[#fdf2f2] px-3.5 py-2.5 text-left text-[13px] text-[#8b1e1e]">
@@ -120,7 +131,7 @@ function RedefinirSenhaForm() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !avaliarSenha(nova).forte || nova !== confirma}
             className="mt-1.5 cursor-pointer rounded-xl bg-[linear-gradient(180deg,#992323_0%,#7e1717_100%)] p-3.5 text-[15px] font-bold text-white shadow-[0_12px_22px_rgba(126,23,23,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? "Salvando..." : "Redefinir senha"}

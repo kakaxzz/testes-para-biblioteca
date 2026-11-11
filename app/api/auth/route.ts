@@ -1,33 +1,52 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, createSessionToken, SESSION_COOKIE, SESSION_DURATION_SECONDS } from "@/lib/auth";
+import { chaveDoCliente, segundosDeBloqueio, registrarFalha, limparFalhas } from "@/lib/login-limite";
+
+function respostaBloqueado(segundos: number) {
+  return NextResponse.json(
+    {
+      error: "Muitas tentativas incorretas. Aguarde 2 minutos para tentar novamente.",
+      bloqueadoSegundos: segundos,
+    },
+    { status: 429 }
+  );
+}
+
+async function respostaCredenciaisInvalidas(chave: string) {
+  const falha = await registrarFalha(chave);
+  if (falha.bloqueado) return respostaBloqueado(falha.segundos);
+
+  const plural = falha.restantes === 1 ? "tentativa" : "tentativas";
+  return NextResponse.json(
+    {
+      error: `Usuário ou senha incorretos. Restam ${falha.restantes} ${plural}; ao errar 5 vezes, o login fica bloqueado por 2 minutos.`,
+      tentativasRestantes: falha.restantes,
+    },
+    { status: 401 }
+  );
+}
 
 export async function POST(request: Request) {
+  const chave = chaveDoCliente(request);
+
+  // Enquanto estiver bloqueado, nem confere a senha (mesmo que esteja certa).
+  const bloqueio = await segundosDeBloqueio(chave);
+  if (bloqueio > 0) return respostaBloqueado(bloqueio);
+
   const { usuario, senha } = await request.json();
 
-  console.log("🔍 usuário recebido:", JSON.stringify(usuario));
-  console.log("🔍 senha recebida (tamanho):", senha?.length);
-
   if (typeof usuario !== "string" || typeof senha !== "string") {
-    return NextResponse.json({ error: "Usuário ou senha incorretos." }, { status: 401 });
+    return respostaCredenciaisInvalidas(chave);
   }
 
   const admin = await prisma.admin.findUnique({ where: { email: usuario } });
-
-  console.log("🔍 admin encontrado?", !!admin);
-  console.log("🔍 hash no banco (início):", admin?.senha?.slice(0, 10));
-  console.log("🔍 hash no banco (tamanho):", admin?.senha?.length);
-
-  if (!admin) {
-    return NextResponse.json({ error: "Usuário ou senha incorretos." }, { status: 401 });
-  }
+  if (!admin) return respostaCredenciaisInvalidas(chave);
 
   const senhaValida = await verifyPassword(senha, admin.senha);
-  console.log("🔍 senha válida?", senhaValida);
+  if (!senhaValida) return respostaCredenciaisInvalidas(chave);
 
-  if (!senhaValida) {
-    return NextResponse.json({ error: "Usuário ou senha incorretos." }, { status: 401 });
-  }
+  await limparFalhas(chave);
 
   const token = await createSessionToken(admin.email);
 

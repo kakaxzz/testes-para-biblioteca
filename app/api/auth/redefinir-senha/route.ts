@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth"
 import { hashToken } from "@/lib/recuperacao"
+import { erroSenhaFraca } from "@/lib/senha-forte"
 
 async function buscarTokenValido(token: unknown) {
   if (typeof token !== "string" || token.length < 20) return null
@@ -22,11 +23,9 @@ export async function POST(request: NextRequest) {
   try {
     const { token, novaSenha } = await request.json()
 
-    if (typeof novaSenha !== "string" || novaSenha.length < 8) {
-      return NextResponse.json(
-        { error: "A nova senha precisa ter pelo menos 8 caracteres" },
-        { status: 400 }
-      )
+    const erroForca = erroSenhaFraca(novaSenha)
+    if (erroForca) {
+      return NextResponse.json({ error: erroForca }, { status: 400 })
     }
 
     const registro = await buscarTokenValido(token)

@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { PasswordInput } from "@/components/PasswordInput"
+import { SenhaChecklist } from "@/components/SenhaChecklist"
+import { avaliarSenha } from "@/lib/senha-forte"
 
 const CAMPOS = [
   { nome: "atual", rotulo: "Senha atual", auto: "current-password" },
@@ -19,6 +21,11 @@ export function TrocarSenhaForm() {
   async function enviar(e: React.FormEvent) {
     e.preventDefault()
     setMsg(null)
+
+    if (!avaliarSenha(form.nova).forte) {
+      setMsg({ ok: false, texto: "A nova senha ainda não atende a todos os requisitos." })
+      return
+    }
 
     if (form.nova !== form.confirma) {
       setMsg({ ok: false, texto: "A confirmação não bate com a nova senha" })
@@ -60,15 +67,20 @@ export function TrocarSenhaForm() {
               value={form[c.nome]}
               onChange={(e) => setForm((f) => ({ ...f, [c.nome]: e.target.value }))}
               autoComplete={c.auto}
-              minLength={c.nome === "atual" ? undefined : 8}
               required
             />
+            {c.nome === "nova" && <SenhaChecklist senha={form.nova} />}
+            {c.nome === "confirma" && form.confirma && (
+              <p className="mt-1.5 text-[13px] font-semibold" style={{ color: form.confirma === form.nova ? "#166534" : "#8b1e1e" }}>
+                {form.confirma === form.nova ? "✓ As senhas coincidem" : "As senhas ainda não coincidem"}
+              </p>
+            )}
           </div>
         ))}
 
         {msg && <div className={msg.ok ? "mensagem-ok" : "mensagem-erro"}>{msg.texto}</div>}
 
-        <button type="submit" className="btn-primary mt-5 w-full sm:w-auto" disabled={loading}>
+        <button type="submit" className="btn-primary mt-5 w-full sm:w-auto" disabled={loading || !avaliarSenha(form.nova).forte || form.nova !== form.confirma}>
           {loading ? "Salvando..." : "Trocar senha"}
         </button>
       </form>

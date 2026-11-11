@@ -17,12 +17,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Este empréstimo já foi devolvido." }, { status: 409 })
     }
 
-    const novaData = new Date(emprestimo.dataEmprestimo)
-    novaData.setDate(novaData.getDate() + 10)
-
+    // Renovar reinicia a contagem: o prazo volta a 10 dias a partir de agora (sem acumular).
     await prisma.emprestimo.update({
       where: { id: Number(emprestimoId) },
-      data: { dataEmprestimo: novaData },
+      data: { dataEmprestimo: new Date() },
     })
 
     return NextResponse.json({ ok: true })

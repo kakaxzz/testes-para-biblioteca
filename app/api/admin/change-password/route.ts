@@ -7,6 +7,7 @@ import {
   verifyPassword,
   hashPassword,
 } from "@/lib/auth";
+import { erroSenhaFraca } from "@/lib/senha-forte";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,11 +32,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (newPassword.length < 8) {
-      return NextResponse.json(
-        { error: "A nova senha precisa ter pelo menos 8 caracteres" },
-        { status: 400 }
-      );
+    const erroForca = erroSenhaFraca(newPassword);
+    if (erroForca) {
+      return NextResponse.json({ error: erroForca }, { status: 400 });
     }
 
     if (newPassword === currentPassword) {
